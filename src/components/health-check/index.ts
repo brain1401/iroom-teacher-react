@@ -6,3 +6,4 @@
 export { default as HealthCheckIcon } from "./HealthCheckIcon";
 export { default as HealthCheckBadge } from "./HealthCheckBadge";
 export { default as HealthCheckTooltip } from "./HealthCheckTooltip";
+export { default as HealthCheckErrorFeedback } from "./HealthCheckErrorFeedback";
