@@ -11,19 +11,25 @@ export function ExplanationSection() {
     <div className="hidden bg-blue-600 text-white md:flex md:flex-col md:justify-center md:p-12">
       {/* 브랜딩 헤더 */}
       <div className="mb-8">
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-2 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
             <RiShieldCheckLine size={26} className="text-white" />
           </div>
         </div>
 
-        <h1 className="mb-4 text-4xl font-bold leading-tight">
-          업무는 스마트하게, 교육은 더 깊이있게
-        </h1>
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold leading-tight">
+            업무는 스마트하게,
+          </h1>
 
-        <p className="text-lg leading-relaxed text-blue-100">
+          <h1 className="text-3xl font-bold leading-tight">
+            교육은 더 깊이있게
+          </h1>
+        </div>
+
+        <p className="text-sm leading-relaxed text-blue-100">
           러브버그는 반복적인 채점과 성적 관리 업무를 자동화하여 선생님이 교육
-          본연의 가치에 더 집중할 수 있도록 도와줌.
+          본연의 가치에 더 집중할 수 있도록 도와줍니다.
         </p>
       </div>
 
