@@ -52,28 +52,26 @@ export const healthCheckQueryOptions = (options?: {
       return await fetchHealthCheck({ signal });
     },
 
-    // 캐시 설정
-    staleTime: 0, // 즉시 stale로 처리하여 매번 새로운 데이터 요청
+    // 캐시 설정: 상태 지속성을 위한 최적화
+    staleTime: 5 * 1000, // 5초간 fresh 상태 유지하여 탭 전환 시 불필요한 refetch 방지
     gcTime: 1 * 60 * 1000, // 1분간만 캐시 보관 (헬스체크는 실시간성이 중요)
 
-    // 재시도 설정
-    retry: (failureCount) => {
-      // 헬스체크는 실패해도 계속 시도해야 하므로 무제한 재시도
-      // 하지만 너무 빠르게 재시도하지 않도록 최대 3번만
-      return failureCount < 3;
-    },
-    retryDelay: (attemptIndex) => {
-      // 지수 백오프: 1초, 2초, 4초 간격으로 재시도
-      return Math.min(1000 * 2 ** attemptIndex, 30000);
-    },
+    // 이전 데이터 유지: 탭 전환 시 깜빡임 방지
+    placeholderData: (previousData) => previousData, // 이전 상태를 유지하면서 백그라운드에서 업데이트
+
+    // 재시도 설정: 연결 실패 시 즉시 오류 상태 표시
+    retry: false, // 헬스체크는 즉시 에러 상태로 표시하여 사용자가 서버 상태를 빠르게 파악할 수 있도록 함
 
     // 활성화 조건
     enabled: options?.enabled ?? isDevelopment, // 개발 환경에서만 기본 활성화
 
-    // 자동 재요청 설정
+    // 자동 재요청 설정: 사용자 경험 최적화
     refetchInterval: options?.refetchInterval ?? 30000, // 30초마다 자동 재요청
     refetchIntervalInBackground: true, // 백그라운드에서도 재요청 계속
-    refetchOnWindowFocus: true, // 창에 포커스할 때 재요청
+    refetchOnWindowFocus: (query) => {
+      // 데이터가 stale일 때만 window focus 시 refetch (깜빡임 방지)
+      return query.isStale();
+    },
     refetchOnReconnect: true, // 네트워크 재연결 시 재요청
 
     // 네트워크 설정
