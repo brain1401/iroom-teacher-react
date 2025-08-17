@@ -140,7 +140,7 @@ export const healthCheckSummaryAtom = atom((get) => {
     };
   }
 
-  // 로딩 중
+  // 초기 로딩 중 (placeholderData 사용으로 백그라운드 refetch 시에는 기존 상태 유지)
   if (isPending) {
     return {
       status: "checking" as const,
@@ -152,11 +152,24 @@ export const healthCheckSummaryAtom = atom((get) => {
 
   // 에러 발생
   if (isError) {
+    // 에러 메시지를 더 구체적으로 분석
+    let errorMessage = "서버 연결 실패";
+
+    if (error instanceof Error) {
+      if (error.message.includes("시간 초과")) {
+        errorMessage = "응답 시간 초과";
+      } else if (error.message.includes("연결할 수 없습니다")) {
+        errorMessage = "서버 연결 불가";
+      } else if (error.message.includes("취소되었습니다")) {
+        errorMessage = "요청 취소됨";
+      } else if (error.message.includes("에러가 발생했습니다")) {
+        errorMessage = "서버 내부 오류";
+      }
+    }
+
     return {
       status: "unhealthy" as const,
-      message: error.message.includes("헬스체크 실패")
-        ? "서버 연결 실패"
-        : "알 수 없는 오류",
+      message: errorMessage,
       color: "#ef4444", // red-500
       lastChecked: new Date(),
     };
