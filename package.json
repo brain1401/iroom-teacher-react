@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
-    "start": "node .output/server/index.mjs",
+    "dev": "vite dev --port 3012",
+    "start": "PORT=3012 node .output/server/index.mjs",
     "build": "vite build",
     "test": "vitest run",
     "lint": "eslint",
@@ -15,6 +15,7 @@
     "@faker-js/faker": "^9.9.0",
     "@hookform/resolvers": "^5.2.1",
     "@modelcontextprotocol/sdk": "^1.17.3",
+    "@playwright/test": "^1.54.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 const config = defineConfig({
   server: {
-    port: 3000,
+    port: 3012,
   },
   build: {
     outDir: ".output",
