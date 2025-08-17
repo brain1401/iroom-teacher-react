@@ -73,7 +73,7 @@ export const isDevelopmentAtom = atom(() => {
  *
  * 사용 예시:
  * ```typescript
- * const [{ data: health, isPending, isError }] = useAtom(healthCheckQueryAtom);
+ * const { data: health, isPending, isError } = useAtomValue(healthCheckQueryAtom);
  *
  * if (isPending) return <div>연결 확인 중...</div>;
  * if (isError) return <div>서버 연결 실패</div>;
@@ -106,7 +106,7 @@ export const healthCheckQueryAtom = atomWithQuery((get) => {
  *
  * 사용 예시:
  * ```typescript
- * const [healthSummary] = useAtom(healthCheckSummaryAtom);
+ * const healthSummary = useAtomValue(healthCheckSummaryAtom);
  *
  * return (
  *   <div style={{ color: healthSummary.color }}>

@@ -93,7 +93,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
  * - Outlet: TanStack Router의 핵심 컴포넌트로 현재 활성화된 자식 라우트 렌더링 위치
  */
 function RootComponent() {
-  // Jotai atom에서 추가 배경 스타일 클래스를 가져옴
+  /**
+   * 📌 useAtomValue 사용 이유: 값만 읽기 (read-only)
+   * - mainBgExtraCombinedClassAtom의 값만 필요하고 변경할 필요 없음
+   * - useAtom 대신 useAtomValue 사용으로 불필요한 setter 함수 제거
+   * - 성능 최적화: 값 변경 기능이 없어 더 가벼운 훅 사용
+   */
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
   return (
     <>

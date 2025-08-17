@@ -79,7 +79,12 @@ function PokemonDetailPage() {
    */
   useHydrateAtoms([[pokemonIdOrNameAtom, id]]);
 
-  // AggregateError 방지: enableReHydrate 대신 수동으로 ID 변경 처리
+  /**
+   * 📌 useSetAtom 사용 이유: setter 함수만 필요 (write-only)
+   * - pokemonIdOrNameAtom의 값을 설정하기만 하면 되고 현재 값은 읽을 필요 없음
+   * - useAtom 대신 useSetAtom 사용으로 불필요한 값 구독 제거
+   * - 메모리 최적화: 값 변경 시에만 리렌더링되지 않도록 함
+   */
   const setPokemonIdOrName = useSetAtom(pokemonIdOrNameAtom);
 
   useEffect(() => {
@@ -87,6 +92,12 @@ function PokemonDetailPage() {
     setPokemonIdOrName(id);
   }, [id, setPokemonIdOrName]);
 
+  /**
+   * 📌 useAtomValue 사용 이유: 값만 읽기 (read-only)
+   * - pokemonDetailQueryAtom의 쿼리 결과만 필요하고 직접 변경할 필요 없음
+   * - useAtom 대신 useAtomValue 사용으로 불필요한 setter 함수 제거
+   * - 데이터 안전성: 실수로 쿼리 상태를 변경하는 것을 방지
+   */
   const {
     data: pokemon,
     isPending,

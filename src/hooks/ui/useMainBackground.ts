@@ -28,6 +28,13 @@ type BackgroundClassConfig = string | Partial<ThemeBgClassConfig>;
 export const useMainBackground = (
   backgroundClass: BackgroundClassConfig = "",
 ) => {
+  /**
+   * 📌 useSetAtom 사용 이유: setter 함수만 필요 (write-only)
+   * - mainBgExtraClassAtom의 값을 설정하기만 하면 되고 현재 값은 읽을 필요 없음
+   * - 이 훅은 배경 클래스를 설정하는 역할만 하므로 setter만 필요
+   * - useAtom 대신 useSetAtom 사용으로 불필요한 값 구독 및 리렌더링 방지
+   * - 성능 최적화: atom 값이 변경되어도 이 훅을 사용하는 컴포넌트는 리렌더링되지 않음
+   */
   const setMainBgExtra = useSetAtom(mainBgExtraClassAtom);
 
   useLayoutEffect(() => {

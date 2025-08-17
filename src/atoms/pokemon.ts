@@ -67,7 +67,14 @@ type PokemonListFilters = {
  * const [search, setSearch] = useState("");
  *
  * // Jotai 방식 (전역에서 공유)
+ * // 📌 값과 설정 함수 모두 필요 - useAtom 사용
  * const [filters, setFilters] = useAtom(pokemonListFiltersAtom);
+ *
+ * // 📌 설정만 필요한 경우 - useSetAtom 사용
+ * const setFilters = useSetAtom(pokemonListFiltersAtom);
+ *
+ * // 📌 값만 읽는 경우 - useAtomValue 사용
+ * const filters = useAtomValue(pokemonListFiltersAtom);
  * ```
  */
 export const pokemonListFiltersAtom = atom<PokemonListFilters>({});
@@ -85,7 +92,8 @@ export const pokemonListFiltersAtom = atom<PokemonListFilters>({});
  *
  * 사용 예시:
  * ```typescript
- * const [{ data, isLoading, error }] = useAtom(pokemonListQueryAtom);
+ * // 📌 값만 읽기 - useAtomValue 사용
+ * const { data, isLoading, error } = useAtomValue(pokemonListQueryAtom);
  * ```
  */
 export const pokemonListQueryAtom = atomWithQuery((get) => {
@@ -105,9 +113,14 @@ export const pokemonListQueryAtom = atomWithQuery((get) => {
  *
  * 사용 예시:
  * ```typescript
+ * // 📌 값 읽기와 설정 모두 필요 - useAtom 사용
  * const [pokemonId, setPokemonId] = useAtom(pokemonIdOrNameAtom);
  * setPokemonId("pikachu"); // 이름으로 설정
  * setPokemonId(25);        // ID로 설정
+ *
+ * // 📌 설정만 필요한 경우 - useSetAtom 사용
+ * const setPokemonId = useSetAtom(pokemonIdOrNameAtom);
+ * setPokemonId("charizard");
  * ```
  */
 export const pokemonIdOrNameAtom = atom<string | number>("");
@@ -123,12 +136,12 @@ export const pokemonIdOrNameAtom = atom<string | number>("");
  *
  * 사용 예시:
  * ```typescript
- * // 1단계: 조회할 포켓몬 설정
- * const [, setPokemonId] = useAtom(pokemonIdOrNameAtom);
+ * // 1단계: 조회할 포켓몬 설정 - setter만 필요하므로 useSetAtom 사용
+ * const setPokemonId = useSetAtom(pokemonIdOrNameAtom);
  * setPokemonId("charizard");
  *
- * // 2단계: 상세 정보 가져오기
- * const [{ data: pokemon, isLoading, error }] = useAtom(pokemonDetailQueryAtom);
+ * // 2단계: 상세 정보 가져오기 - 값만 읽으므로 useAtomValue 사용
+ * const { data: pokemon, isLoading, error } = useAtomValue(pokemonDetailQueryAtom);
  * ```
  */
 export const pokemonDetailQueryAtom = atomWithQuery((get) => {
@@ -167,7 +180,8 @@ export const pokemonDetailQueryAtom = atomWithQuery((get) => {
  *
  * 사용 예시:
  * ```typescript
- * const [filteredResults] = useAtom(filteredPokemonListAtom);
+ * // 📌 derived atom은 값만 읽으므로 useAtomValue 사용
+ * const filteredResults = useAtomValue(filteredPokemonListAtom);
  * // filteredResults: { results: Pokemon[], isPending: boolean, isError: any }
  * ```
  */
