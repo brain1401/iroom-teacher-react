@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect } from "react";
 import { useSetAtom } from "jotai";
 import type { ThemeBgClassConfig } from "@/atoms/ui";
 import { mainBgExtraClassAtom } from "@/atoms/ui";
