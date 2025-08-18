@@ -1,0 +1,372 @@
+# 이룸클래스 React 프로젝트 - Cursor AI 규칙
+
+이룸클래스 교육 플랫폼의 React 프로젝트입니다. 모든 코드는 아래 규칙을 엄격히 준수해야 합니다.
+
+## 🚨 핵심 필수 준수사항 (절대 위반 금지)
+
+### 1. API 호출 규칙
+```typescript
+// ❌ 절대 금지: fetch 직접 사용
+const response = await fetch('/api/data');
+
+// ✅ 필수: API 클라이언트 사용
+import { baseApiClient, authApiClient } from '@/api/client';
+
+// 인증 불필요한 공개 API
+const pokemonData = await baseApiClient.get('/api/v2/pokemon/25');
+
+// 인증 필요한 API (httpOnly 쿠키 포함)
+const userData = await authApiClient.get('/api/user/profile');
+```
+
+### 2. 주석 작성 규칙
+- **모든 주석은 한국어 명사형** (존댓말 사용 안함)
+- **TSDoc 형식 적극 활용** (`@description`, `@param`, `@returns`, `@example`)
+- **bullet point로 가독성 향상**
+- **React 기초 수준 개발자도 이해 가능하도록 상세 설명**
+
+```typescript
+/**
+ * 포켓몬 상세 정보를 조회하는 함수
+ * @description 특정 포켓몬의 모든 상세 정보를 가져오는 함수
+ * 
+ * 주요 기능:
+ * - ID 또는 이름으로 포켓몬 조회
+ * - 이미지, 능력치, 타입 정보 포함
+ * - 요청 취소 기능 지원
+ * - 방어적 프로그래밍으로 안전한 데이터 처리
+ * 
+ * @param idOrName 포켓몬 ID 번호 또는 이름
+ * @param options 추가 옵션
+ * @returns 포켓몬의 모든 상세 정보
+ */
+export async function fetchPokemonDetail(idOrName: string | number): Promise<Pokemon> {
+  // 구현...
+}
+```
+
+### 3. 타입 정의 규칙
+```typescript
+// ✅ type 사용 (일관성)
+type PokemonCardProps = {
+  /** 포켓몬 이름 */
+  name: string;
+  /** 포켓몬 API URL */
+  url: string;
+};
+
+// ❌ interface 사용 금지
+interface PokemonCardProps {
+  name: string;
+  url: string;
+}
+```
+
+## 🏗️ 기술 스택 및 아키텍처
+
+### 프레임워크
+- **TanStack Start** (React 19 + SSR)
+- **TanStack Router** (파일 기반 라우팅)
+- **TypeScript strict 모드**
+
+### 상태 관리
+- **Jotai** (원자적 상태 관리)
+- **TanStack Query** (서버 상태)
+
+### 스타일링
+- **Tailwind CSS v4**
+- **shadcn/ui** 컴포넌트 라이브러리
+
+### 개발 도구
+- **Vite** (개발 서버, 포트 3012)
+- **Vitest** (테스트)
+
+## 📂 폴더 구조
+
+```
+src/
+├── api/                    # API 레이어
+│   ├── client/            # HTTP 클라이언트
+│   │   ├── index.ts       # baseApiClient, authApiClient export
+│   │   ├── baseClient.ts  # 기본 API 클라이언트
+│   │   └── authClient.ts  # 인증 API 클라이언트
+│   └── [domain]/          # 도메인별 API
+│       ├── api.ts         # API 함수들
+│       ├── types.ts       # 응답 타입 정의
+│       └── query.ts       # React Query 옵션
+├── atoms/                 # 상태 관리 레이어
+├── components/            # 컴포넌트 레이어
+│   ├── ui/               # shadcn/ui 기본 컴포넌트
+│   ├── layout/           # 레이아웃 컴포넌트
+│   └── [domain]/         # 도메인별 컴포넌트
+├── hooks/                # 커스텀 훅 레이어
+├── routes/               # 라우팅 레이어 (파일 기반)
+├── utils/                # 유틸리티 레이어
+└── css/                  # 스타일 레이어
+```
+
+## ⚛️ 컴포넌트 개발 패턴
+
+### 기본 구조
+```typescript
+// 1. Props 타입 정의
+type ComponentProps = {
+  /** 필수 prop 설명 */
+  requiredProp: string;
+  /** 선택적 prop 설명 */
+  optionalProp?: number;
+  /** 추가 CSS 클래스 */
+  className?: string;
+};
+
+// 2. 컴포넌트 주석
+/**
+ * 컴포넌트 설명
+ * 
+ * 주요 기능:
+ * - 기능 1
+ * - 기능 2
+ * 
+ * @example
+ * ```tsx
+ * <Component requiredProp="value" />
+ * ```
+ */
+export function Component({ requiredProp, optionalProp = 0, className }: ComponentProps) {
+  // 3. 커스텀 훅 (복잡한 로직 분리)
+  const { state, handlers } = useComponentLogic();
+  
+  // 4. 조건부 렌더링
+  if (!requiredProp) return null;
+  
+  // 5. 메인 JSX
+  return (
+    <div className={cn("base-styles", className)}>
+      {/* 내용 */}
+    </div>
+  );
+}
+```
+
+### 필수 패턴
+- **함수 컴포넌트만 사용** (클래스 컴포넌트 금지)
+- **cn() 함수**로 조건부 className 관리
+- **커스텀 훅**으로 복잡한 로직 분리
+- **방어적 프로그래밍** 적용
+
+### asChild 패턴 활용
+```typescript
+// ✅ Button 스타일을 Link에 적용
+<Button variant="ghost" asChild>
+  <Link to="/examples/pokemon">포켓몬</Link>
+</Button>
+
+// ❌ 잘못된 방법: 중첩 구조
+<Button variant="ghost">
+  <Link to="/examples/pokemon">포켓몬</Link>
+</Button>
+```
+
+## 🧠 상태 관리 패턴
+
+### Jotai Atom 타입별 사용법
+
+```typescript
+// 1. 기본 클라이언트 상태
+export const pokemonPageAtom = atom<number>(1);
+
+// 2. 영구 저장 상태 (localStorage)
+export const pokemonLimitAtom = atomWithStorage("pokemon-limit", 24);
+
+// 3. 서버 상태 (React Query 통합)
+export const pokemonListQueryAtom = atomWithQuery((get) => {
+  const page = get(pokemonPageAtom);
+  const limit = get(pokemonLimitAtom);
+  return pokemonListQueryOptions({ page, limit });
+});
+
+// 4. 계산된 상태 (derived)
+export const filteredPokemonListAtom = atom((get) => {
+  const { data, isPending, isError } = get(pokemonListQueryAtom);
+  return { results: data?.results || [], isPending, isError };
+});
+```
+
+### 올바른 훅 선택
+```typescript
+function Component() {
+  // ✅ 값만 읽기 (read-only) - 성능 최적화
+  const pokemonList = useAtomValue(pokemonListQueryAtom);
+  
+  // ✅ 설정만 필요 (write-only) - 렌더링 최적화
+  const setPokemonPage = useSetAtom(pokemonPageAtom);
+  
+  // ✅ 읽기 + 쓰기 모두 필요
+  const [searchTerm, setSearchTerm] = useAtom(pokemonSearchAtom);
+}
+```
+
+## 🎨 스타일링 가이드라인
+
+### cn() 함수 활용
+```typescript
+import { cn } from "@/lib/utils";
+
+// ✅ 기본 사용법
+<div className={cn("base-class", "additional-class")} />
+
+// ✅ 조건부 클래스
+<div className={cn(
+  "base-class",
+  isActive && "active-class",
+  hasError && "error-class",
+  className // 외부 전달 클래스
+)} />
+```
+
+### shadcn/ui 컴포넌트 활용
+```typescript
+// ✅ 기본 컴포넌트 사용
+<Button variant="outline" size="sm">버튼</Button>
+<Card>
+  <CardHeader>
+    <CardTitle>제목</CardTitle>
+  </CardHeader>
+  <CardContent>내용</CardContent>
+</Card>
+
+// ✅ className으로 스타일 확장
+<Button 
+  variant="outline"
+  className={cn(
+    "border-2",           // 테두리 강조
+    "hover:scale-105",    // 호버 효과
+    "transition-transform" // 애니메이션
+  )}
+>
+  커스텀 버튼
+</Button>
+```
+
+## 🚨 에러 처리 및 품질 기준
+
+### 방어적 프로그래밍
+```typescript
+// ✅ 입력값 검증
+export function extractPokemonId(url: string): string {
+  if (!url || typeof url !== "string") {
+    return "";
+  }
+
+  const match = url.match(/\/pokemon\/(\d+)\/?$/);
+  return match ? match[1] : "";
+}
+
+// ✅ 에러 처리
+export async function fetchPokemonDetail(
+  idOrName: string | number,
+): Promise<Pokemon> {
+  try {
+    return await pokemonApiRequest<Pokemon>({
+      method: "GET",
+      url: buildPokemonByNameOrIdUrl(idOrName),
+    });
+  } catch (error) {
+    console.error(`포켓몬 상세 조회 실패: ${idOrName}`, error);
+    throw error;
+  }
+}
+```
+
+### TypeScript 엄격 모드
+```typescript
+// ✅ 문제가 되는 코드 방지
+const name: string = props.name || "";
+const name = props.name ?? "기본값";
+
+// ❌ undefined 가능성 있는 코드
+const name: string = props.name; // props.name이 undefined일 수 있음
+```
+
+## 📁 Import/Export 규칙
+
+### Import 순서
+```typescript
+// 1. React 관련
+import { useState, useEffect } from "react";
+import type { FC, PropsWithChildren } from "react";
+
+// 2. 외부 라이브러리
+import { useAtom, useAtomValue } from "jotai";
+import { Link } from "@tanstack/react-router";
+
+// 3. 내부 모듈 (@ alias 사용)
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { pokemonListAtom } from "@/atoms/pokemon";
+
+// 4. 상대 경로 (같은 디렉토리)
+import { PokemonCard } from "./PokemonCard";
+import type { PokemonCardProps } from "./types";
+```
+
+### Export 규칙
+```typescript
+// ✅ named export 선호
+export function PokemonCard() {}
+export type PokemonCardProps = {};
+
+// ✅ index.ts에서 re-export
+export { PokemonCard } from "./PokemonCard";
+export { PokemonList } from "./PokemonList";
+export type { PokemonCardProps } from "./types";
+
+// ❌ default export 최소화 (shadcn/ui 제외)
+export default function Component() {}
+```
+
+## 🔧 개발 명령어
+
+### 핵심 명령어
+- `npm run dev` - 개발 서버 실행 (포트 3012)
+- `npm run build` - 프로덕션 빌드
+- `npm run test` - Vitest를 사용한 테스트 실행
+- `npm run lint` - ESLint 실행
+- `npm run format` - Prettier 실행
+- `npm run check` - **커밋 전 필수 실행** (Prettier + ESLint 통합 자동 수정)
+
+### 컴포넌트 추가
+- `pnpx shadcn@latest add [컴포넌트명]` - shadcn/ui 컴포넌트 추가
+
+## 📋 개발 체크리스트
+
+### 개발 시작 전
+- [ ] 기존 패턴 및 라이브러리 확인
+- [ ] 도메인별 폴더 구조 준수 계획
+- [ ] API 클라이언트 사용 방법 확인
+
+### 개발 중
+- [ ] 한국어 명사형 주석 + TSDoc 작성
+- [ ] `type` 사용 (`interface` 금지)
+- [ ] `baseApiClient`/`authApiClient` 사용 (fetch 금지)
+- [ ] 커스텀 훅으로 복잡한 로직 분리
+- [ ] `cn()` 함수로 스타일링
+- [ ] 함수 컴포넌트만 사용
+
+### 완료 후
+- [ ] `npm run check` 통과
+- [ ] 타입 에러 해결
+- [ ] 에러 처리 및 로딩 상태 포함
+- [ ] 접근성 고려 (alt 텍스트, 키보드 네비게이션)
+- [ ] 반응형 디자인 적용
+
+## 📝 Git 커밋 규칙
+
+### 커밋 메시지 형식
+- bullet point 사용해서 가독성 높이기
+- 타입: feat, fix, docs, style, refactor, test, chore
+- **중요**: 커밋 메시지에 Claude 관련 서명 추가 금지
+
+---
+
+이 규칙들을 엄격히 준수하여 일관되고 품질 높은 코드를 작성해 주세요. 궁금한 점이 있으면 CLAUDE.md와 docs/ 폴더의 문서들을 참고하세요.
