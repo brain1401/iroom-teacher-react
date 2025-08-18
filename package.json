@@ -9,7 +9,20 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
-    "check": "prettier --write . && eslint --fix"
+    "check": "prettier --write . && eslint --fix",
+    "docker:build": "docker build -t iroom-teacher:latest .",
+    "docker:build:dev": "docker build --target build -t iroom-teacher:dev .",
+    "docker:run": "docker run -d -p 3012:3012 --name iroom-teacher-app iroom-teacher:latest",
+    "docker:run:dev": "docker run -it -p 3013:3012 -v $(pwd)/src:/app/src --name iroom-teacher-dev iroom-teacher:dev bun run dev",
+    "docker:stop": "docker stop iroom-teacher-app && docker rm iroom-teacher-app",
+    "docker:logs": "docker logs -f iroom-teacher-app",
+    "docker:shell": "docker exec -it iroom-teacher-app /bin/sh",
+    "compose:up": "docker-compose up -d",
+    "compose:up:dev": "docker-compose --profile dev up -d",
+    "compose:down": "docker-compose down",
+    "compose:build": "docker-compose build",
+    "compose:logs": "docker-compose logs -f app",
+    "compose:restart": "docker-compose restart app"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

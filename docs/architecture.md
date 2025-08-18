@@ -5,21 +5,25 @@
 ## 🎯 설계 원칙
 
 ### 1. 타입 안전성 우선
+
 - **TypeScript strict 모드** 활성화
 - **컴파일 시점 에러 검출**로 런타임 오류 방지
 - **API 응답 타입 완전 정의**로 데이터 안전성 확보
 
 ### 2. 관심사 분리
+
 - **도메인별 폴더 구조**로 코드 응집도 향상
 - **레이어별 책임 분리** (API, 상태, 컴포넌트, 라우팅)
 - **비즈니스 로직과 UI 로직 분리**
 
 ### 3. 재사용성과 확장성
+
 - **컴포넌트 합성 패턴** (asChild)
 - **커스텀 훅**으로 로직 캡슐화
 - **설정 기반 확장** (variant 시스템)
 
 ### 4. 성능 최적화
+
 - **SSR + 하이드레이션**으로 초기 로딩 최적화
 - **이미지 preload**와 다단계 fallback
 - **상태 기반 렌더링 최적화**
@@ -31,35 +35,40 @@ graph TD
     A[React 19] --> B[TanStack Start]
     B --> C[TanStack Router]
     C --> D[TypeScript]
-    
+
     E[Jotai] --> F[TanStack Query]
     F --> G[상태 관리]
-    
+
     H[Tailwind CSS v4] --> I[shadcn/ui]
     I --> J[스타일링]
-    
+
     K[Vite] --> L[Vitest]
     L --> M[개발 도구]
 ```
 
 ### Frontend Framework
+
 - **React 19**: 최신 기능과 성능 개선 (Concurrent Features, Suspense)
 - **TanStack Start**: React 19 기반 SSR 프레임워크로 Next.js 대안
 - **TypeScript**: 타입 안전성과 개발 생산성
 
 ### 라우팅
+
 - **TanStack Router**: 파일 기반 + 타입 안전한 라우팅
 - **자동 코드 분할**과 **로더 기반 데이터 페칭**
 
 ### 상태 관리
+
 - **Jotai**: 원자적 상태 관리로 불필요한 리렌더링 방지
 - **TanStack Query**: 서버 상태 캐싱과 동기화
 
 ### 스타일링
+
 - **Tailwind CSS v4**: 유틸리티 우선 CSS 프레임워크
 - **shadcn/ui**: 고품질 컴포넌트 라이브러리
 
 ### 개발 도구
+
 - **Vite**: 빠른 개발 서버와 빌드 도구
 - **Vitest**: Jest 호환 테스트 프레임워크
 
@@ -137,7 +146,7 @@ graph LR
 // 기본 API 클라이언트 (인증 불필요)
 export const baseApiClient = createBaseApiClient();
 
-// 인증용 API 클라이언트 (httpOnly 쿠키 포함)  
+// 인증용 API 클라이언트 (httpOnly 쿠키 포함)
 export const authApiClient = createAuthApiClient();
 ```
 
@@ -166,14 +175,16 @@ responseInterceptor: {
 
 ```typescript
 // api/pokemon/api.ts
-export async function fetchPokemonList(params: ListParams): Promise<PokemonListResponse> {
+export async function fetchPokemonList(
+  params: ListParams,
+): Promise<PokemonListResponse> {
   return pokemonApiRequest<PokemonListResponse>({
     method: "GET",
     url: buildPokemonListUrl(params),
   });
 }
 
-// api/pokemon/query.ts  
+// api/pokemon/query.ts
 export const pokemonListQueryOptions = (filters: ListFilters) => ({
   queryKey: pokemonKeys.list(filters),
   queryFn: () => fetchPokemonList(filters),
@@ -232,10 +243,10 @@ pokemonLimitAtom ───┘
 // 서버에서 초기 데이터 로드
 loader: async ({ context }) => {
   const data = await context.queryClient.ensureQueryData(
-    pokemonListQueryOptions({ page: 1, limit: 24 })
+    pokemonListQueryOptions({ page: 1, limit: 24 }),
   );
   return { preloadImages: extractImageUrls(data) };
-}
+};
 
 // 클라이언트에서 하이드레이션
 useHydrateAtoms([
@@ -266,8 +277,8 @@ routes/
 
 ```typescript
 // 자동 생성된 타입으로 안전한 라우팅
-<Link 
-  to="/examples/pokemon/$id" 
+<Link
+  to="/examples/pokemon/$id"
   params={{ id: "pikachu" }}    // 타입 체크됨
   search={{ page: 1 }}          // 타입 체크됨
 >
@@ -284,23 +295,23 @@ export const Route = createFileRoute("/examples/pokemon/")({
     page: z.number().default(1),
     keyword: z.string().optional(),
   }),
-  
+
   // 데이터 사전 로드
   loader: async ({ context, deps }) => {
     const data = await context.queryClient.ensureQueryData(
-      pokemonListQueryOptions(deps)
+      pokemonListQueryOptions(deps),
     );
     return { preloadImages: extractImageUrls(data) };
   },
-  
+
   // SEO 최적화
   head: ({ loaderData }) => ({
-    links: loaderData?.preloadImages.map(url => ({
+    links: loaderData?.preloadImages.map((url) => ({
       rel: "preload",
-      as: "image", 
-      href: url
-    }))
-  })
+      as: "image",
+      href: url,
+    })),
+  }),
 });
 ```
 
@@ -367,13 +378,13 @@ export function Component(props: ComponentProps) {
 ```typescript
 // 사전 로드
 head: ({ loaderData }) => ({
-  links: preloadImages.map(url => ({
+  links: preloadImages.map((url) => ({
     rel: "preload",
     as: "image",
     href: url,
-    fetchPriority: "high"
-  }))
-})
+    fetchPriority: "high",
+  })),
+});
 
 // 다단계 fallback
 const handleImageError = (e) => {
@@ -395,15 +406,15 @@ export const expensiveCalculationAtom = atom((get) => {
 });
 
 // 선택적 구독으로 렌더링 최적화
-const value = useAtomValue(specificAtom);     // 읽기 전용
-const setValue = useSetAtom(specificAtom);     // 쓰기 전용
+const value = useAtomValue(specificAtom); // 읽기 전용
+const setValue = useSetAtom(specificAtom); // 쓰기 전용
 ```
 
 ### 3. 번들 최적화
 
 ```typescript
 // 동적 import로 코드 분할
-const LazyComponent = lazy(() => import('./HeavyComponent'));
+const LazyComponent = lazy(() => import("./HeavyComponent"));
 
 // 라우트별 자동 코드 분할 (TanStack Router)
 // routes/heavy-page/index.tsx → 별도 번들
@@ -426,7 +437,7 @@ const LazyComponent = lazy(() => import('./HeavyComponent'));
 // 텍스트 하드코딩 대신 키 기반 관리
 const messages = {
   ko: { welcome: "환영합니다" },
-  en: { welcome: "Welcome" }
+  en: { welcome: "Welcome" },
 };
 ```
 
@@ -448,16 +459,19 @@ const messages = {
 ## 🎯 아키텍처 의사결정 기록
 
 ### ADR-001: TanStack Start 선택
+
 - **배경**: Next.js 대안 필요
 - **결정**: TanStack Start 채택
 - **이유**: React 19 지원, 타입 안전성, 성능
 
 ### ADR-002: Jotai + React Query 조합
+
 - **배경**: 복잡한 상태 관리 필요
 - **결정**: Jotai와 React Query 통합
 - **이유**: 원자적 상태 관리와 서버 상태 분리
 
 ### ADR-003: shadcn/ui 채택
+
 - **배경**: 일관된 디자인 시스템 필요
 - **결정**: shadcn/ui 기반 컴포넌트 시스템
 - **이유**: 커스터마이징 용이, Tailwind 통합

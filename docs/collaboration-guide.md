@@ -8,55 +8,59 @@
 
 ```typescript
 // ❌ 절대 금지: fetch 직접 사용
-const response = await fetch('/api/data');
+const response = await fetch("/api/data");
 
 // ✅ 필수: API 클라이언트 사용
-import { baseApiClient, authApiClient } from '@/api/client';
+import { baseApiClient, authApiClient } from "@/api/client";
 
 // 인증 불필요한 공개 API
-const pokemonData = await baseApiClient.get('/api/v2/pokemon/25');
+const pokemonData = await baseApiClient.get("/api/v2/pokemon/25");
 
 // 인증 필요한 API (httpOnly 쿠키 포함)
-const userData = await authApiClient.get('/api/user/profile');
+const userData = await authApiClient.get("/api/user/profile");
 ```
 
 ### 2. 주석 작성 규칙
 
-```typescript
+````typescript
 /**
  * 포켓몬 상세 정보를 조회하는 함수
  * @description 특정 포켓몬의 모든 상세 정보를 가져오는 함수
- * 
+ *
  * 주요 기능:
  * - ID 또는 이름으로 포켓몬 조회
  * - 이미지, 능력치, 타입 정보 포함
  * - 요청 취소 기능 지원
  * - 방어적 프로그래밍으로 안전한 데이터 처리
- * 
+ *
  * @example
  * ```typescript
  * // ID로 조회
  * const pikachu = await fetchPokemonDetail(25);
- * 
- * // 이름으로 조회  
+ *
+ * // 이름으로 조회
  * const charizard = await fetchPokemonDetail("charizard");
- * 
+ *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
  * const pokemon = await fetchPokemonDetail(1, { signal: controller.signal });
  * ```
- * 
+ *
  * @param idOrName 포켓몬 ID 번호 또는 이름
  * @param options 추가 옵션
  * @param options.signal 요청 취소를 위한 AbortSignal
  * @returns 포켓몬의 모든 상세 정보 (능력치, 이미지, 기술, 특성 등)
  */
-export async function fetchPokemonDetail(idOrName: string | number, options?: { signal?: AbortSignal }): Promise<Pokemon> {
+export async function fetchPokemonDetail(
+  idOrName: string | number,
+  options?: { signal?: AbortSignal },
+): Promise<Pokemon> {
   // 구현...
 }
-```
+````
 
 **주석 규칙:**
+
 - 모든 주석은 **한국어 명사형** (존댓말 사용 안함)
 - TSDoc 형식 적극 활용 (`@description`, `@param`, `@returns`, `@example`)
 - bullet point로 가독성 향상
@@ -85,10 +89,11 @@ interface PokemonCardProps {
 ## 🏗️ 프로젝트 아키텍처
 
 ### 기술 스택
+
 ```
 Frontend: React 19 + TypeScript (strict)
 Framework: TanStack Start (SSR)
-Routing: TanStack Router (파일 기반)  
+Routing: TanStack Router (파일 기반)
 State: Jotai + TanStack Query
 Styling: Tailwind CSS v4 + shadcn/ui
 Build: Vite (포트 3012, Bun 타겟)
@@ -134,10 +139,10 @@ export const pokemonPageAtom = atom<number>(1);
 // derived 상태: 계산된 값 (컴포넌트 useMemo 대신)
 export const filteredPokemonListAtom = atom((get) => {
   const { data, isPending, isError } = get(pokemonListQueryAtom);
-  return { 
-    results: data?.results || [], 
-    isPending, 
-    isError 
+  return {
+    results: data?.results || [],
+    isPending,
+    isError,
   };
 });
 ```
@@ -172,7 +177,7 @@ interface PokemonCardProps {
 /**
  * 포켓몬 카드 컴포넌트
  * 이미지, 이름, 번호를 표시하는 현대적인 카드 UI
- * 
+ *
  * 설계 원칙:
  * - 목록에서는 기본 정보만 표시
  * - 커스텀 훅으로 복잡한 로직 캡슐화
@@ -181,7 +186,7 @@ interface PokemonCardProps {
 export function PokemonCard({ name, url, href = "/examples/pokemon/$id" }: PokemonCardProps) {
   // 커스텀 훅으로 복잡한 로직 분리
   const { finalImageUrl, isLoading, hasError } = usePokemonCardImage({ name, url });
-  
+
   return (
     <Link to={href} params={{ id: name }}>
       <Card className={cn("base-styles", "hover:shadow-2xl")}>
@@ -221,7 +226,7 @@ export function PokemonCard({ name, url, href = "/examples/pokemon/$id" }: Pokem
 import { cn } from "@/lib/utils";
 
 // ✅ cn() 함수로 조건부 스타일링
-<Card 
+<Card
   className={cn(
     "base-styles",                    // 기본 스타일
     isActive && "active-styles",      // 조건부 스타일
@@ -295,11 +300,11 @@ git push origin feature/새기능명
 
 ```typescript
 // ❌ 잘못된 예시
-const response = await fetch('/api/pokemon');  // fetch 직접 사용
+const response = await fetch("/api/pokemon"); // fetch 직접 사용
 const data = await response.json();
 
-// ✅ 올바른 예시  
-const data = await baseApiClient.get('/api/pokemon');
+// ✅ 올바른 예시
+const data = await baseApiClient.get("/api/pokemon");
 ```
 
 ### 2. 상태 관리 실수
@@ -347,11 +352,13 @@ type Props = {
 ## 📋 새 기능 개발 체크리스트
 
 ### 개발 시작 전
+
 - [ ] 기존 패턴 및 라이브러리 확인
 - [ ] 도메인별 폴더 구조 준수 계획
 - [ ] API 클라이언트 사용 방법 확인
 
 ### 개발 중
+
 - [ ] 한국어 명사형 주석 + TSDoc 작성
 - [ ] `type` 사용 (`interface` 금지)
 - [ ] `baseApiClient`/`authApiClient` 사용
@@ -360,6 +367,7 @@ type Props = {
 - [ ] 함수 컴포넌트만 사용
 
 ### 완료 후
+
 - [ ] `npm run check` 통과
 - [ ] 타입 에러 해결
 - [ ] 에러 처리 및 로딩 상태 포함
@@ -370,7 +378,7 @@ type Props = {
 ## 🆘 도움이 필요할 때
 
 1. **코딩 컨벤션**: [coding-conventions.md](./coding-conventions.md)
-2. **아키텍처 문의**: [architecture.md](./architecture.md)  
+2. **아키텍처 문의**: [architecture.md](./architecture.md)
 3. **상태 관리**: [state-management.md](./state-management.md)
 4. **컴포넌트 개발**: [component-guide.md](./component-guide.md)
 5. **스타일링**: [styling-guide.md](./styling-guide.md)

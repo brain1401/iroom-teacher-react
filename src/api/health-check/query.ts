@@ -53,8 +53,8 @@ export const healthCheckQueryOptions = (options?: {
     },
 
     // 캐시 설정: 상태 지속성을 위한 최적화
-    staleTime: 5 * 1000, // 5초간 fresh 상태 유지하여 탭 전환 시 불필요한 refetch 방지
-    gcTime: 1 * 60 * 1000, // 1분간만 캐시 보관 (헬스체크는 실시간성이 중요)
+    staleTime: 15 * 1000, // 15초간 fresh 상태 유지하여 탭 전환 시 불필요한 refetch 방지
+    gcTime: 5 * 60 * 1000, // 5분간 캐시 보관 (탭 전환/브라우저 재활성화 시 상태 유지 향상)
 
     // 이전 데이터 유지: 탭 전환 시 깜빡임 방지
     placeholderData: (previousData) => previousData, // 이전 상태를 유지하면서 백그라운드에서 업데이트
@@ -69,7 +69,11 @@ export const healthCheckQueryOptions = (options?: {
     refetchInterval: options?.refetchInterval ?? 30000, // 30초마다 자동 재요청
     refetchIntervalInBackground: true, // 백그라운드에서도 재요청 계속
     refetchOnWindowFocus: (query) => {
-      // 데이터가 stale일 때만 window focus 시 refetch (깜빡임 방지)
+      // 데이터가 stale일 때만 window focus 시 refetch (깜빡임 방지 및 탭 전환 시 상태 유지)
+      return query.isStale();
+    },
+    refetchOnMount: (query) => {
+      // 마운트 시에도 fresh 데이터가 있으면 refetch 하지 않음 (상태 지속성 향상)
       return query.isStale();
     },
     refetchOnReconnect: true, // 네트워크 재연결 시 재요청

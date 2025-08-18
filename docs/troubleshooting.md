@@ -7,11 +7,13 @@
 ### 포트 충돌 (Port Already in Use)
 
 **문제**: `npm run dev` 실행 시 포트 3012가 이미 사용 중
+
 ```
 Error: listen EADDRINUSE: address already in use :::3012
 ```
 
 **해결책**:
+
 ```bash
 # 1. 포트 사용 프로세스 확인
 netstat -ano | findstr :3012
@@ -26,11 +28,13 @@ npm run dev -- --port 3013
 ### Node.js 버전 호환성
 
 **문제**: React 19나 TanStack Start 호환성 이슈
+
 ```
 Error: Unsupported Node.js version
 ```
 
 **해결책**:
+
 ```bash
 # Node.js 18.18+ 또는 20+ 사용 확인
 node --version
@@ -43,11 +47,13 @@ nvm use 20.10.0
 ### 의존성 설치 실패
 
 **문제**: `npm install` 실패
+
 ```
 Error: ERESOLVE unable to resolve dependency tree
 ```
 
 **해결책**:
+
 ```bash
 # 1. 캐시 정리
 npm cache clean --force
@@ -67,11 +73,13 @@ npm install --legacy-peer-deps
 ### TypeScript 컴파일 에러
 
 **문제**: 타입 에러로 빌드 실패
+
 ```
 Type 'string | undefined' is not assignable to type 'string'
 ```
 
 **해결책**:
+
 ```typescript
 // ❌ 문제가 되는 코드
 const name: string = props.name; // props.name이 undefined일 수 있음
@@ -89,11 +97,13 @@ const name = props.name as string;
 ### Import 경로 문제
 
 **문제**: 절대 경로 import가 동작하지 않음
+
 ```
 Module not found: Can't resolve '@/components/ui/button'
 ```
 
 **해결책**:
+
 ```typescript
 // tsconfig.json 확인
 {
@@ -122,6 +132,7 @@ export default defineConfig({
 **문제**: Tailwind 클래스가 화면에 반영되지 않음
 
 **해결책**:
+
 ```css
 /* src/css/root.css에 Tailwind 지시어 확인 */
 @tailwind base;
@@ -134,9 +145,7 @@ export default defineConfig({
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-  ],
+  plugins: [tailwindcss()],
 });
 ```
 
@@ -145,30 +154,32 @@ export default defineConfig({
 ### Jotai Atom 무한 리렌더링
 
 **문제**: 컴포넌트가 무한히 리렌더링됨
+
 ```
 Warning: Maximum update depth exceeded
 ```
 
 **해결책**:
+
 ```typescript
 // ❌ 문제가 되는 코드
 function Component() {
   const [value, setValue] = useAtom(someAtom);
-  
+
   // 매 렌더링마다 새로운 객체 생성
   setValue({ ...value, newProp: "value" });
-  
+
   return <div>{value}</div>;
 }
 
 // ✅ 해결책: useEffect 사용
 function Component() {
   const [value, setValue] = useAtom(someAtom);
-  
+
   useEffect(() => {
     setValue({ ...value, newProp: "value" });
   }, []); // 의존성 배열 주의
-  
+
   return <div>{value}</div>;
 }
 ```
@@ -178,6 +189,7 @@ function Component() {
 **문제**: 데이터가 캐시되지 않거나 stale 상태가 지속됨
 
 **해결책**:
+
 ```typescript
 // 1. Query Key 일관성 확인
 export const pokemonKeys = {
@@ -190,8 +202,8 @@ export const pokemonKeys = {
 export const pokemonListQueryOptions = (filters: any) => ({
   queryKey: pokemonKeys.list(filters),
   queryFn: () => fetchPokemonList(filters),
-  staleTime: 5 * 60 * 1000,  // 5분간 fresh
-  gcTime: 10 * 60 * 1000,    // 10분간 캐시 유지
+  staleTime: 5 * 60 * 1000, // 5분간 fresh
+  gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
 });
 
 // 3. 수동으로 캐시 무효화
@@ -202,25 +214,27 @@ queryClient.invalidateQueries({ queryKey: pokemonKeys.lists() });
 ### SSR 하이드레이션 불일치
 
 **문제**: 서버와 클라이언트 렌더링 결과가 다름
+
 ```
 Warning: Text content did not match. Server: "..." Client: "..."
 ```
 
 **해결책**:
+
 ```typescript
 // ✅ useHydrateAtoms로 초기 상태 동기화
 function Component() {
   const { page, keyword } = Route.useSearch();
-  
+
   // SSR 하이드레이션 (한번만)
   useHydrateAtoms([
     [pokemonPageAtom, page],
     [pokemonListFiltersAtom, { search: keyword }],
   ]);
-  
+
   // URL 파라미터 동기화는 useEffect로 분리
   const setPage = useSetAtom(pokemonPageAtom);
-  
+
   useEffect(() => {
     setPage(page);
   }, [page, setPage]);
@@ -234,6 +248,7 @@ function Component() {
 **문제**: shadcn/ui 컴포넌트가 제대로 표시되지 않음
 
 **해결책**:
+
 ```bash
 # 1. 컴포넌트 재설치
 pnpx shadcn@latest add button --overwrite
@@ -263,6 +278,7 @@ pnpx shadcn@latest add button --overwrite
 **문제**: 모바일에서 레이아웃이 깨짐
 
 **해결책**:
+
 ```typescript
 // ✅ 모바일 우선 접근법
 <div className={cn(
@@ -285,6 +301,7 @@ pnpx shadcn@latest add button --overwrite
 **문제**: 다크 모드에서 색상이 적절하지 않음
 
 **해결책**:
+
 ```typescript
 // ✅ CSS 변수 활용 (권장)
 <div className="bg-background text-foreground border-border">
@@ -305,20 +322,22 @@ pnpx shadcn@latest add button --overwrite
 ### CORS 에러
 
 **문제**: API 요청 시 CORS 에러 발생
+
 ```
 Access to fetch at 'API_URL' from origin 'localhost:3012' has been blocked by CORS policy
 ```
 
 **해결책**:
+
 ```typescript
 // vite.config.ts에 프록시 설정
 export default defineConfig({
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:3055',
+      "/api": {
+        target: "http://localhost:3055",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },
@@ -330,15 +349,16 @@ export default defineConfig({
 **문제**: baseApiClient나 authApiClient 사용 시 에러
 
 **해결책**:
+
 ```typescript
 // ✅ 에러 타입 확인
 try {
-  const data = await baseApiClient.get('/api/data');
+  const data = await baseApiClient.get("/api/data");
 } catch (error) {
   if (error instanceof ApiError) {
-    console.error('API 에러:', error.status, error.message);
+    console.error("API 에러:", error.status, error.message);
   } else {
-    console.error('네트워크 에러:', error);
+    console.error("네트워크 에러:", error);
   }
 }
 
@@ -346,7 +366,7 @@ try {
 const client = axios.create({
   timeout: 10000, // 10초
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 ```
@@ -356,6 +376,7 @@ const client = axios.create({
 **문제**: 환경 변수가 인식되지 않음
 
 **해결책**:
+
 ```typescript
 // ✅ Vite 환경 변수는 VITE_ 접두사 필요
 // .env
@@ -373,16 +394,17 @@ const apiUrl = import.meta.env.VITE_API_BASE_URL;
 **문제**: 테스트 실행 시 모듈 해석 실패
 
 **해결책**:
+
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import viteTsConfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from "vitest/config";
+import viteTsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [viteTsConfigPaths()],
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
   },
 });
 ```
@@ -392,6 +414,7 @@ export default defineConfig({
 **문제**: 컴포넌트 테스트 시 atom 에러
 
 **해결책**:
+
 ```typescript
 // ✅ Provider로 감싸기
 import { Provider } from 'jotai';
@@ -418,6 +441,7 @@ test('컴포넌트 렌더링', () => {
 **문제**: 빌드 결과물이 너무 큼
 
 **해결책**:
+
 ```bash
 # 번들 분석
 npm run build
@@ -434,23 +458,26 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 **문제**: 페이지 이동 후에도 메모리 사용량이 계속 증가
 
 **해결책**:
+
 ```typescript
 // ✅ 이벤트 리스너 정리
 useEffect(() => {
-  const handleResize = () => { /* ... */ };
-  window.addEventListener('resize', handleResize);
-  
+  const handleResize = () => {
+    /* ... */
+  };
+  window.addEventListener("resize", handleResize);
+
   return () => {
-    window.removeEventListener('resize', handleResize);
+    window.removeEventListener("resize", handleResize);
   };
 }, []);
 
 // ✅ AbortController 사용
 useEffect(() => {
   const controller = new AbortController();
-  
+
   fetchData({ signal: controller.signal });
-  
+
   return () => {
     controller.abort();
   };
@@ -486,13 +513,13 @@ console.log(`[${componentName}] ${action}:`, data);
 
 // ✅ 조건부 로깅
 if (import.meta.env.DEV) {
-  console.log('디버그 정보:', debugData);
+  console.log("디버그 정보:", debugData);
 }
 
 // ✅ 에러 경계
 class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
-    console.error('Error Boundary:', error, errorInfo);
+    console.error("Error Boundary:", error, errorInfo);
   }
 }
 ```

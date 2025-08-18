@@ -16,6 +16,7 @@
 ## 💬 주석 작성 규칙
 
 ### 기본 원칙
+
 - **한국어 명사형** 사용 (존댓말 사용 안함)
 - **TSDoc 형식** 적극 활용
 - **bullet point**로 가독성 향상
@@ -23,30 +24,30 @@
 
 ### 함수 주석 템플릿
 
-```typescript
+````typescript
 /**
  * 포켓몬 상세 정보를 조회하는 함수
  * @description 특정 포켓몬의 모든 상세 정보를 가져오는 함수
- * 
+ *
  * 주요 기능:
  * - ID 또는 이름으로 포켓몬 조회 지원
  * - 이미지, 능력치, 타입 정보 포함
  * - 요청 취소 기능으로 메모리 누수 방지
  * - 방어적 프로그래밍으로 안전한 데이터 처리
- * 
+ *
  * @example
  * ```typescript
  * // ID로 조회
  * const pikachu = await fetchPokemonDetail(25);
- * 
+ *
  * // 이름으로 조회
  * const charizard = await fetchPokemonDetail("charizard");
- * 
+ *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
  * const pokemon = await fetchPokemonDetail(1, { signal: controller.signal });
  * ```
- * 
+ *
  * @param idOrName 포켓몬 ID 번호 또는 이름
  * @param options 추가 옵션
  * @param options.signal 요청 취소를 위한 AbortSignal
@@ -55,15 +56,15 @@
  */
 export async function fetchPokemonDetail(
   idOrName: string | number,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal },
 ): Promise<Pokemon> {
   // 구현...
 }
-```
+````
 
 ### 컴포넌트 주석 템플릿
 
-```typescript
+````typescript
 interface PokemonCardProps {
   /** 포켓몬 이름 */
   name: string;
@@ -82,11 +83,11 @@ interface PokemonCardProps {
  * - 상세 정보(타입, 능력치 등)는 상세 페이지에서 atom으로 관리
  * - 커스텀 훅을 통한 이미지 로딩 로직 캡슐화
  * - 단순하고 이해하기 쉬운 UI 컴포넌트
- * 
+ *
  * @example
  * ```tsx
- * <PokemonCard 
- *   name="pikachu" 
+ * <PokemonCard
+ *   name="pikachu"
  *   url="https://pokeapi.co/api/v2/pokemon/25/"
  * />
  * ```
@@ -94,7 +95,7 @@ interface PokemonCardProps {
 export function PokemonCard({ name, url, href }: PokemonCardProps) {
   // 구현...
 }
-```
+````
 
 ### 훅 주석 템플릿
 
@@ -112,10 +113,10 @@ interface UsePokemonCardImageProps {
  *
  * 주요 기능:
  * - 다단계 fallback 이미지 처리
- * - 타임아웃 기반 로딩 상태 관리  
+ * - 타임아웃 기반 로딩 상태 관리
  * - 캐시된 이미지 즉시 감지 (성능 최적화)
  * - 메모리 누수 방지를 위한 정리 로직
- * 
+ *
  * @param props 훅 설정 옵션
  * @returns 이미지 상태와 핸들러 객체
  */
@@ -181,7 +182,11 @@ type ButtonProps = {
   disabled?: boolean;
 };
 
-export function Button({ children, variant = "default", ...props }: ButtonProps) {
+export function Button({
+  children,
+  variant = "default",
+  ...props
+}: ButtonProps) {
   // 구현...
 }
 ```
@@ -298,8 +303,8 @@ import type { PokemonCardProps } from "./types";
 
 ```typescript
 // ✅ named export 선호
-export function PokemonCard() { }
-export type PokemonCardProps = { };
+export function PokemonCard() {}
+export type PokemonCardProps = {};
 
 // ✅ index.ts에서 re-export
 export { PokemonCard } from "./PokemonCard";
@@ -307,7 +312,7 @@ export { PokemonList } from "./PokemonList";
 export type { PokemonCardProps } from "./types";
 
 // ❌ default export 최소화 (shadcn/ui 제외)
-export default function Component() { }
+export default function Component() {}
 ```
 
 ### 절대 경로 사용
@@ -333,7 +338,7 @@ export function extractPokemonId(url: string): string {
   if (!url || typeof url !== "string") {
     return "";
   }
-  
+
   const match = url.match(/\/pokemon\/(\d+)\/?$/);
   return match ? match[1] : "";
 }
@@ -341,7 +346,7 @@ export function extractPokemonId(url: string): string {
 // ✅ 비동기 함수는 명확한 에러 처리
 export async function fetchPokemonDetail(
   idOrName: string | number,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal },
 ): Promise<Pokemon> {
   try {
     return await pokemonApiRequest<Pokemon>({
@@ -368,7 +373,7 @@ export function getPokemonImageUrl(idOrName: string): string {
 
   // URL 안전한 문자열로 인코딩 (특수문자 처리)
   const safeIdOrName = encodeURIComponent(idOrName.trim().toLowerCase());
-  
+
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${safeIdOrName}.png`;
 }
 ```
@@ -382,7 +387,9 @@ export function isValidPokemonId(value: unknown): value is number {
 }
 
 export function isValidPokemonName(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0 && /^[a-z-]+$/i.test(value);
+  return (
+    typeof value === "string" && value.length > 0 && /^[a-z-]+$/i.test(value)
+  );
 }
 ```
 
@@ -408,17 +415,17 @@ interface ComponentProps {
 export function Component({ prop, optionalProp = 0 }: ComponentProps) {
   // 4. 커스텀 훅 (복잡한 로직 분리)
   const { state, handlers } = useComponentLogic();
-  
+
   // 5. 이벤트 핸들러
   const handleClick = useCallback(() => {
     // 핸들러 로직
   }, []);
-  
+
   // 6. 조건부 렌더링
   if (loading) {
     return <Skeleton />;
   }
-  
+
   // 7. 메인 JSX
   return (
     <div className={cn("base-styles", conditionalClass)}>
@@ -551,7 +558,10 @@ export default [
   {
     files: ["**/*.{jsx,tsx}"],
     rules: {
-      "react/prefer-stateless-function": ["error", { ignorePureComponents: false }],
+      "react/prefer-stateless-function": [
+        "error",
+        { ignorePureComponents: false },
+      ],
       "no-restricted-syntax": [
         "error",
         {
@@ -569,9 +579,9 @@ export default [
 ```javascript
 // ✅ 프로젝트 스타일 (prettier.config.js)
 const config = {
-  semi: true,                 // 세미콜론 사용
-  singleQuote: false,         // 더블 쿼트 사용
-  trailingComma: "all",       // 후행 쉼표 사용
+  semi: true, // 세미콜론 사용
+  singleQuote: false, // 더블 쿼트 사용
+  trailingComma: "all", // 후행 쉼표 사용
 };
 ```
 
@@ -593,6 +603,7 @@ const config = {
 ## 📋 코드 리뷰 체크리스트
 
 ### 기본 체크 항목
+
 - [ ] 한국어 명사형 주석 + TSDoc 작성
 - [ ] `type` 사용 (`interface` 금지)
 - [ ] `baseApiClient`/`authApiClient` 사용 (fetch 금지)
@@ -601,14 +612,16 @@ const config = {
 - [ ] 절대 경로 import (`@/` 사용)
 
 ### 품질 체크 항목
+
 - [ ] 방어적 프로그래밍 적용
 - [ ] 에러 처리 및 로딩 상태 포함
 - [ ] 타입 안전성 확보
 - [ ] 성능 최적화 고려
-- [ ] 접근성 고려 (alt, aria-* 등)
+- [ ] 접근성 고려 (alt, aria-\* 등)
 - [ ] 테스트 가능한 구조
 
 ### 완료 후 검증
+
 - [ ] `npm run check` 통과
 - [ ] 타입 에러 해결
 - [ ] 빌드 에러 없음

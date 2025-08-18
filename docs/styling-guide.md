@@ -5,16 +5,19 @@ Tailwind CSS v4 + shadcn/ui를 활용한 스타일링 패턴과 베스트 프랙
 ## 🎯 스타일링 원칙
 
 ### 1. 유틸리티 우선 (Utility-First)
+
 - Tailwind 클래스를 우선적으로 사용
 - 커스텀 CSS는 최소화
 - 일관된 디자인 시스템 유지
 
 ### 2. 컴포넌트 기반 스타일링
+
 - shadcn/ui 컴포넌트 활용
 - variant 시스템으로 다양성 제공
 - 재사용 가능한 스타일 패턴
 
 ### 3. 반응형 우선 (Mobile-First)
+
 - 모바일 화면 기준으로 설계
 - 점진적 향상 (Progressive Enhancement)
 - 적절한 브레이크포인트 활용
@@ -85,7 +88,7 @@ const buttonVariants = cva(
 );
 
 // 사용 예시
-<button 
+<button
   className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
 >
   버튼
@@ -124,7 +127,7 @@ function ExampleComponent() {
 
 ```typescript
 // ✅ className으로 스타일 확장
-<Button 
+<Button
   variant="outline"
   className={cn(
     "border-2",           // 테두리 강조
@@ -160,15 +163,15 @@ pnpx shadcn@latest add dropdown-menu
   /* Primary Colors */
   --primary: 220 14% 96%;
   --primary-foreground: 220 9% 46%;
-  
+
   /* Secondary Colors */
   --secondary: 220 13% 91%;
   --secondary-foreground: 220 9% 46%;
-  
+
   /* Accent Colors */
   --accent: 220 13% 91%;
   --accent-foreground: 220 9% 46%;
-  
+
   /* Destructive Colors */
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
@@ -240,7 +243,7 @@ pnpx shadcn@latest add dropdown-menu
 ```typescript
 // Tailwind 기본 브레이크포인트
 // sm: 640px
-// md: 768px  
+// md: 768px
 // lg: 1024px
 // xl: 1280px
 // 2xl: 1536px
@@ -272,10 +275,10 @@ pnpx shadcn@latest add dropdown-menu
 <div className={cn(
   // 모바일 기본 스타일
   "flex flex-col p-4 text-sm",
-  
+
   // 태블릿 이상에서 변경
   "md:flex-row md:p-6 md:text-base",
-  
+
   // 데스크톱에서 변경
   "lg:p-8 lg:text-lg"
 )}>
@@ -317,7 +320,7 @@ import { useTheme } from "next-themes";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  
+
   return (
     <Button
       variant="ghost"
@@ -344,7 +347,7 @@ function ThemeToggle() {
 <button className={cn(
   "transition-all duration-300",      // 모든 속성 0.3초 전환
   "hover:scale-105",                  // 호버 시 크기 증가
-  "hover:shadow-lg",                  // 호버 시 그림자 
+  "hover:shadow-lg",                  // 호버 시 그림자
   "active:scale-95"                   // 클릭 시 크기 감소
 )}>
   인터랙티브 버튼
@@ -447,7 +450,7 @@ function ThemeToggle() {
 ```typescript
 // ✅ 자주 사용하는 스타일 패턴을 컴포넌트로 추출
 const cardStyles = cn(
-  "rounded-lg border bg-card text-card-foreground shadow-sm"
+  "rounded-lg border bg-card text-card-foreground shadow-sm",
 );
 
 const buttonStyles = cva(
@@ -459,7 +462,7 @@ const buttonStyles = cva(
         outline: "border border-input bg-background hover:bg-accent",
       },
     },
-  }
+  },
 );
 ```
 
@@ -484,18 +487,21 @@ const getStatusColor = useMemo(() => {
 ## 📋 스타일링 체크리스트
 
 ### 개발 전
+
 - [ ] 디자인 시스템 확인
 - [ ] 반응형 요구사항 파악
 - [ ] 다크 모드 필요성 확인
 - [ ] 접근성 요구사항 검토
 
 ### 개발 중
+
 - [ ] cn() 함수로 클래스 조합
 - [ ] shadcn/ui 컴포넌트 우선 사용
 - [ ] 모바일 우선 반응형 설계
 - [ ] 적절한 간격과 타이포그래피 적용
 
 ### 완료 후
+
 - [ ] 다양한 화면 크기에서 테스트
 - [ ] 다크 모드 동작 확인
 - [ ] 접근성 테스트 (대비, 포커스)

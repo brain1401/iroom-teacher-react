@@ -21,6 +21,7 @@
 ## 🛠 기술 스택
 
 ### Core Framework
+
 ```
 React 19 + TypeScript (strict mode)
 ├── TanStack Start (SSR)
@@ -29,6 +30,7 @@ React 19 + TypeScript (strict mode)
 ```
 
 ### 상태 관리
+
 ```
 Jotai (원자적 상태 관리)
 ├── atomWithQuery (서버 상태)
@@ -37,6 +39,7 @@ Jotai (원자적 상태 관리)
 ```
 
 ### 스타일링 & UI
+
 ```
 Tailwind CSS v4
 ├── shadcn/ui (컴포넌트 라이브러리)
@@ -46,6 +49,7 @@ Tailwind CSS v4
 ```
 
 ### 개발 도구
+
 ```
 ESLint + Prettier (코드 품질)
 ├── Vitest (테스트 프레임워크)
@@ -134,22 +138,24 @@ iroom-teacher-react/
 ## 🎯 핵심 아키텍처 패턴
 
 ### 1. API 클라이언트 시스템
+
 ```typescript
 // 기본 API 호출 (인증 불필요)
-import { baseApiClient } from '@/api/client';
-const data = await baseApiClient.get('/api/public-data');
+import { baseApiClient } from "@/api/client";
+const data = await baseApiClient.get("/api/public-data");
 
 // 인증 API 호출 (httpOnly 쿠키 포함)
-import { authApiClient } from '@/api/client';
-const userData = await authApiClient.get('/api/user/profile');
+import { authApiClient } from "@/api/client";
+const userData = await authApiClient.get("/api/user/profile");
 ```
 
 ### 2. 상태 관리 패턴
+
 ```typescript
 // 서버 상태 + 클라이언트 상태 통합
 export const pokemonListQueryAtom = atomWithQuery((get) => {
-  const page = get(pokemonPageAtom);           // 클라이언트 상태
-  const limit = get(pokemonLimitAtom);         // 영구 저장 상태
+  const page = get(pokemonPageAtom); // 클라이언트 상태
+  const limit = get(pokemonLimitAtom); // 영구 저장 상태
   return pokemonListQueryOptions({ page, limit }); // 서버 상태
 });
 
@@ -158,6 +164,7 @@ const pokemonList = useAtomValue(pokemonListQueryAtom);
 ```
 
 ### 3. 컴포넌트 개발 패턴
+
 ```typescript
 // shadcn/ui + asChild 패턴
 <Button variant="ghost" asChild>
@@ -177,41 +184,49 @@ const pokemonList = useAtomValue(pokemonListQueryAtom);
 자세한 개발 가이드는 `docs/` 폴더를 참조하세요:
 
 ### 🚀 시작하기
+
 - **[협업 가이드](./docs/collaboration-guide.md)** - 프로젝트 개요와 필수 규칙
 - **[코딩 컨벤션](./docs/coding-conventions.md)** - 코드 스타일과 작성 규칙
 
 ### 🏗️ 아키텍처 & 설계
+
 - **[아키텍처 가이드](./docs/architecture.md)** - 시스템 구조와 설계 패턴
 - **[상태 관리 가이드](./docs/state-management.md)** - Jotai + React Query 패턴
 
 ### 💻 개발 실무
+
 - **[컴포넌트 가이드](./docs/component-guide.md)** - React 컴포넌트 개발 패턴
 - **[스타일링 가이드](./docs/styling-guide.md)** - Tailwind CSS + shadcn/ui 활용
 
 ### 🔧 문제 해결
+
 - **[트러블슈팅 가이드](./docs/troubleshooting.md)** - 자주 발생하는 문제와 해결책
 
 ## 🌟 주요 기능
 
 ### 🔐 인증 시스템
+
 - JWT 토큰 기반 인증
 - httpOnly 쿠키를 통한 보안 강화
 - 자동 토큰 갱신
 - 접근 권한 기반 라우팅
 
 ### 📊 헬스체크 시스템
+
 - 실시간 서버 상태 모니터링
 - 시각적 상태 인디케이터
 - 자동 재시도 메커니즘
 - 에러 상태 추적
 
 ### 🎨 디자인 시스템
+
 - 일관된 컴포넌트 라이브러리
 - 다크/라이트 모드 지원
 - 반응형 그리드 시스템
 - 접근성 최적화
 
 ### ⚡ 성능 최적화
+
 - SSR을 통한 초기 로딩 최적화
 - 이미지 프리로딩
 - 코드 스플리팅
@@ -242,6 +257,7 @@ const pokemonList = useAtomValue(pokemonListQueryAtom);
 ### 코드 품질 체크리스트
 
 개발 완료 후 반드시 확인:
+
 - [ ] `npm run check` 통과
 - [ ] 타입 에러 해결
 - [ ] 에러 처리 및 로딩 상태 포함
@@ -251,6 +267,7 @@ const pokemonList = useAtomValue(pokemonListQueryAtom);
 ## 🌐 배포
 
 ### 프로덕션 빌드
+
 ```bash
 # 빌드 생성
 npm run build
@@ -262,6 +279,7 @@ npm run start
 ```
 
 ### 환경 변수
+
 ```env
 # .env 파일 예시
 VITE_API_BASE_URL=http://localhost:3055
@@ -273,6 +291,7 @@ VITE_APP_NAME=이룸클래스
 ### 개발 워크플로우
 
 1. **브랜치 생성**
+
    ```bash
    git checkout -b feature/새기능명
    ```
@@ -283,13 +302,14 @@ VITE_APP_NAME=이룸클래스
    - `npm run check` 정기적 실행
 
 3. **커밋**
+
    ```bash
    # 코드 품질 검사
    npm run check
-   
+
    # 커밋 (Claude 서명 제거 필수)
    git commit -m "feat: 새로운 기능 추가
-   
+
    - 기능 상세 설명
    - 구현된 내용
    - 테스트 방법"
@@ -311,6 +331,7 @@ VITE_APP_NAME=이룸클래스
 ## 📞 문의 및 지원
 
 ### 개발 관련 문의
+
 - 코딩 컨벤션: [coding-conventions.md](./docs/coding-conventions.md)
 - 아키텍처 문의: [architecture.md](./docs/architecture.md)
 - 상태 관리: [state-management.md](./docs/state-management.md)
@@ -319,6 +340,7 @@ VITE_APP_NAME=이룸클래스
 - 문제 해결: [troubleshooting.md](./docs/troubleshooting.md)
 
 ### 추가 리소스
+
 - [TanStack Start 공식 문서](https://tanstack.com/start/latest)
 - [TanStack Router 가이드](https://tanstack.com/router/latest)
 - [Jotai 상태 관리](https://jotai.org/)
@@ -333,7 +355,7 @@ VITE_APP_NAME=이룸클래스
 
 **💡 개발 팀을 위한 추가 정보**
 
-이 프로젝트는 현대적인 React 생태계의 베스트 프랙티스를 적용하여 개발되었습니다. 
+이 프로젝트는 현대적인 React 생태계의 베스트 프랙티스를 적용하여 개발되었습니다.
 새로운 기능 개발이나 문제 해결 시 `docs/` 폴더의 가이드를 먼저 확인해 주세요.
 
 **Happy Coding! 🚀**

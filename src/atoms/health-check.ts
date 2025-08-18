@@ -185,5 +185,6 @@ export const healthCheckSummaryAtom = atom((get) => {
         : "#ef4444", // red-500
     lastChecked: new Date(data.timestamp),
     responseTime: data.responseTime,
+    services: data.services, // 서비스별 상세 상태 정보 추가
   };
 });

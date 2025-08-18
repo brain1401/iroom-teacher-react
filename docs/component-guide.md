@@ -5,16 +5,19 @@ React 컴포넌트 개발을 위한 패턴과 베스트 프랙티스 가이드�
 ## 📋 컴포넌트 개발 원칙
 
 ### 1. 단일 책임 원칙
+
 - 각 컴포넌트는 하나의 명확한 목적을 가져야 함
 - 복잡한 로직은 커스텀 훅으로 분리
 - UI 로직과 비즈니스 로직 분리
 
 ### 2. 재사용성과 확장성
+
 - Props 인터페이스를 통한 유연한 설정
 - 컴포넌트 합성 패턴 활용
 - variant 시스템으로 다양한 스타일 지원
 
 ### 3. 타입 안전성
+
 - 모든 Props에 타입 정의
 - 이벤트 핸들러 타입 명시
 - 제네릭을 활용한 재사용 가능한 컴포넌트
@@ -23,7 +26,7 @@ React 컴포넌트 개발을 위한 패턴과 베스트 프랙티스 가이드�
 
 ### 기본 컴포넌트 템플릿
 
-```typescript
+````typescript
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
 
@@ -45,15 +48,15 @@ type ComponentProps = {
 /**
  * 컴포넌트 설명
  * 주요 기능과 사용법을 간단히 설명
- * 
+ *
  * 주요 기능:
  * - 기능 1
  * - 기능 2
  * - 기능 3
- * 
+ *
  * @example
  * ```tsx
- * <Component 
+ * <Component
  *   requiredProp="value"
  *   onAction={(value) => console.log(value)}
  * >
@@ -70,21 +73,21 @@ export function Component({
 }: ComponentProps) {
   // 3. 커스텀 훅 (복잡한 로직 분리)
   const { state, updateState } = useComponentLogic();
-  
+
   // 4. 이벤트 핸들러
   const handleClick = useCallback(() => {
     updateState(requiredProp);
     onAction?.(requiredProp);
   }, [requiredProp, onAction, updateState]);
-  
+
   // 5. 조건부 렌더링
   if (!requiredProp) {
     return null;
   }
-  
+
   // 6. 메인 JSX
   return (
-    <div 
+    <div
       className={cn("base-styles", className)}
       onClick={handleClick}
     >
@@ -92,7 +95,7 @@ export function Component({
     </div>
   );
 }
-```
+````
 
 ## 🎨 컴포넌트 합성 패턴
 
@@ -116,7 +119,7 @@ type ButtonProps = {
  */
 export function Button({ asChild = false, className, variant = "default", ...props }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
-  
+
   return (
     <Comp
       className={cn(buttonVariants({ variant }), className)}
@@ -133,7 +136,7 @@ function Navigation() {
       <Button variant="ghost" asChild>
         <Link to="/examples/pokemon">포켓몬</Link>
       </Button>
-      
+
       {/* 일반 버튼 */}
       <Button onClick={handleClick}>
         일반 버튼
@@ -218,18 +221,18 @@ interface UseToggleReturn {
  */
 export function useToggle(initialState = false): UseToggleReturn {
   const [isOpen, setIsOpen] = useState(initialState);
-  
+
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen(prev => !prev), []);
-  
+
   return { isOpen, open, close, toggle };
 }
 
 // 컴포넌트에서 사용
 function Modal() {
   const { isOpen, open, close } = useToggle();
-  
+
   return (
     <>
       <Button onClick={open}>모달 열기</Button>
@@ -262,29 +265,29 @@ export function useApi<T>(url: string, options?: RequestInit): UseApiReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   const fetchData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const response = await baseApiClient.request<T>({
         url,
         ...options,
       });
-      
+
       setData(response);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('API 요청 실패'));
+      setError(err instanceof Error ? err : new Error("API 요청 실패"));
     } finally {
       setIsLoading(false);
     }
   }, [url, options]);
-  
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  
+
   return { data, isLoading, error, refetch: fetchData };
 }
 ```
@@ -298,7 +301,7 @@ export function useApi<T>(url: string, options?: RequestInit): UseApiReturn<T> {
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+
   return (
     <form>
       <input value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -311,7 +314,7 @@ function LoginForm() {
 function PokemonList() {
   const pokemonList = useAtomValue(pokemonListQueryAtom);
   const setFilters = useSetAtom(pokemonListFiltersAtom);
-  
+
   return (
     <div>
       <SearchInput onSearch={(term) => setFilters({ search: term })} />
@@ -348,7 +351,7 @@ export function UserForm() {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
-  
+
   const onSubmit = async (data: FormData) => {
     try {
       await submitUserData(data);
@@ -356,17 +359,17 @@ export function UserForm() {
       console.error("폼 제출 실패", error);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
-        <input 
+        <input
           {...register("name")}
           placeholder="이름"
         />
         {errors.name && <span>{errors.name.message}</span>}
       </div>
-      
+
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? "제출 중..." : "제출"}
       </button>
@@ -386,20 +389,20 @@ export function UserForm() {
  */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
-  
+
   useEffect(() => {
     const media = window.matchMedia(query);
-    
+
     if (media.matches !== matches) {
       setMatches(media.matches);
     }
-    
+
     const listener = () => setMatches(media.matches);
     media.addEventListener("change", listener);
-    
+
     return () => media.removeEventListener("change", listener);
   }, [matches, query]);
-  
+
   return matches;
 }
 
@@ -407,7 +410,7 @@ export function useMediaQuery(query: string): boolean {
 function ResponsiveComponent() {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  
+
   return (
     <div>
       {isMobile && <MobileLayout />}
@@ -436,13 +439,13 @@ interface GridProps {
 /**
  * 반응형 그리드 컴포넌트
  */
-export function ResponsiveGrid({ 
-  items, 
-  renderItem, 
-  columns = { mobile: 1, tablet: 2, desktop: 3 } 
+export function ResponsiveGrid({
+  items,
+  renderItem,
+  columns = { mobile: 1, tablet: 2, desktop: 3 }
 }: GridProps) {
   return (
-    <div 
+    <div
       className={cn(
         "grid gap-4",
         `grid-cols-${columns.mobile}`,
@@ -470,7 +473,7 @@ export function ResponsiveGrid({
  */
 export function Menu({ items }: { items: MenuItem[] }) {
   const [focusedIndex, setFocusedIndex] = useState(0);
-  
+
   const handleKeyDown = (e: KeyboardEvent) => {
     switch (e.key) {
       case "ArrowDown":
@@ -488,7 +491,7 @@ export function Menu({ items }: { items: MenuItem[] }) {
         break;
     }
   };
-  
+
   return (
     <div role="menu" onKeyDown={handleKeyDown}>
       {items.map((item, index) => (
@@ -515,12 +518,12 @@ export function Menu({ items }: { items: MenuItem[] }) {
 /**
  * 스크린 리더 친화적인 버튼
  */
-export function AccessibleButton({ 
-  children, 
+export function AccessibleButton({
+  children,
   ariaLabel,
   isLoading = false,
-  ...props 
-}: ButtonProps & { 
+  ...props
+}: ButtonProps & {
   ariaLabel?: string;
   isLoading?: boolean;
 }) {
@@ -555,28 +558,28 @@ import { Button } from "./Button";
 describe("Button 컴포넌트", () => {
   it("기본 렌더링이 올바르게 동작한다", () => {
     render(<Button>클릭</Button>);
-    
+
     const button = screen.getByRole("button", { name: "클릭" });
     expect(button).toBeInTheDocument();
   });
-  
+
   it("클릭 이벤트가 올바르게 호출된다", () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>클릭</Button>);
-    
+
     const button = screen.getByRole("button");
     fireEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
-  
+
   it("비활성 상태에서 클릭이 동작하지 않는다", () => {
     const handleClick = vi.fn();
     render(<Button disabled onClick={handleClick}>클릭</Button>);
-    
+
     const button = screen.getByRole("button");
     fireEvent.click(button);
-    
+
     expect(handleClick).not.toHaveBeenCalled();
   });
 });
@@ -585,12 +588,14 @@ describe("Button 컴포넌트", () => {
 ## 📋 컴포넌트 개발 체크리스트
 
 ### 개발 전
+
 - [ ] 컴포넌트 목적과 책임 명확히 정의
 - [ ] 재사용 가능한 구조로 설계
 - [ ] Props 인터페이스 설계
 - [ ] 접근성 요구사항 확인
 
 ### 개발 중
+
 - [ ] Props 타입 정의 및 주석 작성
 - [ ] 커스텀 훅으로 로직 분리
 - [ ] 조건부 렌더링 명확히 처리
@@ -598,6 +603,7 @@ describe("Button 컴포넌트", () => {
 - [ ] className 조합에 cn() 사용
 
 ### 완료 후
+
 - [ ] 접근성 테스트 (키보드, 스크린 리더)
 - [ ] 반응형 디자인 확인
 - [ ] 에러 케이스 처리 확인
