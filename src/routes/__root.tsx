@@ -103,7 +103,7 @@ function RootComponent() {
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full flex-col lg:flex-row">
       {pathname !== "/" && <NavigationBar />}
       <main
         className={cn(

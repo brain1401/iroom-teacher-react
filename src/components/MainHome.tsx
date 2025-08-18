@@ -1,5 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { BiBell } from "react-icons/bi";
@@ -21,7 +27,12 @@ type MainHomeProps = {
  */
 export function MainHome({ className }: MainHomeProps) {
   return (
-    <div className={cn("w-[90%] h-[90%] p-6 md:p-8 mx-auto my-auto flex flex-col", className)}>
+    <div
+      className={cn(
+        "w-[98%] h-[90%] p-6 md:p-8 pb-16 md:pb-24 mx-auto my-auto flex flex-col",
+        className,
+      )}
+    >
       {/* 상단 브랜딩 영역 */}
       <div className="mb-4 md:mb-6 flex-none">
         <div className="flex items-center justify-between">
@@ -41,45 +52,74 @@ export function MainHome({ className }: MainHomeProps) {
       </div>
 
       {/* 메인 콘텐츠 (좌측 글로벌 사이드바 옆) */}
-      <div className="flex-1 flex flex-col gap-6 min-h-0">
-        {/* 상단 3열: 3fr : 4fr : 3fr */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_4fr_3fr] gap-6 h-1/2 min-h-0">
-          {/* 마감 임박 공지 */}
-          <Card className="h-full flex flex-col">
+      <div className="flex-1 flex flex-col gap-4 min-h-0">
+        {/* 1행: 마감 임박 공지 + 중등 B반 평균 성적 추이 (반응형) */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* 마감 임박 공지 (피그마 430:301 리스트 형태 반영) */}
+          <Card className="flex min-w-0 flex-col w-full lg:w-[445px] overflow-hidden">
             <CardHeader>
-              <CardTitle>마감 임박 공지</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-semibold">마감 임박 공지</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="rounded bg-primary px-2 py-0.5 text-primary-foreground">공지</span>
-                  <span>2학기 중간고사</span>
-                </div>
-                <Separator />
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="rounded bg-primary px-2 py-0.5 text-primary-foreground">공지</span>
-                  <span>연립방정식 단원평가</span>
-                </div>
-              </div>
+            <CardContent className="flex-1 overflow-y-auto">
+              <ul className="space-y-2.5">
+                {[
+                  { dday: 2, title: "중간고사 수학 시험", submitted: 12, total: 28 },
+                  { dday: 5, title: "기말 대비 모의고사", submitted: 8, total: 28 },
+                  { dday: 7, title: "연립방정식 단원평가", submitted: 15, total: 28 },
+                  { dday: 10, title: "피타고라스의 정리 단원평가", submitted: 20, total: 28 },
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-2 rounded-md border px-2 py-1 min-w-0">
+                    <span className="shrink-0 rounded bg-neutral-700 px-2 py-0.5 text-xs font-medium text-white">D-{item.dday}</span>
+                    <span className="text-xs font-medium truncate max-w-[40%] sm:max-w-[50%] md:max-w-[60%]">
+                      {item.title}
+                    </span>
+                    <span className="ml-auto text-[10px] text-muted-foreground">
+                      제출 {item.submitted}/{item.total}명 남음
+                    </span>
+                    <button
+                      type="button"
+                      className="ml-1 shrink-0 rounded border bg-white px-2 py-1 text-[10px] hover:bg-muted"
+                    >
+                      상세보기
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </CardContent>
           </Card>
 
           {/* 중등 B반 평균 성적 추이 */}
-          <Card className="h-full flex flex-col">
+          <Card className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <CardHeader>
-              <CardTitle>중등 B반 평균 성적 추이</CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-lg md:text-xl font-semibold">중등 B반 평균 성적 추이</CardTitle>
+                <Select defaultValue="middle-b">
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue placeholder="반 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="middle-a">중등 A반</SelectItem>
+                    <SelectItem value="middle-b">중등 B반</SelectItem>
+                    <SelectItem value="middle-c">중등 C반</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="flex-1">
-              <div className="h-full w-full rounded-md bg-muted/50 flex items-center justify-center text-muted-foreground">
+              <div className="min-h-40 sm:min-h-60 md:min-h-72 w-full rounded-md bg-muted/50 flex items-center justify-center text-muted-foreground">
                 차트 영역
               </div>
             </CardContent>
           </Card>
 
-          {/* 단원별 취약점 분석 */}
-          <Card className="h-full flex flex-col">
+        </div>
+
+        {/* 2행: 좌측 2개(세로 스택) + 우측 1개(두 행 차지) 그리드 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:auto-rows-[1fr] gap-4 items-stretch pb-16">
+          {/* 단원별 취약점 분석 (좌상단) */}
+          <Card className="h-full flex min-w-0 flex-col overflow-hidden">
             <CardHeader>
-              <CardTitle>단원별 취약점 분석 (TOP 5)</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-semibold">단원별 취약점 분석 (TOP 5)</CardTitle>
             </CardHeader>
             <CardContent className="flex-1">
               <ol className="list-decimal pl-5 space-y-2">
@@ -91,14 +131,21 @@ export function MainHome({ className }: MainHomeProps) {
               </ol>
             </CardContent>
           </Card>
-        </div>
-
-        {/* 하단 2열: 3fr : 7fr */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_7fr] gap-6 h-1/2 min-h-0">
-          {/* 시험 제출 현황 */}
-          <Card className="h-full flex flex-col">
+          {/* 성적 분포도 (우측, 두 행 차지) */}
+          <Card className="h-full flex min-w-0 flex-col overflow-hidden lg:col-span-2 lg:row-span-2">
             <CardHeader>
-              <CardTitle>시험 제출 현황</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-semibold">성적 분포도</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <div className="min-h-48 md:min-h-64 w-full rounded-md bg-muted/50 flex items-center justify-center text-muted-foreground">
+                막대 차트 영역
+              </div>
+            </CardContent>
+          </Card>
+          {/* 시험 제출 현황 (좌하단) */}
+          <Card className="h-full flex min-w-0 flex-col overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl font-semibold">시험 제출 현황</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 flex-1">
               <div className="space-y-2">
@@ -132,18 +179,6 @@ export function MainHome({ className }: MainHomeProps) {
                   <div className="h-2 rounded bg-primary/90" style={{ width: "93%" }} />
                 </div>
                 <span className="text-xs text-muted-foreground">제출률 93%</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 성적 분포도 */}
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>성적 분포도</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <div className="h-full w-full rounded-md bg-muted/50 flex items-center justify-center text-muted-foreground">
-                막대 차트 영역
               </div>
             </CardContent>
           </Card>

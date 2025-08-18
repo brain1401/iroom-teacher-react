@@ -23,7 +23,7 @@ import { VscGraph } from "react-icons/vsc";
  */
 export default function NavigationBar() {
   return (
-    <aside className="w-56 shrink-0 h-full border-r bg-white">
+    <aside className="w-full lg:w-40 shrink-0 h-auto lg:h-full border-b lg:border-b-0 lg:border-r bg-white">
       <div className="h-full flex flex-col">
         {/* 브랜드 */}
         <div className="px-4 py-4 border-b text-xl font-bold text-violet-600">
@@ -31,7 +31,7 @@ export default function NavigationBar() {
         </div>
 
         {/* 메뉴 */}
-        <div className="flex-1 px-3 py-4 grid grid-rows-5 gap-3">
+        <div className="flex-1 px-3 py-4 grid grid-cols-5 lg:grid-cols-1 gap-3">
           <Button
             variant="ghost"
             className="w-full h-full justify-center"
