@@ -7,9 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
-import { BiBell } from "react-icons/bi";
-import { LiaUserCircle } from "react-icons/lia";
+import MainHeader from "@/components/layout/MainHeader";
 
 type MainHomeProps = {
   /** 추가 CSS 클래스 */
@@ -29,27 +27,12 @@ export function MainHome({ className }: MainHomeProps) {
   return (
     <div
       className={cn(
-        "w-[98%] h-[90%] p-6 md:p-8 pb-16 md:pb-24 mx-auto my-auto flex flex-col",
+        "w-[95%] h-[100%] p-6  mx-auto my-auto flex flex-col",
         className,
       )}
     >
       {/* 상단 브랜딩 영역 */}
-      <div className="mb-4 md:mb-6 flex-none">
-        <div className="flex items-center justify-between">
-          <div className="flex items-end gap-3 md:gap-4">
-            <h1 className="text-4xl md:text-5xl font-bold">모모학원</h1>
-            <p className="text-2xl md:text-3xl font-semibold text-muted-foreground">모모 선생님</p>
-          </div>
-          <div className="flex items-center gap-3 md:gap-4">
-            <button type="button" aria-label="알림" className="text-2xl md:text-3xl text-muted-foreground hover:text-foreground transition-colors">
-              <BiBell />
-            </button>
-            <Link to="/mypage" aria-label="마이페이지" className="text-3xl md:text-4xl text-muted-foreground hover:text-foreground transition-colors">
-              <LiaUserCircle />
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* <MainHeader /> */}
 
       {/* 메인 콘텐츠 (좌측 글로벌 사이드바 옆) */}
       <div className="flex-1 flex flex-col gap-4 min-h-0">
