@@ -3,6 +3,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   Outlet,
+  useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
@@ -100,19 +101,22 @@ function RootComponent() {
    * - 성능 최적화: 값 변경 기능이 없어 더 가벼운 훅 사용
    */
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <>
-      <NavigationBar />
+    <div className="flex h-full w-full">
+      {pathname !== "/" && <NavigationBar />}
       <main
         className={cn(
-          "flex flex-1 bg-background-400 dark:bg-background-900",
+          "flex flex-1 bg-background-400 dark:bg-background-900 items-center justify-center overflow-hidden",
           extra,
         )}
       >
         {/* 하위 라우트가 렌더링되는 위치 */}
-        <Outlet />
+        <div className="flex h-full w-full items-center justify-center overflow-auto p-6">
+          <Outlet />
+        </div>
       </main>
-    </>
+    </div>
   );
 }
 

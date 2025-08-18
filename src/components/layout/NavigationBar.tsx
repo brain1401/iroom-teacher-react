@@ -1,6 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import HealthCheckStatus from "./HealthCheckStatus";
+import { TbSmartHome } from "react-icons/tb";
+import { RiFilePaperLine } from "react-icons/ri";
+import { HiOutlineUserGroup } from "react-icons/hi";
+import { LuNotebookPen } from "react-icons/lu";
+import { VscGraph } from "react-icons/vsc";
 
 /**
  * 네비게이션 바 컴포넌트
@@ -18,30 +23,83 @@ import HealthCheckStatus from "./HealthCheckStatus";
  */
 export default function NavigationBar() {
   return (
-    <nav className="bg-white border-b shadow-sm p-4">
-      <div className="mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          {/* 브랜드 로고/제목 */}
-          <div className="text-xl font-bold text-violet-600">이룸클래스</div>
-
-          {/* 네비게이션 메뉴 */}
-          <div className="flex gap-2">
-            {/* asChild를 사용하여 Button 스타일을 Link에 적용 */}
-            <Button variant="ghost" asChild>
-              <Link to="/">홈</Link>
-            </Button>
-            <Button variant="ghost" asChild>
-              <Link to="/examples/pokemon">포켓몬</Link>
-            </Button>
-          </div>
+    <aside className="w-56 shrink-0 h-full border-r bg-white">
+      <div className="h-full flex flex-col">
+        {/* 브랜드 */}
+        <div className="px-4 py-4 border-b text-xl font-bold text-violet-600">
+          이룸클래스
         </div>
 
-        {/* 우측 유틸리티 영역 */}
-        <div className="flex items-center">
-          {/* 개발 환경에서만 표시되는 헬스체크 상태 */}
+        {/* 메뉴 */}
+        <div className="flex-1 px-3 py-4 grid grid-rows-5 gap-3">
+          <Button
+            variant="ghost"
+            className="w-full h-full justify-center"
+            asChild
+          >
+            <Link to="/home">
+              <span className="flex flex-col items-center gap-1 [&>svg]:h-28 [&>svg]:w-28 md:[&>svg]:h-32 md:[&>svg]:w-32 lg:[&>svg]:h-36 lg:[&>svg]:w-36">
+                <TbSmartHome />
+                <span className="text-sm md:text-base">홈</span>
+              </span>
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full h-full justify-center"
+            asChild
+          >
+            <Link to="/exam-papers">
+              <span className="flex flex-col items-center gap-1 [&>svg]:h-28 [&>svg]:w-28 md:[&>svg]:h-32 md:[&>svg]:w-32 lg:[&>svg]:h-36 lg:[&>svg]:w-36">
+                <RiFilePaperLine />
+                <span className="text-sm md:text-base">시험지 관리</span>
+              </span>
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full h-full justify-center"
+            asChild
+          >
+            <Link to="/class-students">
+              <span className="flex flex-col items-center gap-1 [&>svg]:h-28 [&>svg]:w-28 md:[&>svg]:h-32 md:[&>svg]:w-32 lg:[&>svg]:h-36 lg:[&>svg]:w-36">
+                <HiOutlineUserGroup />
+                <span className="text-sm md:text-base">반 / 학생 관리</span>
+              </span>
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full h-full justify-center"
+            asChild
+          >
+            <Link to="/exams">
+              <span className="flex flex-col items-center gap-1 [&>svg]:h-28 [&>svg]:w-28 md:[&>svg]:h-32 md:[&>svg]:w-32 lg:[&>svg]:h-36 lg:[&>svg]:w-36">
+                <LuNotebookPen />
+                <span className="text-sm md:text-base">시험 관리</span>
+              </span>
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full h-full justify-center"
+            asChild
+          >
+            <Link to="/reports">
+              <span className="flex flex-col items-center gap-1 [&>svg]:h-28 [&>svg]:w-28 md:[&>svg]:h-32 md:[&>svg]:w-32 lg:[&>svg]:h-36 lg:[&>svg]:w-36">
+                <VscGraph />
+                <span className="text-sm md:text-base">통계 / 리포트</span>
+              </span>
+            </Link>
+          </Button>
+        </div>
+
+        {/* 하단 상태 */}
+        <div className="px-3 py-3 border-t">
           <HealthCheckStatus />
         </div>
       </div>
-    </nav>
+    </aside>
   );
 }
