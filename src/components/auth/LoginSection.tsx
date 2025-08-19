@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,16 @@ import { Label } from "@/components/ui/label";
  * 좌우 분할 레이아웃으로 브랜딩 영역과 로그인 폼을 분리
  */
 export function LoginSection() {
+  const navigate = useNavigate();
+
+  /**
+   * 로그인 폼 제출 핸들러
+   * @description 임시 처리: 유효성 검증 및 인증 로직 없이 홈으로 이동
+   */
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    navigate({ to: "/home" });
+  }
   return (
     <>
       {/* 왼쪽 로그인 폼 영역 - 흰색 배경 */}
@@ -22,7 +32,7 @@ export function LoginSection() {
           </div>
 
           {/* 로그인 폼 */}
-          <form className="space-y-6" action="" method="post">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="username" className="text-gray-700 font-medium">
                 아이디

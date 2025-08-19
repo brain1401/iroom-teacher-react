@@ -11,6 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignupIndexRouteImport } from './routes/signup/index'
+import { Route as ReportsIndexRouteImport } from './routes/reports/index'
+import { Route as MypageIndexRouteImport } from './routes/mypage/index'
+import { Route as HomeIndexRouteImport } from './routes/home/index'
+import { Route as ExamsIndexRouteImport } from './routes/exams/index'
+import { Route as ExamPapersIndexRouteImport } from './routes/exam-papers/index'
+import { Route as ClassStudentsIndexRouteImport } from './routes/class-students/index'
 import { Route as ExamplesPokemonRouteRouteImport } from './routes/examples/pokemon/route'
 import { Route as ExamplesPokemonIndexRouteImport } from './routes/examples/pokemon/index'
 import { Route as ExamplesPokemonIdIndexRouteImport } from './routes/examples/pokemon/$id/index'
@@ -23,6 +29,36 @@ const IndexRoute = IndexRouteImport.update({
 const SignupIndexRoute = SignupIndexRouteImport.update({
   id: '/signup/',
   path: '/signup/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MypageIndexRoute = MypageIndexRouteImport.update({
+  id: '/mypage/',
+  path: '/mypage/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamsIndexRoute = ExamsIndexRouteImport.update({
+  id: '/exams/',
+  path: '/exams/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamPapersIndexRoute = ExamPapersIndexRouteImport.update({
+  id: '/exam-papers/',
+  path: '/exam-papers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassStudentsIndexRoute = ClassStudentsIndexRouteImport.update({
+  id: '/class-students/',
+  path: '/class-students/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesPokemonRouteRoute = ExamplesPokemonRouteRouteImport.update({
@@ -44,12 +80,24 @@ const ExamplesPokemonIdIndexRoute = ExamplesPokemonIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/class-students': typeof ClassStudentsIndexRoute
+  '/exam-papers': typeof ExamPapersIndexRoute
+  '/exams': typeof ExamsIndexRoute
+  '/home': typeof HomeIndexRoute
+  '/mypage': typeof MypageIndexRoute
+  '/reports': typeof ReportsIndexRoute
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/class-students': typeof ClassStudentsIndexRoute
+  '/exam-papers': typeof ExamPapersIndexRoute
+  '/exams': typeof ExamsIndexRoute
+  '/home': typeof HomeIndexRoute
+  '/mypage': typeof MypageIndexRoute
+  '/reports': typeof ReportsIndexRoute
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon': typeof ExamplesPokemonIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
@@ -58,6 +106,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/class-students/': typeof ClassStudentsIndexRoute
+  '/exam-papers/': typeof ExamPapersIndexRoute
+  '/exams/': typeof ExamsIndexRoute
+  '/home/': typeof HomeIndexRoute
+  '/mypage/': typeof MypageIndexRoute
+  '/reports/': typeof ReportsIndexRoute
   '/signup/': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/examples/pokemon/$id/': typeof ExamplesPokemonIdIndexRoute
@@ -67,15 +121,37 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/examples/pokemon'
+    | '/class-students'
+    | '/exam-papers'
+    | '/exams'
+    | '/home'
+    | '/mypage'
+    | '/reports'
     | '/signup'
     | '/examples/pokemon/'
     | '/examples/pokemon/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signup' | '/examples/pokemon' | '/examples/pokemon/$id'
+  to:
+    | '/'
+    | '/class-students'
+    | '/exam-papers'
+    | '/exams'
+    | '/home'
+    | '/mypage'
+    | '/reports'
+    | '/signup'
+    | '/examples/pokemon'
+    | '/examples/pokemon/$id'
   id:
     | '__root__'
     | '/'
     | '/examples/pokemon'
+    | '/class-students/'
+    | '/exam-papers/'
+    | '/exams/'
+    | '/home/'
+    | '/mypage/'
+    | '/reports/'
     | '/signup/'
     | '/examples/pokemon/'
     | '/examples/pokemon/$id/'
@@ -84,6 +160,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExamplesPokemonRouteRoute: typeof ExamplesPokemonRouteRouteWithChildren
+  ClassStudentsIndexRoute: typeof ClassStudentsIndexRoute
+  ExamPapersIndexRoute: typeof ExamPapersIndexRoute
+  ExamsIndexRoute: typeof ExamsIndexRoute
+  HomeIndexRoute: typeof HomeIndexRoute
+  MypageIndexRoute: typeof MypageIndexRoute
+  ReportsIndexRoute: typeof ReportsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
 }
 
@@ -101,6 +183,48 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/': {
+      id: '/reports/'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mypage/': {
+      id: '/mypage/'
+      path: '/mypage'
+      fullPath: '/mypage'
+      preLoaderRoute: typeof MypageIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home/': {
+      id: '/home/'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exams/': {
+      id: '/exams/'
+      path: '/exams'
+      fullPath: '/exams'
+      preLoaderRoute: typeof ExamsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exam-papers/': {
+      id: '/exam-papers/'
+      path: '/exam-papers'
+      fullPath: '/exam-papers'
+      preLoaderRoute: typeof ExamPapersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/class-students/': {
+      id: '/class-students/'
+      path: '/class-students'
+      fullPath: '/class-students'
+      preLoaderRoute: typeof ClassStudentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/examples/pokemon': {
@@ -143,6 +267,12 @@ const ExamplesPokemonRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExamplesPokemonRouteRoute: ExamplesPokemonRouteRouteWithChildren,
+  ClassStudentsIndexRoute: ClassStudentsIndexRoute,
+  ExamPapersIndexRoute: ExamPapersIndexRoute,
+  ExamsIndexRoute: ExamsIndexRoute,
+  HomeIndexRoute: HomeIndexRoute,
+  MypageIndexRoute: MypageIndexRoute,
+  ReportsIndexRoute: ReportsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
 }
 export const routeTree = rootRouteImport

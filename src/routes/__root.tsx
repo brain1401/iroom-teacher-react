@@ -3,6 +3,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   Outlet,
+  useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
@@ -11,9 +12,11 @@ import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import appCss from "@/css/root.css?url";
 import NavigationBar from "@/components/layout/NavigationBar";
+import MainHeader from "@/components/layout/MainHeader";
 import { useAtomValue } from "jotai";
 import { mainBgExtraCombinedClassAtom } from "@/atoms/ui";
 import { cn } from "@/lib/utils";
+import ScrollToTop from "@/components/common/ScrollToTop";
 
 /**
  * 라우터 컨텍스트 타입 정의
@@ -100,19 +103,31 @@ function RootComponent() {
    * - 성능 최적화: 값 변경 기능이 없어 더 가벼운 훅 사용
    */
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <>
-      <NavigationBar />
+    <div className="flex h-full w-full flex-col lg:flex-row">
+      {pathname !== "/" && <NavigationBar />}
       <main
         className={cn(
-          "flex flex-1 bg-background-400 dark:bg-background-900",
+          "flex flex-1 items-center justify-center overflow-hidden",
           extra,
         )}
+        style={{ backgroundColor: "var(--color-brand-background)" }}
       >
         {/* 하위 라우트가 렌더링되는 위치 */}
-        <Outlet />
+        <div className="flex h-full w-full flex-col overflow-auto" id="app-scroll-root">
+          {pathname !== "/" && (
+            <div className="w-[96%] mx-auto px-8 md:px-12 mt-2 md:mt-3">
+              <MainHeader />
+            </div>
+          )}
+          <div className="flex-1 flex items-start justify-center p-6">
+            <Outlet />
+          </div>
+          <ScrollToTop />
+        </div>
       </main>
-    </>
+    </div>
   );
 }
 

@@ -10,4 +10,9 @@
   --color-background-800: #4b4b4b;
   --color-background-900: #282828;
   --color-background-950: #181818;
+
+  /* 브랜드 지정 색상 */
+  --color-brand-background: #FBFBFF; /* 배경색 */
+  --color-brand-point: #155DFC;       /* 포인트 색 */
+  --color-brand-sub: #D9E4FF;         /* 서브 색 */
 }
