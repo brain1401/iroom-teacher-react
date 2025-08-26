@@ -7,3 +7,4 @@ export const Route = createFileRoute("/signup/")({
 function RouteComponent() {
   return <div>Hello "/examples/signup/"!</div>;
 }
+ 
