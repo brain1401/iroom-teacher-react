@@ -9,13 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MainRouteRouteImport } from './routes/main/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignupIndexRouteImport } from './routes/signup/index'
 import { Route as MainIndexRouteImport } from './routes/main/index'
 import { Route as ExamplesPokemonRouteRouteImport } from './routes/examples/pokemon/route'
+import { Route as MainTestPaperIndexRouteImport } from './routes/main/test-paper/index'
+import { Route as MainTestManagementIndexRouteImport } from './routes/main/test-management/index'
+import { Route as MainStatisticsIndexRouteImport } from './routes/main/statistics/index'
 import { Route as ExamplesPokemonIndexRouteImport } from './routes/examples/pokemon/index'
 import { Route as ExamplesPokemonIdIndexRouteImport } from './routes/examples/pokemon/$id/index'
 
+const MainRouteRoute = MainRouteRouteImport.update({
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -27,14 +36,35 @@ const SignupIndexRoute = SignupIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
+<<<<<<< HEAD
   id: '/main/',
   path: '/main/',
   getParentRoute: () => rootRouteImport,
+=======
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainRouteRoute,
+>>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
 } as any)
 const ExamplesPokemonRouteRoute = ExamplesPokemonRouteRouteImport.update({
   id: '/examples/pokemon',
   path: '/examples/pokemon',
   getParentRoute: () => rootRouteImport,
+} as any)
+const MainTestPaperIndexRoute = MainTestPaperIndexRouteImport.update({
+  id: '/test-paper/',
+  path: '/test-paper/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainTestManagementIndexRoute = MainTestManagementIndexRouteImport.update({
+  id: '/test-management/',
+  path: '/test-management/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainStatisticsIndexRoute = MainStatisticsIndexRouteImport.update({
+  id: '/statistics/',
+  path: '/statistics/',
+  getParentRoute: () => MainRouteRoute,
 } as any)
 const ExamplesPokemonIndexRoute = ExamplesPokemonIndexRouteImport.update({
   id: '/',
@@ -49,10 +79,18 @@ const ExamplesPokemonIdIndexRoute = ExamplesPokemonIdIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+<<<<<<< HEAD
   '/main': typeof MainIndexRoute
+=======
+  '/main/': typeof MainIndexRoute
+>>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
+  '/main/statistics': typeof MainStatisticsIndexRoute
+  '/main/test-management': typeof MainTestManagementIndexRoute
+  '/main/test-paper': typeof MainTestPaperIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -60,40 +98,72 @@ export interface FileRoutesByTo {
   '/main': typeof MainIndexRoute
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon': typeof ExamplesPokemonIndexRoute
+  '/main/statistics': typeof MainStatisticsIndexRoute
+  '/main/test-management': typeof MainTestManagementIndexRoute
+  '/main/test-paper': typeof MainTestPaperIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
   '/signup/': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
+  '/main/statistics/': typeof MainStatisticsIndexRoute
+  '/main/test-management/': typeof MainTestManagementIndexRoute
+  '/main/test-paper/': typeof MainTestPaperIndexRoute
   '/examples/pokemon/$id/': typeof ExamplesPokemonIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/examples/pokemon'
     | '/main'
+    | '/examples/pokemon'
+<<<<<<< HEAD
+    | '/main'
+=======
+    | '/main/'
+>>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
     | '/signup'
     | '/examples/pokemon/'
+    | '/main/statistics'
+    | '/main/test-management'
+    | '/main/test-paper'
     | '/examples/pokemon/$id'
   fileRoutesByTo: FileRoutesByTo
+<<<<<<< HEAD
   to: '/' | '/main' | '/signup' | '/examples/pokemon' | '/examples/pokemon/$id'
+=======
+  to:
+    | '/'
+    | '/main'
+    | '/signup'
+    | '/examples/pokemon'
+    | '/main/statistics'
+    | '/main/test-management'
+    | '/main/test-paper'
+    | '/examples/pokemon/$id'
+>>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
   id:
     | '__root__'
     | '/'
+    | '/main'
     | '/examples/pokemon'
     | '/main/'
     | '/signup/'
     | '/examples/pokemon/'
+    | '/main/statistics/'
+    | '/main/test-management/'
+    | '/main/test-paper/'
     | '/examples/pokemon/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MainRouteRoute: typeof MainRouteRouteWithChildren
   ExamplesPokemonRouteRoute: typeof ExamplesPokemonRouteRouteWithChildren
   MainIndexRoute: typeof MainIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
@@ -101,6 +171,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/main': {
+      id: '/main'
+      path: '/main'
+      fullPath: '/main'
+      preLoaderRoute: typeof MainRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -117,10 +194,17 @@ declare module '@tanstack/react-router' {
     }
     '/main/': {
       id: '/main/'
+<<<<<<< HEAD
       path: '/main'
       fullPath: '/main'
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof rootRouteImport
+=======
+      path: '/'
+      fullPath: '/main/'
+      preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+>>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
     }
     '/examples/pokemon': {
       id: '/examples/pokemon'
@@ -128,6 +212,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/examples/pokemon'
       preLoaderRoute: typeof ExamplesPokemonRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/main/test-paper/': {
+      id: '/main/test-paper/'
+      path: '/test-paper'
+      fullPath: '/main/test-paper'
+      preLoaderRoute: typeof MainTestPaperIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/main/test-management/': {
+      id: '/main/test-management/'
+      path: '/test-management'
+      fullPath: '/main/test-management'
+      preLoaderRoute: typeof MainTestManagementIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/main/statistics/': {
+      id: '/main/statistics/'
+      path: '/statistics'
+      fullPath: '/main/statistics'
+      preLoaderRoute: typeof MainStatisticsIndexRouteImport
+      parentRoute: typeof MainRouteRoute
     }
     '/examples/pokemon/': {
       id: '/examples/pokemon/'
@@ -146,6 +251,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MainRouteRouteChildren {
+  MainIndexRoute: typeof MainIndexRoute
+  MainStatisticsIndexRoute: typeof MainStatisticsIndexRoute
+  MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
+  MainTestPaperIndexRoute: typeof MainTestPaperIndexRoute
+}
+
+const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainIndexRoute: MainIndexRoute,
+  MainStatisticsIndexRoute: MainStatisticsIndexRoute,
+  MainTestManagementIndexRoute: MainTestManagementIndexRoute,
+  MainTestPaperIndexRoute: MainTestPaperIndexRoute,
+}
+
+const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
+  MainRouteRouteChildren,
+)
+
 interface ExamplesPokemonRouteRouteChildren {
   ExamplesPokemonIndexRoute: typeof ExamplesPokemonIndexRoute
   ExamplesPokemonIdIndexRoute: typeof ExamplesPokemonIdIndexRoute
@@ -161,6 +284,7 @@ const ExamplesPokemonRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MainRouteRoute: MainRouteRouteWithChildren,
   ExamplesPokemonRouteRoute: ExamplesPokemonRouteRouteWithChildren,
   MainIndexRoute: MainIndexRoute,
   SignupIndexRoute: SignupIndexRoute,

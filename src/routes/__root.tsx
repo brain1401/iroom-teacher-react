@@ -102,10 +102,10 @@ function RootComponent() {
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
   return (
     <>
-      <NavigationBar />
+      {/* <NavigationBar /> */}
       <main
         className={cn(
-          "flex flex-1 bg-background-400 dark:bg-background-900",
+          "flex flex-1 w-full bg-background-400 dark:bg-background-900",
           extra,
         )}
       >
