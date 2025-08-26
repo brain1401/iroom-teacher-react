@@ -13,7 +13,7 @@ const HeaderTitle = () => {
   const isShowHeader = useAtomValue(isShowHeaderAtom);
 
   return (
-    <div className="flex items-center justify-between pt-16 px-14 pb-10">
+    <div className="flex items-center justify-between">
       <div className="flex items-center">
         <h1 className="text-5xl font-bold">학원명</h1>
         <div className="ml-6 mr-2.5">

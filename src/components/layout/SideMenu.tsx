@@ -20,7 +20,7 @@ export default function SideMenu() {
   };
 
   return (
-    <div className="w-32 bg-white p-4 shadow-2xl">
+    <div className="fixed top-0 left-0 w-32 h-screen bg-white p-4 shadow-2xl">
       <div className="flex flex-col gap-16 pt-4">
         {menuItems.map((item) => {
           const IconComponent = item.icon;

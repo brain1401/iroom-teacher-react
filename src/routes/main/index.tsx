@@ -1,4 +1,5 @@
 import { isShowHeaderAtom } from '@/atoms/ui';
+import { Card } from '@/components/ui/card';
 import { createFileRoute } from '@tanstack/react-router'
 import { useSetAtom } from 'jotai';
 import { useLayoutEffect } from 'react';
@@ -6,6 +7,7 @@ import { useLayoutEffect } from 'react';
 export const Route = createFileRoute('/main/')({
   component: RouteComponent,
 })
+
 
 function RouteComponent() {
 
@@ -16,8 +18,8 @@ function RouteComponent() {
   }, [setIsShowHeader]);
 
   return (
-    <div>
+    <Card>
       <div className="text-5xl font-bold">메인</div>
-    </div>
+    </Card>
   );
 }
