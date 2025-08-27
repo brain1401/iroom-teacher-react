@@ -36,15 +36,9 @@ const SignupIndexRoute = SignupIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
-<<<<<<< HEAD
-  id: '/main/',
-  path: '/main/',
-  getParentRoute: () => rootRouteImport,
-=======
   id: '/',
   path: '/',
   getParentRoute: () => MainRouteRoute,
->>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
 } as any)
 const ExamplesPokemonRouteRoute = ExamplesPokemonRouteRouteImport.update({
   id: '/examples/pokemon',
@@ -81,11 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
-<<<<<<< HEAD
-  '/main': typeof MainIndexRoute
-=======
   '/main/': typeof MainIndexRoute
->>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
@@ -122,11 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/main'
     | '/examples/pokemon'
-<<<<<<< HEAD
-    | '/main'
-=======
     | '/main/'
->>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
     | '/signup'
     | '/examples/pokemon/'
     | '/main/statistics'
@@ -134,9 +120,6 @@ export interface FileRouteTypes {
     | '/main/test-paper'
     | '/examples/pokemon/$id'
   fileRoutesByTo: FileRoutesByTo
-<<<<<<< HEAD
-  to: '/' | '/main' | '/signup' | '/examples/pokemon' | '/examples/pokemon/$id'
-=======
   to:
     | '/'
     | '/main'
@@ -146,7 +129,6 @@ export interface FileRouteTypes {
     | '/main/test-management'
     | '/main/test-paper'
     | '/examples/pokemon/$id'
->>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
   id:
     | '__root__'
     | '/'
@@ -165,7 +147,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MainRouteRoute: typeof MainRouteRouteWithChildren
   ExamplesPokemonRouteRoute: typeof ExamplesPokemonRouteRouteWithChildren
-  MainIndexRoute: typeof MainIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
 }
 
@@ -194,17 +175,10 @@ declare module '@tanstack/react-router' {
     }
     '/main/': {
       id: '/main/'
-<<<<<<< HEAD
-      path: '/main'
-      fullPath: '/main'
-      preLoaderRoute: typeof MainIndexRouteImport
-      parentRoute: typeof rootRouteImport
-=======
       path: '/'
       fullPath: '/main/'
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRouteRoute
->>>>>>> 07fbc4ca0677fd250da7c84f44b02de14a4fc0b7
     }
     '/examples/pokemon': {
       id: '/examples/pokemon'
@@ -286,7 +260,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MainRouteRoute: MainRouteRouteWithChildren,
   ExamplesPokemonRouteRoute: ExamplesPokemonRouteRouteWithChildren,
-  MainIndexRoute: MainIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
 }
 export const routeTree = rootRouteImport
