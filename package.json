@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3012 --host",
-    "start": "PORT=3012 node .output/server/index.mjs",
-    "build": "vite build",
+    "start": "PORT=3012 bun .output/server/index.mjs",
+    "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "lint": "prettier --write . && eslint --fix",
     "type-check": "tsc --noEmit",
