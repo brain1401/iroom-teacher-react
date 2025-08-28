@@ -1,0 +1,717 @@
+---
+description: Testing patterns and utility functions development rules for iroom-teacher project
+globs: */*.test.ts,*/*.test.tsx,*/*.spec.ts,**/*.spec.tsx,src/utils/**/*.ts,src/utils/**/*.tsx,src/lib/**/*.ts,src/lib/**/*.tsx
+alwaysApply: false
+---
+
+# Testing & Utilities Development Rules
+
+Testing patterns and utility function standards for the iroom-teacher React project.
+
+## Testing Patterns with Vitest
+
+### Test File Structure
+
+```typescript
+// ComponentName.test.tsx
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ComponentName } from "./ComponentName";
+
+/**
+ * Test wrapper for components requiring QueryClient
+ * @description Provides necessary providers for testing
+ */
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
+
+describe("ComponentName", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe("Rendering", () => {
+    it("should render component with required props", () => {
+      const props = {
+        requiredProp: "test value",
+      };
+
+      render(<ComponentName {...props} />, {
+        wrapper: TestWrapper,
+      });
+
+      expect(screen.getByText("test value")).toBeInTheDocument();
+    });
+
+    it("should handle loading state correctly", () => {
+      const props = {
+        requiredProp: "test",
+        isLoading: true,
+      };
+
+      render(<ComponentName {...props} />, {
+        wrapper: TestWrapper,
+      });
+
+      expect(screen.getByTestId("loading-skeleton")).toBeInTheDocument();
+    });
+  });
+
+  describe("User Interactions", () => {
+    it("should call onAction when button is clicked", async () => {
+      const mockOnAction = vi.fn();
+      const props = {
+        requiredProp: "test",
+        onAction: mockOnAction,
+      };
+
+      render(<ComponentName {...props} />, {
+        wrapper: TestWrapper,
+      });
+
+      const button = screen.getByRole("button", { name: /action/i });
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        expect(mockOnAction).toHaveBeenCalledWith("test");
+      });
+    });
+  });
+
+  describe("Error Handling", () => {
+    it("should display error message when error occurs", () => {
+      const props = {
+        requiredProp: "test",
+        error: new Error("Test error message"),
+      };
+
+      render(<ComponentName {...props} />, {
+        wrapper: TestWrapper,
+      });
+
+      expect(screen.getByText(/test error message/i)).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### API Testing Patterns
+
+```typescript
+// api/domain/api.test.ts
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { fetchDomainData } from "./api";
+import { ApiError } from "@/api/client";
+
+// Mock the API client
+vi.mock("@/api/client", () => ({
+  baseApiClient: vi.fn(),
+  ApiError: class extends Error {
+    constructor(message: string, public status?: number) {
+      super(message);
+      this.name = "ApiError";
+    }
+  },
+}));
+
+describe("Domain API", () => {
+  const mockBaseApiClient = vi.mocked(baseApiClient);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("fetchDomainData", () => {
+    it("should fetch data successfully", async () => {
+      const mockData = {
+        id: 1,
+        name: "test data",
+      };
+
+      mockBaseApiClient.mockResolvedValueOnce(mockData);
+
+      const result = await fetchDomainData({ id: 1 });
+
+      expect(result).toEqual(mockData);
+      expect(mockBaseApiClient).toHaveBeenCalledWith({
+        method: "GET",
+        url: "/api/domain/1",
+        signal: undefined,
+      });
+    });
+
+    it("should handle API errors correctly", async () => {
+      const mockError = new ApiError("Not found", 404);
+      mockBaseApiClient.mockRejectedValueOnce(mockError);
+
+      await expect(fetchDomainData({ id: 999 })).rejects.toThrow(
+        "Not found"
+      );
+    });
+
+    it("should support request cancellation", async () => {
+      const controller = new AbortController();
+      const mockData = { id: 1, name: "test" };
+      
+      mockBaseApiClient.mockResolvedValueOnce(mockData);
+
+      await fetchDomainData({ id: 1 }, { signal: controller.signal });
+
+      expect(mockBaseApiClient).toHaveBeenCalledWith(
+        expect.objectContaining({
+          signal: controller.signal,
+        })
+      );
+    });
+  });
+});
+```
+
+### Hook Testing Patterns
+
+```typescript
+// hooks/useCustomHook.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useCustomHook } from "./useCustomHook";
+
+describe("useCustomHook", () => {
+  it("should initialize with default values", () => {
+    const { result } = renderHook(() => useCustomHook("initial"));
+
+    expect(result.current.value).toBe("initial");
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("should update value when setValue is called", () => {
+    const { result } = renderHook(() => useCustomHook("initial"));
+
+    act(() => {
+      result.current.setValue("updated");
+    });
+
+    expect(result.current.value).toBe("updated");
+  });
+
+  it("should handle async operations correctly", async () => {
+    const { result } = renderHook(() => useCustomHook("initial"));
+
+    act(() => {
+      result.current.performAsyncAction();
+    });
+
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      // Wait for async operation to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    expect(result.current.isLoading).toBe(false);
+  });
+});
+```
+
+## Utility Functions Patterns
+
+### Pure Utility Functions
+
+```typescript
+// utils/domain/helpers.ts
+
+/**
+ * Extract Pokemon ID from PokeAPI URL
+ * @description Safely extracts numeric ID from Pokemon API URL structure
+ * 
+ * URL pattern: https://pokeapi.co/api/v2/pokemon/25/
+ * 
+ * @param url Pokemon API URL
+ * @returns Pokemon ID string or empty string if invalid
+ * 
+ * @example
+ * ```typescript
+ * extractPokemonId("https://pokeapi.co/api/v2/pokemon/25/") // "25"
+ * extractPokemonId("invalid-url") // ""
+ * extractPokemonId("") // ""
+ * ```
+ */
+export function extractPokemonId(url: string): string {
+  // Defensive programming: validate input
+  if (!url || typeof url !== "string") {
+    return "";
+  }
+
+  // Extract ID using regex pattern
+  const match = url.match(/\/pokemon\/(\d+)\/?$/);
+  return match ? match[1] : "";
+}
+
+/**
+ * Build Pokemon image URL from ID or name
+ * @description Generates official artwork URL for Pokemon
+ * 
+ * @param idOrName Pokemon ID (number) or name (string)
+ * @returns Complete image URL or empty string if invalid
+ * 
+ * @example
+ * ```typescript
+ * getPokemonImageUrl("25") // Official artwork URL for Pikachu
+ * getPokemonImageUrl("pikachu") // Same URL by name
+ * getPokemonImageUrl("") // ""
+ * ```
+ */
+export function getPokemonImageUrl(idOrName: string | number): string {
+  if (!idOrName) {
+    return "";
+  }
+
+  // Convert to string and validate
+  const identifier = String(idOrName).trim().toLowerCase();
+  if (!identifier) {
+    return "";
+  }
+
+  // URL encode for safety
+  const safeIdentifier = encodeURIComponent(identifier);
+  
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${safeIdentifier}.png`;
+}
+
+/**
+ * Format Pokemon height from decimeters to meters
+ * @description Converts API height format to human-readable meters
+ * 
+ * @param heightInDecimeters Height value from Pokemon API
+ * @returns Formatted height string with unit
+ * 
+ * @example
+ * ```typescript
+ * formatPokemonHeight(7) // "0.7m"
+ * formatPokemonHeight(15) // "1.5m" 
+ * formatPokemonHeight(0) // "0m"
+ * ```
+ */
+export function formatPokemonHeight(heightInDecimeters: number): string {
+  if (typeof heightInDecimeters !== "number" || heightInDecimeters < 0) {
+    return "0m";
+  }
+  
+  const meters = heightInDecimeters / 10;
+  return `${meters.toFixed(1)}m`;
+}
+
+/**
+ * Format Pokemon weight from hectograms to kilograms
+ * @description Converts API weight format to human-readable kilograms
+ * 
+ * @param weightInHectograms Weight value from Pokemon API
+ * @returns Formatted weight string with unit
+ * 
+ * @example
+ * ```typescript
+ * formatPokemonWeight(69) // "6.9kg"
+ * formatPokemonWeight(100) // "10.0kg"
+ * formatPokemonWeight(0) // "0kg"
+ * ```
+ */
+export function formatPokemonWeight(weightInHectograms: number): string {
+  if (typeof weightInHectograms !== "number" || weightInHectograms < 0) {
+    return "0kg";
+  }
+  
+  const kilograms = weightInHectograms / 10;
+  return `${kilograms.toFixed(1)}kg`;
+}
+```
+
+### URL Builder Utilities
+
+```typescript
+// utils/domain/urlBuilder.ts
+
+/**
+ * Build API URL with query parameters
+ * @description Creates properly formatted URLs with query string parameters
+ * 
+ * @param baseUrl Base API endpoint URL
+ * @param params Query parameters object
+ * @returns Complete URL with query string
+ * 
+ * @example
+ * ```typescript
+ * buildApiUrl("/api/pokemon", { limit: 20, offset: 0 })
+ * // "/api/pokemon?limit=20&offset=0"
+ * 
+ * buildApiUrl("/api/pokemon", { search: "pikachu" })
+ * // "/api/pokemon?search=pikachu"
+ * ```
+ */
+export function buildApiUrl(
+  baseUrl: string,
+  params?: Record<string, string | number | boolean | undefined>
+): string {
+  if (!baseUrl) {
+    throw new Error("Base URL is required");
+  }
+
+  if (!params || Object.keys(params).length === 0) {
+    return baseUrl;
+  }
+
+  const searchParams = new URLSearchParams();
+
+  // Add non-empty parameters
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+}
+
+/**
+ * Build Pokemon list URL with filters
+ * @description Specific URL builder for Pokemon list endpoint
+ * 
+ * @param filters Filtering options
+ * @returns Complete Pokemon list API URL
+ */
+export function buildPokemonListUrl(filters?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}): string {
+  const baseUrl = "https://pokeapi.co/api/v2/pokemon";
+  
+  return buildApiUrl(baseUrl, {
+    limit: filters?.limit,
+    offset: filters?.offset,
+    // Note: PokeAPI doesn't support search, this is for example
+    search: filters?.search,
+  });
+}
+
+/**
+ * Build Pokemon detail URL by ID or name
+ * @description Creates URL for individual Pokemon lookup
+ * 
+ * @param idOrName Pokemon identifier
+ * @returns Complete Pokemon detail API URL
+ */
+export function buildPokemonDetailUrl(idOrName: string | number): string {
+  if (!idOrName) {
+    throw new Error("Pokemon ID or name is required");
+  }
+
+  const identifier = String(idOrName).toLowerCase().trim();
+  const safeIdentifier = encodeURIComponent(identifier);
+  
+  return `https://pokeapi.co/api/v2/pokemon/${safeIdentifier}`;
+}
+```
+
+### Error Handling Utilities
+
+```typescript
+// utils/errorHandling.ts (extending existing)
+
+/**
+ * Type guard for checking if value is Error instance
+ * @param value Unknown value to check
+ * @returns Boolean indicating if value is Error
+ */
+export function isError(value: unknown): value is Error {
+  return value instanceof Error;
+}
+
+/**
+ * Type guard for checking if value is ApiError instance
+ * @param value Unknown value to check
+ * @returns Boolean indicating if value is ApiError
+ */
+export function isApiError(value: unknown): value is ApiError {
+  return value instanceof ApiError;
+}
+
+/**
+ * Safe error message extraction
+ * @description Extracts error message from various error types safely
+ * 
+ * @param error Unknown error object
+ * @param fallback Fallback message if extraction fails
+ * @returns User-friendly error message
+ */
+export function safeGetErrorMessage(
+  error: unknown, 
+  fallback: string = "알 수 없는 오류가 발생했습니다"
+): string {
+  if (isApiError(error)) {
+    return error.message || fallback;
+  }
+  
+  if (isError(error)) {
+    return error.message || fallback;
+  }
+  
+  if (typeof error === "string") {
+    return error || fallback;
+  }
+  
+  return fallback;
+}
+
+/**
+ * Create standardized error response
+ * @description Creates consistent error response structure
+ * 
+ * @param error Original error
+ * @param context Context where error occurred
+ * @returns Standardized error response
+ */
+export function createErrorResponse(error: unknown, context: string) {
+  const message = safeGetErrorMessage(error);
+  const timestamp = new Date().toISOString();
+  
+  return {
+    success: false as const,
+    error: {
+      message,
+      context,
+      timestamp,
+      originalError: error,
+    },
+  };
+}
+```
+
+### Validation Utilities
+
+```typescript
+// utils/validation.ts
+
+/**
+ * Validate email address format
+ * @param email Email string to validate
+ * @returns Boolean indicating if email is valid
+ */
+export function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== "string") {
+    return false;
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+}
+
+/**
+ * Validate Korean phone number format
+ * @param phone Phone number string to validate
+ * @returns Boolean indicating if phone number is valid
+ */
+export function isValidKoreanPhone(phone: string): boolean {
+  if (!phone || typeof phone !== "string") {
+    return false;
+  }
+  
+  // Korean phone number patterns
+  const phoneRegex = /^01[016789]-?[0-9]{3,4}-?[0-9]{4}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ""));
+}
+
+/**
+ * Sanitize user input string
+ * @param input Raw user input
+ * @returns Sanitized string safe for display
+ */
+export function sanitizeInput(input: string): string {
+  if (!input || typeof input !== "string") {
+    return "";
+  }
+  
+  return input
+    .trim()
+    .replace(/[<>\"']/g, "") // Remove potentially dangerous characters
+    .substring(0, 1000); // Limit length
+}
+
+/**
+ * Validate pagination parameters
+ * @param page Page number
+ * @param limit Items per page
+ * @returns Validated pagination parameters
+ */
+export function validatePaginationParams(page?: number, limit?: number) {
+  const validPage = Math.max(1, Math.floor(page || 1));
+  const validLimit = Math.min(100, Math.max(1, Math.floor(limit || 20)));
+  
+  return {
+    page: validPage,
+    limit: validLimit,
+    offset: (validPage - 1) * validLimit,
+  };
+}
+```
+
+### Testing Utility Functions
+
+```typescript
+// utils/domain/helpers.test.ts
+import { describe, it, expect } from "vitest";
+import {
+  extractPokemonId,
+  getPokemonImageUrl,
+  formatPokemonHeight,
+  formatPokemonWeight,
+} from "./helpers";
+
+describe("Pokemon Utilities", () => {
+  describe("extractPokemonId", () => {
+    it("should extract ID from valid Pokemon URL", () => {
+      const url = "https://pokeapi.co/api/v2/pokemon/25/";
+      expect(extractPokemonId(url)).toBe("25");
+    });
+
+    it("should handle URL without trailing slash", () => {
+      const url = "https://pokeapi.co/api/v2/pokemon/150";
+      expect(extractPokemonId(url)).toBe("150");
+    });
+
+    it("should return empty string for invalid URL", () => {
+      expect(extractPokemonId("invalid-url")).toBe("");
+      expect(extractPokemonId("")).toBe("");
+      expect(extractPokemonId(null as any)).toBe("");
+    });
+  });
+
+  describe("getPokemonImageUrl", () => {
+    it("should generate correct URL for ID", () => {
+      const result = getPokemonImageUrl("25");
+      expect(result).toContain("25.png");
+      expect(result).toContain("official-artwork");
+    });
+
+    it("should handle name input", () => {
+      const result = getPokemonImageUrl("pikachu");
+      expect(result).toContain("pikachu.png");
+    });
+
+    it("should return empty string for invalid input", () => {
+      expect(getPokemonImageUrl("")).toBe("");
+      expect(getPokemonImageUrl(null as any)).toBe("");
+    });
+  });
+
+  describe("formatPokemonHeight", () => {
+    it("should format height correctly", () => {
+      expect(formatPokemonHeight(7)).toBe("0.7m");
+      expect(formatPokemonHeight(15)).toBe("1.5m");
+      expect(formatPokemonHeight(0)).toBe("0.0m");
+    });
+
+    it("should handle invalid input", () => {
+      expect(formatPokemonHeight(-1)).toBe("0m");
+      expect(formatPokemonHeight(NaN)).toBe("0m");
+    });
+  });
+
+  describe("formatPokemonWeight", () => {
+    it("should format weight correctly", () => {
+      expect(formatPokemonWeight(69)).toBe("6.9kg");
+      expect(formatPokemonWeight(100)).toBe("10.0kg");
+      expect(formatPokemonWeight(0)).toBe("0.0kg");
+    });
+
+    it("should handle invalid input", () => {
+      expect(formatPokemonWeight(-1)).toBe("0kg");
+      expect(formatPokemonWeight(NaN)).toBe("0kg");
+    });
+  });
+});
+```
+
+## Test Configuration
+
+### Vitest Configuration
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      exclude: [
+        "node_modules/",
+        "src/test/",
+        "**/*.d.ts",
+        "**/*.config.*",
+        "dist/",
+      ],
+    },
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+```
+
+### Test Setup File
+
+```typescript
+// src/test/setup.ts
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
+
+// Mock window.matchMedia
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+```
+
+These patterns ensure robust testing coverage and maintainable utility functions for the 이룸클래스 React project.

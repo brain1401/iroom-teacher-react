@@ -1,0 +1,469 @@
+---
+description: TypeScript patterns and type safety rules for iroom-teacher project
+globs: "**/*.ts,**/*.tsx,!**/*.test.ts,!**/*.test.tsx"
+alwaysApply: true
+---
+
+# TypeScript Development Rules
+
+Strict type safety patterns for the iroom-teacher React project.
+
+## Core TypeScript Rules
+
+### Type Definition Standards
+
+**ALWAYS use `type` keyword, NEVER use `interface`**
+
+```typescript
+// ✅ Correct
+type UserProfile = {
+  /** User unique identifier */
+  id: number;
+  /** User display name */
+  name: string;
+  /** User email address */
+  email: string;
+};
+
+// ❌ Forbidden
+interface UserProfile {
+  id: number;
+  name: string;
+}
+```
+
+### Props Type Patterns
+
+```typescript
+// Component props always above component definition
+type ComponentProps = {
+  /** Required property description */
+  requiredProp: string;
+  /** Optional property with default */
+  optionalProp?: number;
+  /** Event handler */
+  onAction?: (value: string) => void;
+  /** Child components */
+  children?: React.ReactNode;
+};
+
+/**
+ * Component description (Korean explanations when needed)
+ * @description Detailed functionality explanation
+ */
+export function Component({ 
+  requiredProp, 
+  optionalProp = 0, 
+  onAction,
+  children 
+}: ComponentProps) {
+  // Implementation...
+}
+```
+
+### API Response Types
+
+Define complete API response types with full documentation:
+
+```typescript
+/**
+ * Pokemon list API response type
+ * @description Complete response structure from Pokemon API
+ */
+type PokemonListResponse = {
+  /** Total number of Pokemon */
+  count: number;
+  /** Next page URL (null if last page) */
+  next: string | null;
+  /** Previous page URL (null if first page) */
+  previous: string | null;
+  /** Current page Pokemon list */
+  results: NamedAPIResource[];
+};
+
+/**
+ * Named API resource structure
+ * @description Standard structure for API resource references
+ */
+type NamedAPIResource = {
+  /** Resource name */
+  name: string;
+  /** Resource API URL */
+  url: string;
+};
+```
+
+### Union and Literal Types
+
+```typescript
+// Strict literal types for constants
+type ThemeMode = "light" | "dark";
+type ButtonVariant = "default" | "ghost" | "outline" | "destructive";
+type LoadingState = "idle" | "pending" | "success" | "error";
+
+// Conditional types for API responses
+type ApiResponse<T> = {
+  data: T;
+  status: "success" | "error";
+  message?: string;
+};
+
+// Generic types with constraints
+type QueryOptions<TData = unknown> = {
+  queryKey: ReadonlyArray<string | number>;
+  queryFn: () => Promise<TData>;
+  enabled?: boolean;
+  staleTime?: number;
+};
+```
+
+## Type Safety Patterns
+
+### Type Guards
+
+```typescript
+/**
+ * Type guard for validating Pokemon ID
+ * @param value Unknown value to check
+ * @returns Boolean indicating if value is valid Pokemon ID
+ */
+export function isValidPokemonId(value: unknown): value is number {
+  return typeof value === "number" && value > 0 && Number.isInteger(value);
+}
+
+/**
+ * Type guard for API error checking
+ * @param error Unknown error object
+ * @returns Boolean indicating if error is ApiError instance
+ */
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
+```
+
+### Utility Types Usage
+
+```typescript
+// Use built-in utility types
+type PartialUserProfile = Partial<UserProfile>;
+type RequiredUserProfile = Required<UserProfile>;
+type UserProfileKeys = keyof UserProfile;
+type UserName = Pick<UserProfile, "name">;
+type UserWithoutId = Omit<UserProfile, "id">;
+
+// Custom utility types
+type NonNullable<T> = T extends null | undefined ? never : T;
+type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};
+```
+
+### Function Type Definitions
+
+```typescript
+// Event handler types
+type ClickHandler = (event: React.MouseEvent<HTMLButtonElement>) => void;
+type ChangeHandler = (value: string) => void;
+type SubmitHandler<T> = (data: T) => Promise<void>;
+
+// API function types with proper error handling
+type ApiFunction<TParams, TResponse> = (
+  params: TParams,
+  options?: { signal?: AbortSignal }
+) => Promise<TResponse>;
+
+// Hook return types
+type UseQueryResult<TData> = {
+  data: TData | undefined;
+  isPending: boolean;
+  isError: boolean;
+  error: Error | null;
+};
+```
+
+## TSDoc Documentation Standards
+
+### Function Documentation
+
+```typescript
+/**
+ * Pokemon data fetching function (포켓몬 데이터 조회 함수)
+ * @description Fetches Pokemon list with pagination and search support
+ * 
+ * Key features:
+ * - Pagination support (limit, offset)
+ * - Search filtering capability
+ * - Request cancellation via AbortSignal
+ * - Defensive programming for safe error handling
+ * 
+ * @example
+ * ```typescript
+ * // Basic usage
+ * const pokemon = await fetchPokemonList();
+ * 
+ * // With filters
+ * const filtered = await fetchPokemonList({
+ *   limit: 20,
+ *   offset: 0,
+ *   search: "pikachu"
+ * });
+ * 
+ * // With cancellation
+ * const controller = new AbortController();
+ * const data = await fetchPokemonList({}, { signal: controller.signal });
+ * ```
+ * 
+ * @param filters Optional filtering parameters
+ * @param filters.limit Number of items per page (default: 20)
+ * @param filters.offset Number of items to skip
+ * @param filters.search Search keyword for filtering
+ * @param options Additional options
+ * @param options.signal AbortSignal for request cancellation
+ * @returns Promise resolving to Pokemon list response
+ * @throws {ApiError} When API request fails or network error occurs
+ */
+export async function fetchPokemonList(
+  filters?: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+  },
+  options?: { signal?: AbortSignal }
+): Promise<PokemonListResponse> {
+  // Implementation...
+}
+```
+
+### Type Documentation
+
+```typescript
+/**
+ * Complete Pokemon information type (포켓몬 완전 정보 타입)
+ * @description Contains all detailed information about a Pokemon from API
+ */
+type Pokemon = {
+  /** Unique Pokemon ID number */
+  id: number;
+  /** Pokemon name in lowercase */
+  name: string;
+  /** Height in decimeters (7 = 0.7m) */
+  height: number;
+  /** Weight in hectograms (69 = 6.9kg) */
+  weight: number;
+  /** Pokemon image sprites (front, back, shiny variants) */
+  sprites: PokemonSprites;
+  /** Pokemon types (fire, water, grass, etc.) */
+  types: PokemonType[];
+  /** Pokemon base stats */
+  stats: PokemonStat[];
+  /** Pokemon abilities */
+  abilities: PokemonAbility[];
+};
+```
+
+## Error Handling Types
+
+### Error Type Definitions
+
+```typescript
+/**
+ * Custom API error class
+ * @description Extends Error with additional API-specific information
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly data?: unknown,
+    public readonly originalError?: unknown
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * Error severity levels
+ * @description Classification of error importance
+ */
+type ErrorSeverity = "info" | "warning" | "error" | "critical";
+
+/**
+ * Structured error information
+ * @description Complete error context for logging and handling
+ */
+type ErrorInfo = {
+  message: string;
+  severity: ErrorSeverity;
+  timestamp: string;
+  context?: string;
+  metadata?: Record<string, unknown>;
+};
+```
+
+### Result Type Pattern
+
+```typescript
+/**
+ * Result type for operations that can fail
+ * @description Functional programming pattern for error handling
+ */
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+// Usage example
+async function safeFetchPokemon(id: string): Promise<Result<Pokemon, ApiError>> {
+  try {
+    const data = await fetchPokemonDetail(id);
+    return { success: true, data };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { success: false, error };
+    }
+    return { 
+      success: false, 
+      error: new ApiError("Unknown error occurred") 
+    };
+  }
+}
+```
+
+## Generic Type Patterns
+
+### Query and Mutation Types
+
+```typescript
+/**
+ * Generic query options type
+ * @description Reusable type for React Query configurations
+ */
+type QueryOptions<TData, TParams = void> = {
+  queryKey: ReadonlyArray<unknown>;
+  queryFn: (params: TParams) => Promise<TData>;
+  enabled?: boolean;
+  staleTime?: number;
+  gcTime?: number;
+  retry?: number | ((failureCount: number, error: Error) => boolean);
+};
+
+/**
+ * Generic mutation options type
+ * @description Reusable type for React Query mutations
+ */
+type MutationOptions<TData, TVariables> = {
+  mutationFn: (variables: TVariables) => Promise<TData>;
+  onSuccess?: (data: TData, variables: TVariables) => void;
+  onError?: (error: Error, variables: TVariables) => void;
+};
+```
+
+### Component Generic Types
+
+```typescript
+/**
+ * Generic list component props
+ * @description Reusable type for list components
+ */
+type ListComponentProps<TItem> = {
+  /** List items array */
+  items: TItem[];
+  /** Render function for each item */
+  renderItem: (item: TItem, index: number) => React.ReactNode;
+  /** Loading state */
+  isLoading?: boolean;
+  /** Empty state component */
+  emptyComponent?: React.ReactNode;
+  /** Loading component */
+  loadingComponent?: React.ReactNode;
+};
+```
+
+## Type Checking Rules
+
+### Strict Null Checks
+
+```typescript
+// Always handle null/undefined explicitly
+function processUserName(name: string | null): string {
+  // ✅ Explicit null check
+  if (name === null) {
+    return "Anonymous";
+  }
+  return name.toUpperCase();
+}
+
+// ✅ Use optional chaining
+const userEmail = user?.profile?.email ?? "No email provided";
+
+// ✅ Use nullish coalescing
+const displayName = user.name ?? user.username ?? "Unknown User";
+```
+
+### Type Assertions
+
+```typescript
+// ✅ Use type assertions sparingly and safely
+const element = document.getElementById("root") as HTMLDivElement;
+
+// ✅ Better: Use type guards
+function isHTMLDivElement(element: Element | null): element is HTMLDivElement {
+  return element !== null && element.tagName === "DIV";
+}
+
+// ❌ Avoid unsafe type assertions
+const data = response as any; // Forbidden!
+```
+
+## Module Declaration Patterns
+
+### Global Type Extensions
+
+```typescript
+// For extending global types when needed
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      readonly VITE_API_BASE_URL: string;
+      readonly VITE_APP_TITLE: string;
+    }
+  }
+}
+
+// Module augmentation for libraries
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+```
+
+## Validation Integration
+
+### Zod Integration Types
+
+```typescript
+import { z } from "zod";
+
+// Define Zod schemas
+const PokemonSchema = z.object({
+  id: z.number().positive(),
+  name: z.string().min(1),
+  height: z.number().positive(),
+  weight: z.number().positive(),
+});
+
+// Extract TypeScript types from Zod schemas
+type Pokemon = z.infer<typeof PokemonSchema>;
+
+// Search parameters validation
+const SearchParamsSchema = z.object({
+  page: z.number().default(1),
+  limit: z.number().min(1).max(100).default(20),
+  search: z.string().optional(),
+});
+
+type SearchParams = z.infer<typeof SearchParamsSchema>;
+```
+
+These TypeScript patterns ensure type safety, maintainability, and consistency across the iroom-teacher React project.

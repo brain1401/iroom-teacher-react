@@ -18,15 +18,15 @@ function RouteComponent() {
     setIsShowHeader(false);
   }, [setIsShowHeader]);
 
-/**
- * 시험지 페이지 컴포넌트
- * @description 탭 전환 및 하단 밑줄 애니메이션 제공
- *
- * 주요 기능:
- * - 제어형 탭 상태 관리
- * - framer-motion `layoutId` 기반 밑줄 이동 애니메이션 처리
- * - shadcn/ui `Tabs` 조합 스타일 적용
- */
+  /**
+   * 시험지 페이지 컴포넌트
+   * @description 탭 전환 및 하단 밑줄 애니메이션 제공
+   *
+   * 주요 기능:
+   * - 제어형 탭 상태 관리
+   * - framer-motion `layoutId` 기반 밑줄 이동 애니메이션 처리
+   * - shadcn/ui `Tabs` 조합 스타일 적용
+   */
   return (
     <>
       <TabsContent value="list" className="mt-10">

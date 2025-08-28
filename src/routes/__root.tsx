@@ -45,7 +45,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
             오류가 발생했습니다
           </h1>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
-            예상치 못한 오류가 발생했습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+            예상치 못한 오류가 발생했습니다. 페이지를 새로고침하거나 잠시 후
+            다시 시도해주세요.
           </p>
           <details className="mb-4">
             <summary className="cursor-pointer text-gray-600 dark:text-gray-400 mb-2">
