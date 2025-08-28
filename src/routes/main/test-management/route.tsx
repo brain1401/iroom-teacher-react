@@ -13,9 +13,13 @@ function RouteComponent() {
   const [activeTab, setActiveTab] = useState<string>("list");
 
   return (
-    <Card className="w-full p-8" >
+    <Card className="w-full p-8">
       {/* 제어형 탭 구성 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-2 ">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full mt-2 "
+      >
         {/* 탭 트랙 및 하단 보더 표시 */}
         <TabsList className="relative grid w-[30rem] grid-cols-2 bg-white ">
           {/* 목록 탭 트리거 */}
@@ -50,10 +54,9 @@ function RouteComponent() {
             )}
           </TabsTrigger>
         </TabsList>
-        <hr className="w-full mt-1  " />
+        <hr className="w-full  " />
         <Outlet />
       </Tabs>
     </Card>
   );
 }
-
