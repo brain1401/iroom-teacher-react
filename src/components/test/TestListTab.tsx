@@ -5,9 +5,14 @@ import { TestTable } from "./TestListTable";
 import { Button } from "@/components/ui/button";
 import SelectGrade from "../layout/SelectGrade";
 import { PagePagination } from "@/components/layout/PagePagination";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { TestLevel, TestStatus } from "@/types/test";
-
 
 type Test = {
   id: string;
@@ -28,42 +33,41 @@ type TestSubmitStatusDetail = {
   submissionManagement: string;
 };
 
-const fakeTestSubmitStatusDetail: TestSubmitStatusDetail[] = [
-
+const _fakeTestSubmitStatusDetail: TestSubmitStatusDetail[] = [
   {
     name: "윤아연",
     phoneNumber: "010-9185-8023",
     TestName: "기말 대비 모의고사",
     submissionDate: "2025-01-15",
-    submissionManagement: "제출"
+    submissionManagement: "제출",
   },
   {
     name: "윤아연",
     phoneNumber: "010-9185-8023",
     TestName: "기말 대비 모의고사",
     submissionDate: "2025-01-15",
-    submissionManagement: "제출"
+    submissionManagement: "제출",
   },
   {
     name: "윤아연",
     phoneNumber: "010-9185-8023",
     TestName: "기말 대비 모의고사",
     submissionDate: "2025-01-15",
-    submissionManagement: "제출"
+    submissionManagement: "제출",
   },
   {
     name: "윤아연",
     phoneNumber: "010-9185-8023",
     TestName: "기말 대비 모의고사",
     submissionDate: "2025-01-15",
-    submissionManagement: "제출"
+    submissionManagement: "제출",
   },
   {
     name: "윤아연",
     phoneNumber: "010-9185-8023",
     TestName: "기말 대비 모의고사",
     submissionDate: "2025-01-15",
-    submissionManagement: "제출"
+    submissionManagement: "제출",
   },
 ];
 
@@ -76,7 +80,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-002",
@@ -86,7 +90,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-003",
@@ -96,7 +100,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-004",
@@ -106,7 +110,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-005",
@@ -116,7 +120,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-006",
@@ -126,7 +130,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-007",
@@ -136,7 +140,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-008",
@@ -146,7 +150,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-009",
@@ -156,7 +160,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
   {
     id: "paper-010",
@@ -166,7 +170,7 @@ const fakeTestData: Test[] = [
     questionLevel: "기초",
     status: "승인완료",
     createdAt: "2025-01-15",
-    updatedAt: "2025-01-15"
+    updatedAt: "2025-01-15",
   },
 ];
 
@@ -175,21 +179,23 @@ export function TestListTab() {
   const [papers] = useState<Test[]>(fakeTestData);
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] = useState<Test | null>(null);
-  const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(null);
+  const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(
+    null,
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(papers.map((p) => p.id)));
     } else {
       setSelectedIds(new Set());
-    }              
+    }
   };
 
   const handleSelect = (id: string, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (checked) next.add(id);
-      else next.delete(id); 
+      else next.delete(id);
       return next;
     });
   };
@@ -230,14 +236,19 @@ export function TestListTab() {
         selectedIds={selectedIds}
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}
-        onOpenPrint={handleOpenPrint}  // ✅ 누락된 prop 추가
+        onOpenPrint={handleOpenPrint} // ✅ 누락된 prop 추가
         onOpenDetail={handleOpenDetail}
       />
 
       {/* 3. 페이지네이션 컴포넌트 */}
       <PagePagination />
       {/* 모달: 인쇄/상세 공용 다이얼로그 */}
-      <Dialog open={activeModal !== null} onOpenChange={(o) => { if (!o) handleClose(); }}>
+      <Dialog
+        open={activeModal !== null}
+        onOpenChange={(o) => {
+          if (!o) handleClose();
+        }}
+      >
         <DialogContent className="max-w-3xl">
           {activeModal === "detail" && (
             <>
