@@ -19,15 +19,15 @@ const HeaderTitle = () => {
         <div className="ml-6 mr-2.5">
           {isShowHeader && (
             <Select defaultValue="중1">
-            <SelectTrigger>
-              <SelectValue placeholder="중1" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="중1">중1</SelectItem>
-              <SelectItem value="중2">중2</SelectItem>
-              <SelectItem value="중3">중3</SelectItem>
-            </SelectContent>
-          </Select>
+              <SelectTrigger>
+                <SelectValue placeholder="중1" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="중1">중1</SelectItem>
+                <SelectItem value="중2">중2</SelectItem>
+                <SelectItem value="중3">중3</SelectItem>
+              </SelectContent>
+            </Select>
           )}
         </div>
       </div>
