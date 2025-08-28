@@ -8,7 +8,11 @@ export default [
       "@typescript-eslint/array-type": "off",
       "sort-imports": "off",
       "import/order": "off",
+      "pnpm/json-enforce-catalog": "off", // Disable pnpm rule for Bun projects
     },
+  },
+  {
+    ignores: ["public/**/*"], // Ignore public directory
   },
   {
     files: ["**/*.{jsx,tsx}"],
