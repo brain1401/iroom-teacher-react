@@ -24,7 +24,7 @@ export default function SideMenu() {
       <div className="flex flex-col gap-16 pt-4">
         {menuItems.map((item) => {
           const IconComponent = item.icon;
-          
+
           return (
             // 2. Link의 key를 item.path로 설정하는 것이 중요!
             <Link to={item.path} key={item.path}>
@@ -40,7 +40,7 @@ export default function SideMenu() {
                   <motion.div
                     className="absolute w-1 h-full bg-blue-500"
                     // 5. layoutId를 부여해서 애니메이션을 연결
-                    layoutId="active-indicator" 
+                    layoutId="active-indicator"
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   />
                 )}

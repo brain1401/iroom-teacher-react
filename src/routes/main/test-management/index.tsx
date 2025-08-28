@@ -18,7 +18,7 @@ function RouteComponent() {
 
   return (
     <Card>
-      <div className="text-5xl font-bold">시험 관리</div>
+      <div className="text-[2.5rem] font-bold">시험 관리</div>
     </Card>
   );
 }

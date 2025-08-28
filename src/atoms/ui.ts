@@ -24,4 +24,4 @@ export const mainBgExtraCombinedClassAtom = atom((get) => {
   return `${light} ${dark ? `dark:${dark}` : ""}`.trim();
 });
 
-export const isShowHeaderAtom = atom(true);
+export const isShowHeaderAtom = atom(false);

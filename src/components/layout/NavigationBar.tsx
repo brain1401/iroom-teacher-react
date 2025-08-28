@@ -16,7 +16,7 @@ import HealthCheckStatus from "./HealthCheckStatus";
  * - to: 타입 안전한 라우트 경로 지정 (자동완성과 타입 체크 지원)
  * - HealthCheckStatus: 개발 환경에서 백엔드 서버 상태 모니터링
  */
-export default function NavigationBar() {
+export  function NavigationBar() {
   return (
     <nav className="bg-white border-b shadow-sm p-4">
       <div className="mx-auto flex items-center justify-between">

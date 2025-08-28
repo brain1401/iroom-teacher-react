@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3012",
+    "dev": "vite dev --port 3012 --host",
     "start": "PORT=3012 node .output/server/index.mjs",
     "build": "vite build",
     "test": "vitest run",
