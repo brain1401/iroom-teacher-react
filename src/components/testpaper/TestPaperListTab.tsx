@@ -5,8 +5,8 @@ import { TestPaperTable } from "./TestPaperTable";
 import { Button } from "@/components/ui/button";
 import SelectGrade from "../layout/SelectGrade";
 import { PagePagination } from "../layout/PagePagination";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
+import { ProblemModal } from "../layout/ProblemModal";
+import { PrintOptionsModal } from "./PrintOptionsModal";
 
 type TestPaper = {
   id: string;
@@ -79,11 +79,17 @@ const fakeTestPaperData: TestPaper[] = [
 ];
 
 export function TestPaperListTab() {
-  // ... (useState 및 핸들러 함수들은 동일)
   const [papers] = useState<TestPaper[]>(fakeTestPaperData);
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] = useState<TestPaper | null>(null);
-  const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(null);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+
+  // 문제 모달 관련 상태
+  const [isProblemModalOpen, setIsProblemModalOpen] = useState(false);
+  const [currentProblemNumber, setCurrentProblemNumber] = useState(1);
+  const [currentTestPaper, setCurrentTestPaper] = useState<TestPaper | null>(
+    null,
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -104,18 +110,60 @@ export function TestPaperListTab() {
 
   const handleOpenPrint = (paper: TestPaper) => {
     setSelectedPaper(paper);
-    setActiveModal("print");
+    setIsPrintModalOpen(true);
   };
 
-  const handleOpenDetail = (paper: TestPaper) => {
-    setSelectedPaper(paper);
-    setActiveModal("detail");
+  const handleOpenProblemModal = (paper: TestPaper) => {
+    setCurrentTestPaper(paper);
+    setCurrentProblemNumber(1);
+    setIsProblemModalOpen(true);
   };
 
-  const handleClose = () => {
-    setActiveModal(null);
+  const handleClosePrintModal = () => {
+    setIsPrintModalOpen(false);
     setSelectedPaper(null);
   };
+
+  const handleCloseProblemModal = () => {
+    setIsProblemModalOpen(false);
+    setCurrentTestPaper(null);
+    setCurrentProblemNumber(1);
+  };
+
+  const handlePreviousProblem = () => {
+    if (currentProblemNumber > 1) {
+      setCurrentProblemNumber(currentProblemNumber - 1);
+    }
+  };
+
+  const handleNextProblem = () => {
+    if (
+      currentTestPaper &&
+      currentProblemNumber < currentTestPaper.questionCount
+    ) {
+      setCurrentProblemNumber(currentProblemNumber + 1);
+    }
+  };
+
+  // 가상의 문제 데이터 생성 함수
+  const generateProblemData = (testPaper: TestPaper) => {
+    const problems = [];
+    for (let i = 1; i <= testPaper.questionCount; i++) {
+      problems.push({
+        number: i,
+        text: `${testPaper.unitName} - ${i}번 문제입니다. 이 문제는 ${testPaper.testName}의 ${i}번째 문제로, 수학적 사고력을 요구하는 문제입니다.`,
+        image: `/path/to/problem${i}-image.png`,
+      });
+    }
+    return problems;
+  };
+
+  const currentProblemData = currentTestPaper
+    ? generateProblemData(currentTestPaper)
+    : [];
+  const currentProblem = currentProblemData.find(
+    (p) => p.number === currentProblemNumber,
+  );
 
   return (
     <div className="space-y-4 w-full">
@@ -139,39 +187,37 @@ export function TestPaperListTab() {
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}
         onOpenPrint={handleOpenPrint}
-        onOpenDetail={handleOpenDetail}
+        onOpenProblemModal={handleOpenProblemModal}
       />
 
       {/* 3. 페이지네이션 컴포넌트 */}
       <PagePagination />
-      {/* 모달: 인쇄/상세 공용 다이얼로그 */}
-      <Dialog open={activeModal !== null} onOpenChange={(o) => { if (!o) handleClose(); }}>
-        <DialogContent className="max-w-3xl">
-          {activeModal === "print" && (
-            <>
-              <DialogHeader>
-                <DialogTitle>인쇄 미리보기</DialogTitle>
-                <DialogDescription>{selectedPaper?.testName}</DialogDescription>
-              </DialogHeader>
-              {/* 인쇄 미리보기 콘텐츠 구성 예정 */}
-              <div className="text-sm text-muted-foreground">미리보기는 추후 연결</div>
-            </>
-          )}
-          {activeModal === "detail" && (
-            <>
-              <DialogHeader>
-                <DialogTitle>시험지 상세</DialogTitle>
-                <DialogDescription>{selectedPaper?.testName}</DialogDescription>
-              </DialogHeader>
-              {/* 상세 정보 콘텐츠 구성 예정 */}
-              <div className="space-y-2">
-                <div>단원: {selectedPaper?.unitName}</div>
-                <div>문항수: {selectedPaper?.questionCount}</div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+
+      {/* 인쇄 옵션 모달 */}
+      <PrintOptionsModal
+        isOpen={isPrintModalOpen}
+        onClose={handleClosePrintModal}
+        onConfirm={(selectedItems) => {
+          console.log("선택된 인쇄 항목:", selectedItems);
+          console.log("선택된 시험지:", selectedPaper);
+          // 여기에 실제 인쇄 로직 구현
+        }}
+      />
+
+      {/* 문제 모달 */}
+      {currentProblem && currentTestPaper && (
+        <ProblemModal
+          isOpen={isProblemModalOpen}
+          onClose={handleCloseProblemModal}
+          problemNumber={currentProblem.number}
+          problemText={currentProblem.text}
+          geometryImage={currentProblem.image}
+          hasPrevious={currentProblemNumber > 1}
+          hasNext={currentProblemNumber < currentTestPaper.questionCount}
+          onPrevious={handlePreviousProblem}
+          onNext={handleNextProblem}
+        />
+      )}
     </div>
   );
 }

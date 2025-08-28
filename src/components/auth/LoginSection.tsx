@@ -57,7 +57,6 @@ export function LoginSection() {
           </form>
 
           {/* 추가 링크 */}
-          
         </div>
       </div>
     </>

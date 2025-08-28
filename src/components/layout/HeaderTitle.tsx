@@ -4,9 +4,8 @@ import { useAtomValue } from "jotai";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import SelectGrade from "./SelectGrade";
 
-
 export function HeaderTitle() {
-    const isShowHeader = useAtomValue(isShowHeaderAtom);
+  const isShowHeader = useAtomValue(isShowHeaderAtom);
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
@@ -16,6 +15,4 @@ export function HeaderTitle() {
       <LogOut className="w-16 h-16" />
     </div>
   );
-};
-
-
+}

@@ -12,10 +12,7 @@ import type { Grade } from "@/types/grade";
 export default function SelectGrade() {
   const [grade, setGrade] = useAtom(selectedGradeAtom);
   return (
-    <Select
-      value={grade}
-      onValueChange={(value) => setGrade(value as Grade)}
-    >
+    <Select value={grade} onValueChange={(value) => setGrade(value as Grade)}>
       <SelectTrigger>
         <SelectValue placeholder="중1" />
       </SelectTrigger>

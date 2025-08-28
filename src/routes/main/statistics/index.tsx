@@ -163,7 +163,7 @@ function RouteComponent() {
     avg: { label: "평균 점수 ", color: "hsl(217 91% 60%)" },
   } as const;
   const wrongChartConfig = {
-    wrongRate: { label: "오답률 ", color: "hsl(340 82% 52%)" ,},
+    wrongRate: { label: "오답률 ", color: "hsl(340 82% 52%)" },
   } as const;
 
   // 오답률 차트 데이터

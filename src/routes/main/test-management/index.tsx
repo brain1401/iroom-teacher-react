@@ -1,15 +1,14 @@
-import { isShowHeaderAtom } from '@/atoms/ui';
-import { Card } from '@/components/ui/card';
-import { createFileRoute } from '@tanstack/react-router'
-import { useSetAtom } from 'jotai';
-import { useLayoutEffect } from 'react';
+import { isShowHeaderAtom } from "@/atoms/ui";
+import { Card } from "@/components/ui/card";
+import { createFileRoute } from "@tanstack/react-router";
+import { useSetAtom } from "jotai";
+import { useLayoutEffect } from "react";
 
-export const Route = createFileRoute('/main/test-management/')({
+export const Route = createFileRoute("/main/test-management/")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
 
   useLayoutEffect(() => {

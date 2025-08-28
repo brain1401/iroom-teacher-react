@@ -18,5 +18,3 @@ export type Unit = {
  * @description 단원 배열 반환
  */
 export type UnitsByGradeResponse = Unit[];
-
-

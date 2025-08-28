@@ -23,21 +23,19 @@ import { useAtomValue } from "jotai";
 import { selectedGradeAtom } from "@/atoms/grade";
 import { useQuery } from "@tanstack/react-query";
 import { unitsByGradeQueryOptions } from "@/api/test-paper";
-import { useNavigate } from "@tanstack/react-router";
 
 /**
  * 시험지 등록 탭 콘텐츠
  * @description 상단 `문항 조건`, 좌측 `단원 선택`, 우측 `선택 단원` 및 하단 작성 버튼 구성
  *
  * 주요 구성:
- * - 문항 수 선택 (최대 30)
+ * - 문항 수 선택 (최대 20)
  * - 좌측: 학년 선택 + 단원 버튼 그리드
  * - 우측: 선택 단원 목록 + 시험지명 입력 + 작성 버튼
  */
 export function TestPaperRegistrationTab() {
   /** 현재 선택된 학년 */
   const grade = useAtomValue(selectedGradeAtom);
-  const navigate = useNavigate({ from: "/main/test-paper" });
 
   /** 문항 수 상태 (최대 20) */
   const [questionCount, setQuestionCount] = useState<number>(20);
@@ -169,7 +167,9 @@ export function TestPaperRegistrationTab() {
               </div>
             )}
             {!isPending && units.length === 0 && (
-              <div className="text-sm text-muted-foreground">표시할 단원이 없음</div>
+              <div className="text-sm text-muted-foreground">
+                표시할 단원이 없음
+              </div>
             )}
           </CardContent>
         </Card>
@@ -195,7 +195,7 @@ export function TestPaperRegistrationTab() {
                     <div className="flex items-center gap-2">
                       <Checkbox defaultChecked id={u.id} />
                       <Label htmlFor={u.id} className="text-sm">
-                        선택된 단원명
+                        {u.name}
                       </Label>
                     </div>
                     <Button
@@ -235,14 +235,13 @@ export function TestPaperRegistrationTab() {
               }
               onClick={() => {
                 const unitIds = Array.from(selectedUnitIds);
-                navigate({
-                  to: "/main/test-paper/draft",
-                  search: {
-                    examName: examName.trim(),
-                    count: questionCount,
-                    units: unitIds,
-                  },
+                console.log("시험지 작성 요청:", {
+                  examName: examName.trim(),
+                  count: questionCount,
+                  units: unitIds,
                 });
+                // TODO: 시험지 작성 페이지로 이동 구현 필요
+                alert("시험지 작성 기능이 준비 중입니다.");
               }}
             >
               시험 작성

@@ -12,10 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteRouteImport } from './routes/main/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MainIndexRouteImport } from './routes/main/index'
+import { Route as MainTestPaperRouteRouteImport } from './routes/main/test-paper/route'
 import { Route as MainTestPaperIndexRouteImport } from './routes/main/test-paper/index'
 import { Route as MainTestManagementIndexRouteImport } from './routes/main/test-management/index'
 import { Route as MainStatisticsIndexRouteImport } from './routes/main/statistics/index'
-import { Route as MainTestPaperDraftIndexRouteImport } from './routes/main/test-paper/draft/index'
+import { Route as MainTestPaperExamIdIndexRouteImport } from './routes/main/test-paper/$examId/index'
 
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/main',
@@ -32,10 +33,15 @@ const MainIndexRoute = MainIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainTestPaperIndexRoute = MainTestPaperIndexRouteImport.update({
-  id: '/test-paper/',
-  path: '/test-paper/',
+const MainTestPaperRouteRoute = MainTestPaperRouteRouteImport.update({
+  id: '/test-paper',
+  path: '/test-paper',
   getParentRoute: () => MainRouteRoute,
+} as any)
+const MainTestPaperIndexRoute = MainTestPaperIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainTestPaperRouteRoute,
 } as any)
 const MainTestManagementIndexRoute = MainTestManagementIndexRouteImport.update({
   id: '/test-management/',
@@ -47,20 +53,22 @@ const MainStatisticsIndexRoute = MainStatisticsIndexRouteImport.update({
   path: '/statistics/',
   getParentRoute: () => MainRouteRoute,
 } as any)
-const MainTestPaperDraftIndexRoute = MainTestPaperDraftIndexRouteImport.update({
-  id: '/test-paper/draft/',
-  path: '/test-paper/draft/',
-  getParentRoute: () => MainRouteRoute,
-} as any)
+const MainTestPaperExamIdIndexRoute =
+  MainTestPaperExamIdIndexRouteImport.update({
+    id: '/$examId/',
+    path: '/$examId/',
+    getParentRoute: () => MainTestPaperRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
+  '/main/test-paper': typeof MainTestPaperRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
   '/main/test-management': typeof MainTestManagementIndexRoute
-  '/main/test-paper': typeof MainTestPaperIndexRoute
-  '/main/test-paper/draft': typeof MainTestPaperDraftIndexRoute
+  '/main/test-paper/': typeof MainTestPaperIndexRoute
+  '/main/test-paper/$examId': typeof MainTestPaperExamIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,28 +76,30 @@ export interface FileRoutesByTo {
   '/main/statistics': typeof MainStatisticsIndexRoute
   '/main/test-management': typeof MainTestManagementIndexRoute
   '/main/test-paper': typeof MainTestPaperIndexRoute
-  '/main/test-paper/draft': typeof MainTestPaperDraftIndexRoute
+  '/main/test-paper/$examId': typeof MainTestPaperExamIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
+  '/main/test-paper': typeof MainTestPaperRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
   '/main/statistics/': typeof MainStatisticsIndexRoute
   '/main/test-management/': typeof MainTestManagementIndexRoute
   '/main/test-paper/': typeof MainTestPaperIndexRoute
-  '/main/test-paper/draft/': typeof MainTestPaperDraftIndexRoute
+  '/main/test-paper/$examId/': typeof MainTestPaperExamIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/main'
+    | '/main/test-paper'
     | '/main/'
     | '/main/statistics'
     | '/main/test-management'
-    | '/main/test-paper'
-    | '/main/test-paper/draft'
+    | '/main/test-paper/'
+    | '/main/test-paper/$examId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -97,16 +107,17 @@ export interface FileRouteTypes {
     | '/main/statistics'
     | '/main/test-management'
     | '/main/test-paper'
-    | '/main/test-paper/draft'
+    | '/main/test-paper/$examId'
   id:
     | '__root__'
     | '/'
     | '/main'
+    | '/main/test-paper'
     | '/main/'
     | '/main/statistics/'
     | '/main/test-management/'
     | '/main/test-paper/'
-    | '/main/test-paper/draft/'
+    | '/main/test-paper/$examId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -137,12 +148,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/main/test-paper/': {
-      id: '/main/test-paper/'
+    '/main/test-paper': {
+      id: '/main/test-paper'
       path: '/test-paper'
       fullPath: '/main/test-paper'
-      preLoaderRoute: typeof MainTestPaperIndexRouteImport
+      preLoaderRoute: typeof MainTestPaperRouteRouteImport
       parentRoute: typeof MainRouteRoute
+    }
+    '/main/test-paper/': {
+      id: '/main/test-paper/'
+      path: '/'
+      fullPath: '/main/test-paper/'
+      preLoaderRoute: typeof MainTestPaperIndexRouteImport
+      parentRoute: typeof MainTestPaperRouteRoute
     }
     '/main/test-management/': {
       id: '/main/test-management/'
@@ -158,30 +176,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainStatisticsIndexRouteImport
       parentRoute: typeof MainRouteRoute
     }
-    '/main/test-paper/draft/': {
-      id: '/main/test-paper/draft/'
-      path: '/test-paper/draft'
-      fullPath: '/main/test-paper/draft'
-      preLoaderRoute: typeof MainTestPaperDraftIndexRouteImport
-      parentRoute: typeof MainRouteRoute
+    '/main/test-paper/$examId/': {
+      id: '/main/test-paper/$examId/'
+      path: '/$examId'
+      fullPath: '/main/test-paper/$examId'
+      preLoaderRoute: typeof MainTestPaperExamIdIndexRouteImport
+      parentRoute: typeof MainTestPaperRouteRoute
     }
   }
 }
 
+interface MainTestPaperRouteRouteChildren {
+  MainTestPaperIndexRoute: typeof MainTestPaperIndexRoute
+  MainTestPaperExamIdIndexRoute: typeof MainTestPaperExamIdIndexRoute
+}
+
+const MainTestPaperRouteRouteChildren: MainTestPaperRouteRouteChildren = {
+  MainTestPaperIndexRoute: MainTestPaperIndexRoute,
+  MainTestPaperExamIdIndexRoute: MainTestPaperExamIdIndexRoute,
+}
+
+const MainTestPaperRouteRouteWithChildren =
+  MainTestPaperRouteRoute._addFileChildren(MainTestPaperRouteRouteChildren)
+
 interface MainRouteRouteChildren {
+  MainTestPaperRouteRoute: typeof MainTestPaperRouteRouteWithChildren
   MainIndexRoute: typeof MainIndexRoute
   MainStatisticsIndexRoute: typeof MainStatisticsIndexRoute
   MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
-  MainTestPaperIndexRoute: typeof MainTestPaperIndexRoute
-  MainTestPaperDraftIndexRoute: typeof MainTestPaperDraftIndexRoute
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainTestPaperRouteRoute: MainTestPaperRouteRouteWithChildren,
   MainIndexRoute: MainIndexRoute,
   MainStatisticsIndexRoute: MainStatisticsIndexRoute,
   MainTestManagementIndexRoute: MainTestManagementIndexRoute,
-  MainTestPaperIndexRoute: MainTestPaperIndexRoute,
-  MainTestPaperDraftIndexRoute: MainTestPaperDraftIndexRoute,
 }
 
 const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
