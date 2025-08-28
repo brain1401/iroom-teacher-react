@@ -5,7 +5,6 @@ import { TabsContent } from "@/components/ui/tabs";
 import { TestListTab } from "@/components/test/TestListTab";
 import { TestRegistrationTab } from "@/components/test/TestRegistrationTab";
 
-
 // 라우트 경로 변경
 export const Route = createFileRoute("/main/test-management/")({
   component: TestPaperPage, // 👈 페이지 컴포넌트명 변경
@@ -21,16 +20,15 @@ export const Route = createFileRoute("/main/test-management/")({
  * - shadcn/ui `Tabs` 조합 스타일 적용
  */
 function TestPaperPage() {
-
-return (
+  return (
     <>
-        <TabsContent value="list" className="mt-10">
-          <TestListTab />
-        </TabsContent>
+      <TabsContent value="list" className="mt-10">
+        <TestListTab />
+      </TabsContent>
 
-        <TabsContent value="register" className="mt-10">
-          <TestRegistrationTab />
-        </TabsContent>
+      <TabsContent value="register" className="mt-10">
+        <TestRegistrationTab />
+      </TabsContent>
     </>
-)
+  );
 }

@@ -5,7 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSetAtom } from "jotai";
 import { useLayoutEffect } from "react";
 import { GradeDistributionChart } from "@/components/Gradedistributionchart";
-import type { ChartConfig } from "@/components/ui/chart"; 
+import type { ChartConfig } from "@/components/ui/chart";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
@@ -15,16 +15,35 @@ type ExamSubmissionStatus = {
   unitName: string;
   submittedCount: number;
   totalStudents: number;
-  submissionRate: number;      
+  submissionRate: number;
 };
 
 const examSubmissionStatusList: ExamSubmissionStatus[] = [
-    { unitName: "test1", submittedCount: 35, totalStudents: 50, submissionRate: 70 },
-    { unitName: "test2", submittedCount: 20, totalStudents: 30, submissionRate: 66.67 },
-    { unitName: "test3", submittedCount: 10, totalStudents: 30, submissionRate: 33.33 },
-    { unitName: "test4", submittedCount: 15, totalStudents: 30, submissionRate: 50 },
+  {
+    unitName: "test1",
+    submittedCount: 35,
+    totalStudents: 50,
+    submissionRate: 70,
+  },
+  {
+    unitName: "test2",
+    submittedCount: 20,
+    totalStudents: 30,
+    submissionRate: 66.67,
+  },
+  {
+    unitName: "test3",
+    submittedCount: 10,
+    totalStudents: 30,
+    submissionRate: 33.33,
+  },
+  {
+    unitName: "test4",
+    submittedCount: 15,
+    totalStudents: 30,
+    submissionRate: 50,
+  },
 ];
-
 
 const chartData = [
   { count: 0, level: "하위권", score: "0-39점" },
@@ -62,47 +81,54 @@ function RouteComponent() {
   //  퍼센트 계산 로직
   const totalStudents = chartData.reduce((sum, item) => sum + item.count, 0);
 
-  const levelInfo = Object.keys(chartConfig).map(level => {
-    const count = chartData
-      .filter(d => d.level === level)
-      .reduce((sum, item) => sum + item.count, 0);
-    const percentage = totalStudents > 0 ? (count / totalStudents) * 100 : 0;
-    return { level, percentage };
-  }).sort((a,b) => {
-      const order: Record<string, number> = { '상위권': 1, '중위권': 2, '하위권': 3 };
+  const levelInfo = Object.keys(chartConfig)
+    .map((level) => {
+      const count = chartData
+        .filter((d) => d.level === level)
+        .reduce((sum, item) => sum + item.count, 0);
+      const percentage = totalStudents > 0 ? (count / totalStudents) * 100 : 0;
+      return { level, percentage };
+    })
+    .sort((a, b) => {
+      const order: Record<string, number> = { 상위권: 1, 중위권: 2, 하위권: 3 };
       return (order[a.level] || 0) - (order[b.level] || 0);
-  });
+    });
 
   return (
     <div className="flex flex-1 gap-8 ">
       <Card className="w-[25rem] border-0 flex-1">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold mt-4">시험 제출 현황</CardTitle>
-          <hr className="my-7 text-gray-200"/>
+          <CardTitle className="text-3xl font-bold mt-4">
+            시험 제출 현황
+          </CardTitle>
+          <hr className="my-7 text-gray-200" />
         </CardHeader>
         <div className="-mt-10 p-4 gap-4 flex flex-col">
-        {examSubmissionStatusList.map((item) => (
-          <ExamSubmissionStatus
-            key={item.unitName}
-            unitName={item.unitName}
-            submittedCount={item.submittedCount}
-            totalStudents={item.totalStudents}
-            submissionRate={item.submissionRate}
-          ></ExamSubmissionStatus>
-        ))}</div>
+          {examSubmissionStatusList.map((item) => (
+            <ExamSubmissionStatus
+              key={item.unitName}
+              unitName={item.unitName}
+              submittedCount={item.submittedCount}
+              totalStudents={item.totalStudents}
+              submissionRate={item.submissionRate}
+            ></ExamSubmissionStatus>
+          ))}
+        </div>
       </Card>
       <div>
         <Card className="flex-1 w-[70rem] p-5 border-0">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold mt-4">성적 분포도</CardTitle>
-            <hr className="my-7 text-gray-200"/>
+            <CardTitle className="text-3xl font-bold mt-4">
+              성적 분포도
+            </CardTitle>
+            <hr className="my-7 text-gray-200" />
           </CardHeader>
           <CardContent className="p-10 -mt-12">
             {/* chartData와 함께 chartConfig, levelInfo를 props로 전달 */}
-            <GradeDistributionChart 
-              data={chartData} 
-              chartConfig={chartConfig} 
-              levelInfo={levelInfo} 
+            <GradeDistributionChart
+              data={chartData}
+              chartConfig={chartConfig}
+              levelInfo={levelInfo}
             />
           </CardContent>
         </Card>

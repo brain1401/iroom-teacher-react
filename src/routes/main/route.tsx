@@ -1,13 +1,10 @@
 import HeaderTitle from "@/components/layout/HeaderTitle";
 import SideMenu from "@/components/layout/SideMenu";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { useAtomValue } from "jotai";
-import { isShowHeaderAtom } from "@/atoms/ui";
 
 export const Route = createFileRoute("/main")({
   component: RouteComponent,
 });
-
 
 function RouteComponent() {
   return (
@@ -16,7 +13,7 @@ function RouteComponent() {
       <div className="ml-32 flex-grow p-8 flex-1 flex flex-col w-full px-14 py-15">
         <div className="mb-[5rem]">
           <HeaderTitle />
-        </div>  
+        </div>
         <Outlet />
       </div>
     </div>
