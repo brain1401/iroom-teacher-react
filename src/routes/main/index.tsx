@@ -10,7 +10,6 @@ import type { ChartConfig } from "@/components/ui/chart";
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
 });
-
 type ExamSubmissionStatus = {
   unitName: string;
   submittedCount: number;

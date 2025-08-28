@@ -1,4 +1,3 @@
-import { selectedGradeAtom } from "@/atoms/grade";
 import {
   Select,
   SelectContent,
@@ -7,6 +6,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useAtom } from "jotai";
+import { selectedGradeAtom } from "@/atoms/grade";
 import type { Grade } from "@/types/grade";
 
 export default function SelectGrade() {

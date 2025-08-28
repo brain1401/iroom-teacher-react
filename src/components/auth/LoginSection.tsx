@@ -57,15 +57,6 @@ export function LoginSection() {
           </form>
 
           {/* 추가 링크 */}
-          <div className="text-center mt-6 text-sm">
-            <span className="text-gray-500">처음이신가요?</span>{" "}
-            <Link
-              to="/signup"
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              회원가입
-            </Link>
-          </div>
         </div>
       </div>
     </>
