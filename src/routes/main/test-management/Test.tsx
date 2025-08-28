@@ -22,18 +22,20 @@ import { Textarea } from "@/components/ui/textarea"; // Textarea 컴포넌트를
 export function TabsDemo() {
   return (
     // 전체적인 너비를 조정합니다.
-    <div className="w-full max-w-2xl"> 
+    <div className="w-full max-w-2xl">
       <Card>
         <Tabs defaultValue="create-exam">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="exam-list">시험 목록</TabsTrigger>
             <TabsTrigger value="create-exam">시험 출제</TabsTrigger>
           </TabsList>
-          
+
           {/* 시험 목록 탭 */}
           <TabsContent value="exam-list">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold mt-5">시험 목록</CardTitle>
+              <CardTitle className="text-2xl font-bold mt-5">
+                시험 목록
+              </CardTitle>
               <CardDescription>
                 여기에서 생성된 시험 목록을 관리할 수 있습니다.
               </CardDescription>
@@ -46,7 +48,9 @@ export function TabsDemo() {
           {/* 시험 출제 탭 */}
           <TabsContent value="create-exam">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold mt-5">시험 출제</CardTitle>
+              <CardTitle className="text-2xl font-bold mt-5">
+                시험 출제
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 학년 선택과 학생 수 */}
@@ -88,15 +92,12 @@ export function TabsDemo() {
               {/* 내용 */}
               <div className="space-y-2">
                 <Label htmlFor="content">내용</Label>
-                <Textarea
-                  id="content"
-                  className="min-h-[150px]"
-                />
+                <Textarea id="content" className="min-h-[150px]" />
               </div>
             </CardContent>
             <CardFooter className="mt-10">
               {/* 버튼을 카드 너비에 꽉 채웁니다. */}
-              <Button className="w-full h-10 ">시험 출제</Button>
+              <Button className="w-full h-10">시험 출제</Button>
             </CardFooter>
           </TabsContent>
         </Tabs>
