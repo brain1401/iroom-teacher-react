@@ -13,6 +13,7 @@ import { Route as MainRouteRouteImport } from './routes/main/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignupIndexRouteImport } from './routes/signup/index'
 import { Route as MainIndexRouteImport } from './routes/main/index'
+import { Route as MainTestManagementRouteRouteImport } from './routes/main/test-management/route'
 import { Route as ExamplesPokemonRouteRouteImport } from './routes/examples/pokemon/route'
 import { Route as MainTestPaperIndexRouteImport } from './routes/main/test-paper/index'
 import { Route as MainTestManagementIndexRouteImport } from './routes/main/test-management/index'
@@ -40,6 +41,11 @@ const MainIndexRoute = MainIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MainRouteRoute,
 } as any)
+const MainTestManagementRouteRoute = MainTestManagementRouteRouteImport.update({
+  id: '/test-management',
+  path: '/test-management',
+  getParentRoute: () => MainRouteRoute,
+} as any)
 const ExamplesPokemonRouteRoute = ExamplesPokemonRouteRouteImport.update({
   id: '/examples/pokemon',
   path: '/examples/pokemon',
@@ -51,9 +57,9 @@ const MainTestPaperIndexRoute = MainTestPaperIndexRouteImport.update({
   getParentRoute: () => MainRouteRoute,
 } as any)
 const MainTestManagementIndexRoute = MainTestManagementIndexRouteImport.update({
-  id: '/test-management/',
-  path: '/test-management/',
-  getParentRoute: () => MainRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainTestManagementRouteRoute,
 } as any)
 const MainStatisticsIndexRoute = MainStatisticsIndexRouteImport.update({
   id: '/statistics/',
@@ -75,11 +81,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/main/test-management': typeof MainTestManagementRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
   '/signup': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
-  '/main/test-management': typeof MainTestManagementIndexRoute
+  '/main/test-management/': typeof MainTestManagementIndexRoute
   '/main/test-paper': typeof MainTestPaperIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
 }
@@ -98,6 +105,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/main/test-management': typeof MainTestManagementRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
   '/signup/': typeof SignupIndexRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
@@ -112,11 +120,12 @@ export interface FileRouteTypes {
     | '/'
     | '/main'
     | '/examples/pokemon'
+    | '/main/test-management'
     | '/main/'
     | '/signup'
     | '/examples/pokemon/'
     | '/main/statistics'
-    | '/main/test-management'
+    | '/main/test-management/'
     | '/main/test-paper'
     | '/examples/pokemon/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/'
     | '/main'
     | '/examples/pokemon'
+    | '/main/test-management'
     | '/main/'
     | '/signup/'
     | '/examples/pokemon/'
@@ -180,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRouteRoute
     }
+    '/main/test-management': {
+      id: '/main/test-management'
+      path: '/test-management'
+      fullPath: '/main/test-management'
+      preLoaderRoute: typeof MainTestManagementRouteRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
     '/examples/pokemon': {
       id: '/examples/pokemon'
       path: '/examples/pokemon'
@@ -196,10 +213,10 @@ declare module '@tanstack/react-router' {
     }
     '/main/test-management/': {
       id: '/main/test-management/'
-      path: '/test-management'
-      fullPath: '/main/test-management'
+      path: '/'
+      fullPath: '/main/test-management/'
       preLoaderRoute: typeof MainTestManagementIndexRouteImport
-      parentRoute: typeof MainRouteRoute
+      parentRoute: typeof MainTestManagementRouteRoute
     }
     '/main/statistics/': {
       id: '/main/statistics/'
@@ -225,17 +242,31 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MainTestManagementRouteRouteChildren {
+  MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
+}
+
+const MainTestManagementRouteRouteChildren: MainTestManagementRouteRouteChildren =
+  {
+    MainTestManagementIndexRoute: MainTestManagementIndexRoute,
+  }
+
+const MainTestManagementRouteRouteWithChildren =
+  MainTestManagementRouteRoute._addFileChildren(
+    MainTestManagementRouteRouteChildren,
+  )
+
 interface MainRouteRouteChildren {
+  MainTestManagementRouteRoute: typeof MainTestManagementRouteRouteWithChildren
   MainIndexRoute: typeof MainIndexRoute
   MainStatisticsIndexRoute: typeof MainStatisticsIndexRoute
-  MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
   MainTestPaperIndexRoute: typeof MainTestPaperIndexRoute
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainTestManagementRouteRoute: MainTestManagementRouteRouteWithChildren,
   MainIndexRoute: MainIndexRoute,
   MainStatisticsIndexRoute: MainStatisticsIndexRoute,
-  MainTestManagementIndexRoute: MainTestManagementIndexRoute,
   MainTestPaperIndexRoute: MainTestPaperIndexRoute,
 }
 

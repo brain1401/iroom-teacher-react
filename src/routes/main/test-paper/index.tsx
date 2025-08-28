@@ -20,5 +20,5 @@ function RouteComponent() {
     <Card>
       <div className="text-5xl font-bold">시험지 관리</div>
     </Card>
-  );
+  ); 
 }

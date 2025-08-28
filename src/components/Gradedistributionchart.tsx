@@ -28,15 +28,16 @@ type GradeChartProps = {
   levelInfo: LevelInfo[];
 };
 
-// 커스텀 컴포넌트(기본 범례 legend 대신 원하는 모양으로 )
+
 // config : 디자인 정보 객체 (색상,공식명칭)
+// 상중하 퍼센트율 
 const CustomLegend = ({ levelInfo, config }: { levelInfo: LevelInfo[], config: ChartConfig }) => {
   return (
     <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
       {levelInfo.map(({ level, percentage }) => (
         <div key={level} className="flex items-center gap-2">
           <span
-            className="h-2.5 w-2.5 shrink-0 rounded-sm"
+            className="h-2.5 w-2.5 shrink-0 rounded-sm bg-chart-2"
             style={{ backgroundColor: config[level].color }} // config에서 색상 참조
           />
           {config[level].label} {percentage.toFixed(1)}%
@@ -48,7 +49,7 @@ const CustomLegend = ({ levelInfo, config }: { levelInfo: LevelInfo[], config: C
 
 export const GradeDistributionChart = ({ data, chartConfig, levelInfo }: GradeChartProps) => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 bg-chart-1">
       {/*  커스텀 범례 렌더링 */}
       <CustomLegend levelInfo={levelInfo} config={chartConfig} />
 
@@ -63,10 +64,10 @@ export const GradeDistributionChart = ({ data, chartConfig, levelInfo }: GradeCh
           <XAxis
             dataKey="score"
             tickLine={false}
-            tickMargin={10}
+            tickMargin={10} 
             axisLine={false}
           />
-          {/*  [수정] YAxis에 label 추가 */}
+          {/*  YAxis(세로축) label(학생 수) */}
           <YAxis
             label={{ value: "학생 수 (명)", angle: -90, position: "insideLeft", offset: -10 }}
           />
@@ -83,20 +84,26 @@ export const GradeDistributionChart = ({ data, chartConfig, levelInfo }: GradeCh
               />
             }
           />
+          {/* 데이터에서  count값으로 막대 그래프 */}
           <Bar dataKey="count" radius={4} fill="hsl(var(--chart-1))">
-            {/*  [추가] 막대 위에 값(학생 수) 표시 */}
+            {/* 막대 위에 값(학생 수) 표시 */}
             <LabelList
               dataKey="count"
               position="top"
               offset={5}
               formatter={(value: number) => (value > 0 ? `${value}명` : "")}
+              //  숫자가 0보다 크면 '명' 표시
               fontSize={12}
             />
-            {/* [수정] 각 막대별로 level에 따른 색상 적용 */}
+            {/* (cell) 막대별로 level에 따른 색상 적용 */}
             {data.map((entry, index) => (
+              // entry : 각각의 항목(학생 정보)
+              // index : 각각의 항목(학생 정보)의 인덱스
               <Cell
                 key={`cell-${index}`}
                 fill={chartConfig[entry.level].color || "hsl(var(--chart-1))"}
+                //  fill : 현재 데이터(level)을 확인하고 그 레벨에 맞는 color적용
+                // GradeDistributionChart에서 props로 받은 chartConfig에서 가져옴
               />
             ))}
           </Bar>

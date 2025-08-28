@@ -15,17 +15,17 @@ type ExamSubmissionStatus = {
   unitName: string;
   submittedCount: number;
   totalStudents: number;
-  submissionRate: number;
+  submissionRate: number;      
 };
 
 const examSubmissionStatusList: ExamSubmissionStatus[] = [
-    { unitName: "test", submittedCount: 10, totalStudents: 100, submissionRate: 0.1 },
-    { unitName: "test2", submittedCount: 99, totalStudents: 100, submissionRate: 50 },
-    { unitName: "test3", submittedCount: 0, totalStudents: 100, submissionRate: 0 },
-    { unitName: "test4", submittedCount: 100, totalStudents: 100, submissionRate: 1 },
+    { unitName: "test1", submittedCount: 35, totalStudents: 50, submissionRate: 70 },
+    { unitName: "test2", submittedCount: 20, totalStudents: 30, submissionRate: 66.67 },
+    { unitName: "test3", submittedCount: 10, totalStudents: 30, submissionRate: 33.33 },
+    { unitName: "test4", submittedCount: 15, totalStudents: 30, submissionRate: 50 },
 ];
 
-// ✨ [수정] 이미지와 동일한 데이터로 수정
+
 const chartData = [
   { count: 0, level: "하위권", score: "0-39점" },
   { count: 2, level: "하위권", score: "40-49점" },
@@ -40,15 +40,15 @@ const chartData = [
 const chartConfig = {
   상위권: {
     label: "상위권",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-1)",
   },
   중위권: {
     label: "중위권",
-    color: "hsl(var(--chart-3))",
+    color: "var(--chart-2)",
   },
   하위권: {
     label: "하위권",
-    color: "hsl(var(--chart-5))",
+    color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
@@ -74,8 +74,8 @@ function RouteComponent() {
   });
 
   return (
-    <div className="flex gap-8">
-      <Card className="w-[30rem] border-0">
+    <div className="flex flex-1 gap-8 ">
+      <Card className="w-[25rem] border-0 flex-1">
         <CardHeader>
           <CardTitle className="text-3xl font-bold mt-4">시험 제출 현황</CardTitle>
           <hr className="my-7 text-gray-200"/>
@@ -92,7 +92,7 @@ function RouteComponent() {
         ))}</div>
       </Card>
       <div>
-        <Card className="flex-1 w-[80rem] p-5 border-0">
+        <Card className="flex-1 w-[70rem] p-5 border-0">
           <CardHeader>
             <CardTitle className="text-3xl font-bold mt-4">성적 분포도</CardTitle>
             <hr className="my-7 text-gray-200"/>
