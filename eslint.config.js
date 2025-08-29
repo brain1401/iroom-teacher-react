@@ -2,8 +2,12 @@ import { tanstackConfig } from "@tanstack/eslint-config";
 import reactPlugin from "eslint-plugin-react";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 
-export default [
+import { defineConfig, globalIgnores } from "eslint/config";
+
+export default defineConfig([
   ...tanstackConfig,
+
+  globalIgnores(["**/*.gen.ts", "**/routeTree.gen.ts", "src/components/ui/**"]),
 
   // 🎯 전역 규칙 재정의 - 코드 품질 강화
   {
@@ -242,6 +246,7 @@ export default [
         {
           selector: "function",
           format: ["camelCase"],
+          prefix: ["use"],
         },
       ],
       // 📝 컴포넌트 export 규칙
@@ -257,4 +262,4 @@ export default [
       "react/jsx-no-bind": "off",
     },
   },
-];
+]);

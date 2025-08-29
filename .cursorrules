@@ -260,7 +260,10 @@ import { cn } from "@/lib/utils";
 )} />
 ```
 
-### shadcn/ui 컴포넌트 활용
+### shadcn/ui 컴포넌트 활용 (필수 사용)
+
+**🚨 중요: 모든 UI 컴포넌트는 shadcn/ui를 사용해야 함. 커스텀 컴포넌트 생성 금지**
+
 ```typescript
 // ✅ 기본 컴포넌트 사용
 <Button variant="outline" size="sm">버튼</Button>
@@ -282,6 +285,9 @@ import { cn } from "@/lib/utils";
 >
   커스텀 버튼
 </Button>
+
+// ✅ 새 shadcn/ui 컴포넌트 추가
+// pnpx shadcn@latest add [컴포넌트명]
 ```
 
 ## 🚨 에러 처리 및 품질 기준
@@ -410,9 +416,13 @@ export default function Component() {}
 - `npm run dev` - 개발 서버 실행 (포트 3012)
 - `npm run build` - 프로덕션 빌드
 - `npm run test` - Vitest를 사용한 테스트 실행
-- `npm run lint` - ESLint 실행
-- `npm run format` - Prettier 실행
-- `npm run check` - **커밋 전 필수 실행** (Prettier + ESLint 통합 자동 수정)
+
+### 코드 품질 관리 (커밋 전 필수)
+- `npm run lint` - ESLint 검사만 실행
+- `npm run lint:fix` - **ESLint + Prettier 자동 수정 (권장)**
+- `npm run format` - Prettier 포맷팅만 실행
+- `npm run format:check` - Prettier 검사만 실행
+- `npm run type-check` - TypeScript 타입 검사만 실행
 
 ### 컴포넌트 추가
 - `pnpx shadcn@latest add [컴포넌트명]` - shadcn/ui 컴포넌트 추가
@@ -433,7 +443,8 @@ export default function Component() {}
 - [ ] 함수 컴포넌트만 사용
 
 ### 완료 후
-- [ ] `npm run check` 통과
+- [ ] **`npm run lint:fix` 실행 (필수)**
+- [ ] `npm run type-check` 통과
 - [ ] 타입 에러 해결
 - [ ] 에러 처리 및 로딩 상태 포함
 - [ ] 접근성 고려 (alt 텍스트, 키보드 네비게이션)
