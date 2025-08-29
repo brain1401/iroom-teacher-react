@@ -128,16 +128,37 @@ src/
 
 ## 🔄 API 클라이언트 아키텍처
 
+### 백엔드 표준 응답 구조
+
+백엔드의 모든 API 응답은 `ApiResponse<T>` 형태로 래핑됩니다:
+
+```typescript
+type ApiResponse<T> = {
+  result: "SUCCESS" | "ERROR";  // 응답 결과 상태
+  message: string;              // 응답 메시지  
+  data: T;                     // 실제 데이터
+};
+```
+
+### 자동 응답 처리 플로우
+
 ```mermaid
-graph LR
+graph TD
     A[Component] --> B[API Function]
     B --> C{Auth Required?}
     C -->|Yes| D[authApiClient]
     C -->|No| E[baseApiClient]
     D --> F[HTTP Request]
     E --> F
-    F --> G[Interceptors]
-    G --> H[Server]
+    F --> G[Response Interceptor]
+    G --> H{ApiResponse<T>?}
+    H -->|Yes| I{result === SUCCESS?}
+    H -->|No| J[Return Original Response]
+    I -->|Yes| K[Extract & Return data]
+    I -->|No| L[Throw ApiResponseError]
+    K --> M[Component Gets Data]
+    L --> N[Component Handles Error]
+    J --> M
 ```
 
 ### 클라이언트 분리 전략
@@ -146,28 +167,54 @@ graph LR
 // 기본 API 클라이언트 (인증 불필요)
 export const baseApiClient = createBaseApiClient();
 
-// 인증용 API 클라이언트 (httpOnly 쿠키 포함)
+// 인증용 API 클라이언트 (httpOnly 쿠키 포함)  
 export const authApiClient = createAuthApiClient();
 ```
 
-### 인터셉터 시스템
+### 인터셉터 자동 처리 시스템
 
 ```typescript
-// 요청 인터셉터: 로깅, 인증 헤더 추가
-requestInterceptor: (config) => {
-  console.log(`🚀 [API Request] ${config.method} ${config.url}`);
-  return config;
-}
-
-// 응답 인터셉터: 에러 처리, 로깅
+// 응답 인터셉터: 백엔드 표준 응답 자동 처리
 responseInterceptor: {
-  onSuccess: (response) => response,
-  onError: (error) => {
-    if (error.status === 401) {
-      // 인증 실패 처리
+  onSuccess: (response) => {
+    const responseData = response.data;
+    
+    // ApiResponse<T> 형식인지 확인
+    if (isStandardApiResponse(responseData)) {
+      if (isSuccessResponse(responseData)) {
+        // SUCCESS: data만 추출하여 반환 (기존 코드 호환성)
+        response.data = responseData.data;
+      } else {
+        // ERROR: ApiResponseError 발생
+        throw new ApiResponseError(responseData.message, responseData.result);
+      }
     }
-    throw new ApiError(error);
+    
+    return response;
+  },
+  onError: (error) => {
+    // 기존 Axios 에러 처리 (네트워크, 타임아웃 등)
+    if (error.status === 401) {
+      redirectToLogin();
+    }
+    throw new ApiError(error.message, error.status, error.data, error);
   }
+}
+```
+
+### 통합 에러 처리
+
+```typescript
+// 에러 타입 계층 구조
+type AppError = ApiResponseError | ApiError | Error;
+
+// 사용자 친화적 에러 처리
+const errorInfo = getErrorMessage(error);
+switch (errorInfo.type) {
+  case "network": // 네트워크 오류
+  case "server":  // 서버 오류 (5xx)
+  case "client":  // 클라이언트 오류 (4xx)
+  case "unknown": // 기타 오류
 }
 ```
 
@@ -475,6 +522,24 @@ const messages = {
 - **배경**: 일관된 디자인 시스템 필요
 - **결정**: shadcn/ui 기반 컴포넌트 시스템
 - **이유**: 커스터마이징 용이, Tailwind 통합
+
+### ADR-004: 백엔드 표준 응답 타입 통합
+
+- **배경**: 백엔드 ApiResponse<T> 구조와 프론트엔드 불일치
+- **결정**: 인터셉터 기반 자동 응답 변환 채택
+- **이유**: 
+  - 기존 코드 호환성 유지하면서 점진적 전환 가능
+  - 일관된 에러 처리로 개발 생산성 향상
+  - 백엔드 표준 응답 활용으로 API 안정성 향상
+
+### ADR-005: 통합 에러 처리 시스템
+
+- **배경**: 다양한 에러 타입으로 인한 복잡한 에러 처리
+- **결정**: ApiResponseError + ApiError + Error 계층 구조
+- **이유**:
+  - 에러 유형별 맞춤 처리로 사용자 경험 개선
+  - 구조화된 에러 로깅으로 디버깅 효율성 향상
+  - 재시도 가능 에러 판별로 복구 전략 최적화
 
 ---
 

@@ -20,6 +20,61 @@ const pokemonData = await baseApiClient.get("/api/v2/pokemon/25");
 const userData = await authApiClient.get("/api/user/profile");
 ```
 
+#### 백엔드 표준 응답 처리
+
+백엔드에서 모든 API 응답은 `ApiResponse<T>` 형태로 래핑됩니다:
+
+```typescript
+// 백엔드 응답 형식
+type ApiResponse<T> = {
+  result: "SUCCESS" | "ERROR";  // 응답 결과
+  message: string;              // 응답 메시지
+  data: T;                      // 실제 데이터
+};
+```
+
+**인터셉터 자동 처리**: API 클라이언트는 이 형식을 자동으로 처리합니다:
+
+```typescript
+// ✅ 인터셉터가 자동으로 처리
+const userData = await authApiClient.get<User>("/api/user/profile");
+// SUCCESS인 경우: data만 반환 (User 타입)
+// ERROR인 경우: ApiResponseError 발생
+
+// ✅ 에러 처리
+import { ApiResponseError, getErrorMessage } from "@/api/client";
+
+try {
+  const userData = await authApiClient.get<User>("/api/user/profile");
+  console.log(userData); // User 객체 직접 사용
+} catch (error) {
+  if (error instanceof ApiResponseError) {
+    console.error("백엔드 에러:", error.message);
+  }
+  
+  // 통합 에러 메시지 처리
+  const friendlyMessage = getErrorMessage(error);
+  showToast(friendlyMessage);
+}
+```
+
+**수동 응답 처리** (특수한 경우):
+
+```typescript
+import { 
+  extractResponseData, 
+  safeExtractResponseData,
+  type ApiResponse 
+} from "@/api/client";
+
+// 응답을 직접 처리해야 하는 경우
+const response = await authApiClient.get<ApiResponse<User>>("/api/user/profile");
+
+// 안전한 데이터 추출
+const userData = extractResponseData(response); // 에러 시 throw
+const userDataSafe = safeExtractResponseData(response, null); // 에러 시 기본값
+```
+
 ### 2. 주석 작성 규칙
 
 ````typescript
@@ -303,8 +358,21 @@ git push origin feature/새기능명
 const response = await fetch("/api/pokemon"); // fetch 직접 사용
 const data = await response.json();
 
-// ✅ 올바른 예시
+// ✅ 올바른 예시 - 기본 API 호출
 const data = await baseApiClient.get("/api/pokemon");
+
+// ✅ 올바른 예시 - 에러 처리 포함
+import { getErrorMessage, logError } from "@/utils/errorHandling";
+
+try {
+  const data = await authApiClient.get<User[]>("/api/users");
+  return data;
+} catch (error) {
+  logError(error, "UserList 컴포넌트");
+  const message = getErrorMessage(error);
+  showErrorToast(message);
+  throw error;
+}
 ```
 
 ### 2. 상태 관리 실수
