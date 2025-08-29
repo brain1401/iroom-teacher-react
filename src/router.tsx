@@ -71,6 +71,7 @@ export const createRouter = () => {
  * - 라우트 파라미터와 검색 파라미터의 타입 안전성 보장
  */
 declare module "@tanstack/react-router" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Register {
     router: ReturnType<typeof createRouter>;
   }
