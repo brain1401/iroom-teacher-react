@@ -2,7 +2,7 @@ import { LogOut } from "lucide-react";
 
 import { useAtomValue } from "jotai";
 import { isShowHeaderAtom } from "@/atoms/ui";
-import SelectGrade from "./SelectGrade";
+import { SelectGrade } from "./SelectGrade";
 
 export function HeaderTitle() {
   const isShowHeader = useAtomValue(isShowHeaderAtom);

@@ -1,5 +1,4 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { Card } from "@/components/ui/card";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetAtom } from "jotai";
 import { useLayoutEffect } from "react";

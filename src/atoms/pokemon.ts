@@ -8,6 +8,7 @@ import {
 } from "@/api/pokemon/query";
 import { pokemonDefaultLimit } from "@/utils/pokemon";
 import { ApiError } from "@/api/client";
+import type { Pokemon } from "@/api/pokemon/types";
 
 /**
  * Jotai란?
@@ -151,7 +152,8 @@ export const pokemonDetailQueryAtom = atomWithQuery((get) => {
   if (!idOrName) {
     return {
       queryKey: pokemonKeys.detail("disabled"),
-      queryFn: undefined as any,
+      queryFn: (() =>
+        Promise.reject(new Error("Query disabled"))) as () => Promise<Pokemon>,
       enabled: false,
     };
   }

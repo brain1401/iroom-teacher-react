@@ -122,9 +122,8 @@ const fakeStudentSubmissions: StudentTestSubmission[] = [
 
 export function TestDetail() {
   // ... (useState 및 핸들러 함수들은 동일)
-  const [papers] = useState<TestSubmitStatusDetail[]>(
-    fakeTestSubmitStatusDetail,
-  );
+  // Use static fake data directly (no state needed)
+  const papers = fakeTestSubmitStatusDetail;
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] =
     useState<TestSubmitStatusDetail | null>(null);

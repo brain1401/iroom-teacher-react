@@ -1,7 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTypeBadgeClass, formatPokemonName } from "@/utils/pokemonStyles";
+import {
+  getTypeBadgeClass,
+  formatPokemonName,
+  isPokemonTypeName,
+} from "@/utils/pokemonStyles";
 import type { Pokemon } from "@/api/pokemon/types";
 
 type Props = {
@@ -20,17 +24,24 @@ export function PokemonDetailHeader({ pokemon }: Props) {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {pokemon.types.map((t) => (
-          <Badge
-            key={t.type.name}
-            className={cn(
-              "capitalize px-4 py-2 text-sm font-semibold shadow-lg",
-              getTypeBadgeClass(t.type.name as any),
-            )}
-          >
-            {t.type.name}
-          </Badge>
-        ))}
+        {pokemon.types.map((t) => {
+          const typeName = t.type.name;
+          const badgeClass = isPokemonTypeName(typeName)
+            ? getTypeBadgeClass(typeName)
+            : "bg-gray-500 text-white"; // fallback for unknown types
+
+          return (
+            <Badge
+              key={typeName}
+              className={cn(
+                "capitalize px-4 py-2 text-sm font-semibold shadow-lg",
+                badgeClass,
+              )}
+            >
+              {typeName}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );

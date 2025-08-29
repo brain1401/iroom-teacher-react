@@ -6,7 +6,7 @@ import { formatPokemonId, formatPokemonName } from "@/utils/pokemonStyles";
 import { cn } from "@/lib/utils";
 import { usePokemonCardImage } from "@/hooks/pokemon";
 
-interface PokemonCardProps {
+type PokemonCardProps = {
   /** 포켓몬 이름 */
   name: string;
   /** 포켓몬 API URL */

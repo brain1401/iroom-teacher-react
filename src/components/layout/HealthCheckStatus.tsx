@@ -23,7 +23,7 @@ import {
  * - 순수 함수로 테스트 용이성 증대
  * - 유지보수성 향상
  */
-export default function HealthCheckStatus() {
+export function HealthCheckStatus() {
   const { healthSummary, shouldRender, isRefreshing, refreshHealthCheck } =
     useHealthCheck();
 

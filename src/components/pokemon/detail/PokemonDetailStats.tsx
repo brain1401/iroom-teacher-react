@@ -1,4 +1,5 @@
 import { Zap, Shield, Swords, Brain, Heart, Wind } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatDisplayName, getStatGradient } from "@/utils/pokemonStyles";
 import type { Pokemon } from "@/api/pokemon/types";
@@ -7,7 +8,7 @@ type Props = {
   pokemon: Pokemon;
 };
 
-const statIcons: Record<string, any> = {
+const statIcons: Record<string, LucideIcon> = {
   hp: Heart,
   attack: Swords,
   defense: Shield,

@@ -1,4 +1,4 @@
-import SideMenu from "@/components/layout/SideMenu";
+import { SideMenu } from "@/components/layout/SideMenu";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { HeaderTitle } from "@/components/layout/HeaderTitle";
 

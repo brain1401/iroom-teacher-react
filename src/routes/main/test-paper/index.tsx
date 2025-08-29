@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useLayoutEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLayoutEffect } from "react";
+import { TabsContent } from "@/components/ui/tabs";
 import { TestPaperListTab } from "@/components/testpaper/TestPaperListTab";
 import { TestPaperRegistrationTab } from "@/components/testpaper/TestPaperRegistrationTab";
 import { useSetAtom } from "jotai";

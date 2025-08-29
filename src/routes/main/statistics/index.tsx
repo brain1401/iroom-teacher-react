@@ -1,6 +1,6 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
 import { selectedGradeAtom } from "@/atoms/grade";
-import SelectGrade from "@/components/layout/SelectGrade";
+import { SelectGrade } from "@/components/layout/SelectGrade";
 import { Card } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -21,6 +21,48 @@ import {
   LabelList,
 } from "recharts";
 import type { TooltipProps } from "recharts";
+
+/** 평균 차트 커스텀 툴팁 */
+function AverageTooltip(props: TooltipProps<number, string>) {
+  const { active, payload, label } = props;
+  if (!active || !payload || payload.length === 0) return null;
+  const data = (
+    payload[0] as unknown as {
+      payload: { name: string; avg: number; participants?: number };
+    }
+  ).payload;
+  return (
+    <div className="border-border/50 bg-background grid min-w-[10rem] gap-1.5 rounded-md border px-3 py-2 text-xs shadow-xl">
+      <div className="font-medium">{data.name || label}</div>
+      <div>시험 본 인원: {data.participants ?? "-"}</div>
+      <div>평균: {data.avg}</div>
+    </div>
+  );
+}
+
+/** 오답률 차트 커스텀 툴팁 */
+function WrongRateTooltip(props: TooltipProps<number, string>) {
+  const { active, payload, label } = props;
+  if (!active || !payload || payload.length === 0) return null;
+  const data = (
+    payload[0] as unknown as {
+      payload: {
+        name: string;
+        wrongRate: number;
+        totalSubmitted?: number;
+        wrongCount?: number;
+      };
+    }
+  ).payload;
+  return (
+    <div className="border-border/50 bg-background grid min-w-[12rem] gap-1.5 rounded-md border px-3 py-2 text-xs shadow-xl">
+      <div className="font-medium">{data.name || label}</div>
+      <div>총 제출된 문제갯수: {data.totalSubmitted ?? "-"}</div>
+      <div>틀린갯수: {data.wrongCount ?? "-"}</div>
+      <div>오답률: {data.wrongRate}%</div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/main/statistics/")({
   component: RouteComponent,
@@ -183,47 +225,6 @@ function RouteComponent() {
     return computed;
   }, [wrongSources]);
 
-  /** 평균 차트 커스텀 툴팁 */
-  function AverageTooltip(props: TooltipProps<number, string>) {
-    const { active, payload, label } = props;
-    if (!active || !payload || payload.length === 0) return null;
-    const data = (
-      payload[0] as unknown as {
-        payload: { name: string; avg: number; participants?: number };
-      }
-    ).payload;
-    return (
-      <div className="border-border/50 bg-background grid min-w-[10rem] gap-1.5 rounded-md border px-3 py-2 text-xs shadow-xl">
-        <div className="font-medium">{data.name || label}</div>
-        <div>시험 본 인원: {data.participants ?? "-"}</div>
-        <div>평균: {data.avg}</div>
-      </div>
-    );
-  }
-
-  /** 오답률 차트 커스텀 툴팁 */
-  function WrongRateTooltip(props: TooltipProps<number, string>) {
-    const { active, payload, label } = props;
-    if (!active || !payload || payload.length === 0) return null;
-    const data = (
-      payload[0] as unknown as {
-        payload: {
-          name: string;
-          wrongRate: number;
-          totalSubmitted?: number;
-          wrongCount?: number;
-        };
-      }
-    ).payload;
-    return (
-      <div className="border-border/50 bg-background grid min-w-[12rem] gap-1.5 rounded-md border px-3 py-2 text-xs shadow-xl">
-        <div className="font-medium">{data.name || label}</div>
-        <div>총 제출된 문제갯수: {data.totalSubmitted ?? "-"}</div>
-        <div>틀린갯수: {data.wrongCount ?? "-"}</div>
-        <div>오답률: {data.wrongRate}%</div>
-      </div>
-    );
-  }
 
   useLayoutEffect(() => {
     setIsShowHeader(false);

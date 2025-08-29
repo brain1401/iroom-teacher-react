@@ -18,7 +18,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import SelectGrade from "../layout/SelectGrade";
+import { SelectGrade } from "../layout/SelectGrade";
 import { useAtomValue } from "jotai";
 import { selectedGradeAtom } from "@/atoms/grade";
 import { useQuery } from "@tanstack/react-query";

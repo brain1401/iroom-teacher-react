@@ -2,14 +2,14 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { extractPokemonId, getPokemonImageUrl } from "@/utils/pokemon";
 import type React from "react";
 
-interface UsePokemonCardImageProps {
+type UsePokemonCardImageProps = {
   /** 포켓몬 이름 */
   name: string;
   /** 포켓몬 API URL */
   url: string;
 }
 
-interface UsePokemonCardImageReturn {
+type UsePokemonCardImageReturn = {
   /** 최종 사용할 이미지 URL */
   finalImageUrl: string;
   /** 이미지 로딩 상태 */

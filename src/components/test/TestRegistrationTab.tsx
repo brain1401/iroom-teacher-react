@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAtom } from "jotai";
 import { selectedGradeAtom } from "@/atoms/grade";
 
-import SelectGrade from "../layout/SelectGrade";
+import { SelectGrade } from "../layout/SelectGrade";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

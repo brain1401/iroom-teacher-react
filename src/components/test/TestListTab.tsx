@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TestTable } from "./TestListTable";
 import { Button } from "@/components/ui/button";
-import SelectGrade from "../layout/SelectGrade";
+import { SelectGrade } from "../layout/SelectGrade";
 import { PagePagination } from "@/components/layout/PagePagination";
 import {
   Dialog,
@@ -176,7 +176,8 @@ const fakeTestData: Test[] = [
 
 export function TestListTab() {
   // ... (useState 및 핸들러 함수들은 동일)
-  const [papers] = useState<Test[]>(fakeTestData);
+  // Use static fake data directly (no state needed)
+  const papers = fakeTestData;
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] = useState<Test | null>(null);
   const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(

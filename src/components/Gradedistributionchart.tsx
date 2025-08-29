@@ -38,13 +38,13 @@ type GradeChartProps = {
 
 // config : 디자인 정보 객체 (색상,공식명칭)
 // 상중하 퍼센트율
-const CustomLegend = ({
+function CustomLegend({
   levelInfo,
   config,
 }: {
   levelInfo: LevelInfo[];
   config: ChartConfig;
-}) => {
+}) {
   return (
     <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
       {levelInfo.map(({ level, percentage }) => (
@@ -58,13 +58,13 @@ const CustomLegend = ({
       ))}
     </div>
   );
-};
+}
 
-export const GradeDistributionChart = ({
+export function GradeDistributionChart({
   data,
   chartConfig,
   levelInfo,
-}: GradeChartProps) => {
+}: GradeChartProps) {
   return (
     <div className="flex flex-col gap-4 bg-chart-1">
       {/*  커스텀 범례 렌더링 */}
@@ -118,12 +118,11 @@ export const GradeDistributionChart = ({
               fontSize={12}
             />
             {/* (cell) 막대별로 level에 따른 색상 적용 */}
-            {data.map((entry, index) => (
+            {data.map((entry) => (
               // entry : 각각의 항목(학생 정보)
-              // index : 각각의 항목(학생 정보)의 인덱스
               <Cell
-                key={`cell-${index}`}
-                fill={chartConfig[entry.level].color || "hsl(var(--chart-1))"}
+                key={`${entry.level}-${entry.score}`}
+                fill={chartConfig[entry.level]?.color || "hsl(var(--chart-1))"}
                 //  fill : 현재 데이터(level)을 확인하고 그 레벨에 맞는 color적용
                 // GradeDistributionChart에서 props로 받은 chartConfig에서 가져옴
               />
@@ -133,4 +132,4 @@ export const GradeDistributionChart = ({
       </ChartContainer>
     </div>
   );
-};
+}

@@ -9,7 +9,7 @@ import { useAtom } from "jotai";
 import { selectedGradeAtom } from "@/atoms/grade";
 import type { Grade } from "@/types/grade";
 
-export default function SelectGrade() {
+export function SelectGrade() {
   const [grade, setGrade] = useAtom(selectedGradeAtom);
   return (
     <Select value={grade} onValueChange={(value) => setGrade(value as Grade)}>

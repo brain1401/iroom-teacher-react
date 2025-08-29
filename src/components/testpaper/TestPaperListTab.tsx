@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { TestPaperTable } from "./TestPaperTable";
 import { Button } from "@/components/ui/button";
-import SelectGrade from "../layout/SelectGrade";
+import { SelectGrade } from "../layout/SelectGrade";
 import { PagePagination } from "../layout/PagePagination";
 import { ProblemModal } from "../layout/ProblemModal";
 import { PrintOptionsModal } from "./PrintOptionsModal";
@@ -79,7 +79,8 @@ const fakeTestPaperData: TestPaper[] = [
 ];
 
 export function TestPaperListTab() {
-  const [papers] = useState<TestPaper[]>(fakeTestPaperData);
+  // Use static fake data directly (no state needed)
+  const papers = fakeTestPaperData;
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] = useState<TestPaper | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);

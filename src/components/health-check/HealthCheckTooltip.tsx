@@ -21,7 +21,7 @@ import type {
  * - 서비스별 상태 정보 활용 (어떤 서버가 다운되었는지 구체적 표시)
  * - 에러 상태일 때 상세 피드백과 재시도 기능 제공
  */
-interface HealthCheckTooltipProps {
+type HealthCheckTooltipProps = {
   children: ReactNode;
   message: string;
   lastChecked?: Date | null;
@@ -30,15 +30,17 @@ interface HealthCheckTooltipProps {
   services?: FrontendServiceInfo[];
   onRetry?: () => void;
   isRetrying?: boolean;
-}
+};
 
-export default function HealthCheckTooltip({
+const defaultServices: FrontendServiceInfo[] = [];
+
+export function HealthCheckTooltip({
   children,
   message,
   lastChecked,
   responseTime,
   status = "unknown",
-  services = [],
+  services = defaultServices,
   onRetry,
   isRetrying = false,
 }: HealthCheckTooltipProps) {

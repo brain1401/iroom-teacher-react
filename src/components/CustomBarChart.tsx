@@ -13,21 +13,21 @@ import {
 import type { ChartConfig } from "@/components/ui/chart";
 import React from "react";
 
-interface CustomBarChartProps {
+type CustomBarChartProps = {
   chartData: Array<{ [key: string]: string | number }>;
   chartConfig: ChartConfig;
   className?: string;
   // 👇 X축의 키를 props로 받도록 추가
   xAxisDataKey: string;
-}
+};
 
-export const CustomBarChart: React.FC<CustomBarChartProps> = ({
+export function CustomBarChart({
   chartData,
   chartConfig,
   className,
   // 👇 props에서 xAxisDataKey를 받음
   xAxisDataKey,
-}) => {
+}: CustomBarChartProps) {
   const dataKeys = Object.keys(chartConfig);
 
   return (
@@ -59,4 +59,4 @@ export const CustomBarChart: React.FC<CustomBarChartProps> = ({
       </BarChart>
     </ChartContainer>
   );
-};
+}

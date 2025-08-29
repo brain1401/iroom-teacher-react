@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * 포켓몬 검색 컴포넌트 Props 인터페이스
  */
-interface PokemonSearchProps {
+type PokemonSearchProps = {
   /** 현재 검색 키워드 */
   keyword?: string;
 }

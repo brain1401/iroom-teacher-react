@@ -12,11 +12,6 @@ import {
 import { PagePagination } from "./PagePagination";
 import { ProblemModal } from "./ProblemModal";
 
-type DraftSearch = {
-  examName: string;
-  count: number;
-  units: string[];
-};
 export function ExamList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProblemNumber, setCurrentProblemNumber] = useState(1);
@@ -95,9 +90,9 @@ export function ExamList() {
                 <TableRow key={problem.number}>
                   <TableCell className="w-[50px]"></TableCell>
                   <TableCell>{problem.number}번</TableCell>
-                  <TableCell>{"r.unit"}</TableCell>
-                  <TableCell>{"r.type"}</TableCell>
-                  <TableCell>{"r.level"}</TableCell>
+                  <TableCell>r.unit</TableCell>
+                  <TableCell>r.type</TableCell>
+                  <TableCell>r.level</TableCell>
                   <TableCell className="text-right pr-6">
                     <Button
                       size="sm"

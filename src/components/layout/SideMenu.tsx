@@ -11,7 +11,7 @@ const menuItems: { path: string; icon: LucideIcon; label: string }[] = [
   { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" },
 ];
 
-export default function SideMenu() {
+export function SideMenu() {
   const location = useLocation({ select: (loc) => loc.pathname });
 
   // isActive 함수는 그대로 사용

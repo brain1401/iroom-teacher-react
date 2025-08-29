@@ -10,9 +10,11 @@ export function PokemonListLoading() {
         <p className="text-muted-foreground">로딩 중...</p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <PokemonCardSkeleton key={i} />
-        ))}
+        {Array.from({ length: 20 }, (_, i) => {
+          // Create stable key for skeleton loading items using a meaningful identifier
+          const skeletonId = `pokemon-skeleton-item-${i + 1}`;
+          return <PokemonCardSkeleton key={skeletonId} />;
+        })}
       </div>
     </div>
   );
