@@ -1,5 +1,5 @@
 import { authApiClient } from "@/api/client";
-import type { AxiosRequestConfig } from "@/api/client";
+import type { AxiosRequestConfig, ApiResponse } from "@/api/client";
 import type { Grade } from "@/types/grade";
 import type { UnitsByGradeResponse } from "./types";
 
