@@ -57,15 +57,6 @@ export default [
       "@typescript-eslint/naming-convention": [
         "error",
         {
-          selector: "interface",
-          format: ["PascalCase"],
-          prefix: ["I"],
-          custom: {
-            regex: "^I[A-Z]",
-            match: false,
-          },
-        },
-        {
           selector: "typeAlias",
           format: ["PascalCase"],
         },
