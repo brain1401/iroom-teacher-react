@@ -102,7 +102,7 @@ export default [
       "react/function-component-definition": [
         "error",
         {
-          namedComponents: "function-declaration",
+          namedComponents: ["function-declaration", "function-expression"],
           unnamedComponents: "arrow-function",
         },
       ],
@@ -229,6 +229,32 @@ export default [
       ],
       // 📝 컴포넌트 export 규칙
       "import/no-default-export": "error",
+    },
+  },
+
+  // 📁 커스텀 훅 전용 규칙
+  {
+    files: ["**/components/**/use*.{tsx,jsx}"],
+    rules: {
+      // 📂 컴포넌트 네이밍
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "function",
+          format: ["camelCase"],
+        },
+      ],
+      // 📝 컴포넌트 export 규칙
+      "import/no-default-export": "error",
+    },
+  },
+
+  // 덮어쓸 규칙
+  {
+    rules: {
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "no-shadow": "off",
+      "react/jsx-no-bind": "off",
     },
   },
 ];
