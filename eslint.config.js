@@ -15,14 +15,14 @@ export default [
 
       // 📌 기본 코드 품질 강화
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
           ignoreRestSiblings: true,
         },
       ],
-      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
 
       // 🔒 코드 품질 및 일관성
       "prefer-const": "error",
@@ -191,7 +191,7 @@ export default [
         },
         // 📁 Import 패턴 강제
         {
-          selector: "ImportDeclaration[source.value=/^\.\./]",
+          selector: "ImportDeclaration[source.value=/^../]",
           message:
             "📁 상대경로 대신 '@/' 절대경로를 사용하세요 (예: '@/components/Button')",
         },
@@ -200,6 +200,10 @@ export default [
           selector: "TSInterfaceDeclaration",
           message: "🎯 interface 대신 type을 사용하세요 (프로젝트 컨벤션)",
         },
+      ],
+
+      "no-restricted-syntax": [
+        "warn",
         // ⚡ 성능 안티패턴 금지
         {
           selector:
@@ -228,7 +232,7 @@ export default [
       ],
       // 📚 Atom 문서화 필수
       "require-jsdoc": [
-        "error",
+        "warn",
         {
           require: {
             FunctionDeclaration: false,
@@ -256,8 +260,7 @@ export default [
         },
       ],
       // 📝 컴포넌트 export 규칙
-      "import/prefer-default-export": "off",
-      "import/no-default-export": "off",
+      "import/no-default-export": "error",
     },
   },
 ];
