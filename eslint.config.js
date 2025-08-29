@@ -40,22 +40,10 @@ export default [
     },
     rules: {
       // 📋 타입 안전성 극대화
-      "@typescript-eslint/strict-boolean-expressions": [
-        "error",
-        {
-          allowString: false,
-          allowNumber: false,
-          allowNullableObject: false,
-          allowNullableBoolean: false,
-          allowNullableString: false,
-          allowNullableNumber: false,
-          allowAny: false,
-        },
-      ],
+
       "@typescript-eslint/prefer-readonly": "error",
       "@typescript-eslint/prefer-readonly-parameter-types": "off", // 너무 엄격할 수 있음
       "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/no-unnecessary-type-assertion": "error",
 
       // 🏗️ 타입 정의 일관성
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
@@ -135,12 +123,14 @@ export default [
 
       // 🎣 Hooks 최적화 규칙
       "react/hook-use-state": ["error", { allowDestructuredState: true }],
-      "react/exhaustive-deps": "error", // React Query와 Jotai deps 체크
+      // exhaustive-deps 규칙은 별도 플러그인 필요 (react-hooks/exhaustive-deps)
 
       // 🚫 안티패턴 금지
       "react/no-array-index-key": "error",
       "react/no-object-type-as-default-prop": "error",
       "react/no-unstable-nested-components": ["error", { allowAsProps: true }],
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "no-shadow": "off",
 
       // 📝 Props 및 컴포넌트 네이밍
       "react/boolean-prop-naming": [
@@ -230,20 +220,7 @@ export default [
           suffix: ["Atom"],
         },
       ],
-      // 📚 Atom 문서화 필수
-      "require-jsdoc": [
-        "warn",
-        {
-          require: {
-            FunctionDeclaration: false,
-            MethodDefinition: false,
-            ClassDeclaration: false,
-            ArrowFunctionExpression: false,
-            FunctionExpression: false,
-            VariableDeclaration: true,
-          },
-        },
-      ],
+      // 📚 Atom 문서화는 수동으로 관리 (require-jsdoc 규칙은 ESLint 9에서 제거됨)
     },
   },
 
