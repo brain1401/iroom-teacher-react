@@ -27,9 +27,9 @@ const userData = await authApiClient.get("/api/user/profile");
 ```typescript
 // 백엔드 응답 형식
 type ApiResponse<T> = {
-  result: "SUCCESS" | "ERROR";  // 응답 결과
-  message: string;              // 응답 메시지
-  data: T;                      // 실제 데이터
+  result: "SUCCESS" | "ERROR"; // 응답 결과
+  message: string; // 응답 메시지
+  data: T; // 실제 데이터
 };
 ```
 
@@ -51,7 +51,7 @@ try {
   if (error instanceof ApiResponseError) {
     console.error("백엔드 에러:", error.message);
   }
-  
+
   // 통합 에러 메시지 처리
   const friendlyMessage = getErrorMessage(error);
   showToast(friendlyMessage);
@@ -61,14 +61,15 @@ try {
 **수동 응답 처리** (특수한 경우):
 
 ```typescript
-import { 
-  extractResponseData, 
+import {
+  extractResponseData,
   safeExtractResponseData,
-  type ApiResponse 
+  type ApiResponse,
 } from "@/api/client";
 
 // 응답을 직접 처리해야 하는 경우
-const response = await authApiClient.get<ApiResponse<User>>("/api/user/profile");
+const response =
+  await authApiClient.get<ApiResponse<User>>("/api/user/profile");
 
 // 안전한 데이터 추출
 const userData = extractResponseData(response); // 에러 시 throw

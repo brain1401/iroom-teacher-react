@@ -493,16 +493,16 @@ try {
   console.log(userData.name);
 } catch (error) {
   // ERROR인 경우: ApiResponseError 또는 기타 에러 발생
-  
+
   if (error instanceof ApiResponseError) {
     // 백엔드에서 명시적으로 반환한 에러
     console.error("백엔드 에러:", error.message);
   }
-  
+
   // 통합 에러 메시지 처리
   const friendlyMessage = getErrorMessage(error);
   showToast(friendlyMessage);
-  
+
   // 구조화된 에러 로깅
   logError(error, "UserProfile 컴포넌트");
 }
@@ -517,7 +517,7 @@ import { getErrorMessage, logError, isRetryableError } from "@/utils/errorHandli
 function UserList() {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fetchUsers = async () => {
     try {
       setError(null);
@@ -526,11 +526,11 @@ function UserList() {
     } catch (err) {
       // 구조화된 에러 로깅
       logError(err, "UserList.fetchUsers");
-      
+
       // 사용자 친화적 메시지
       const message = getErrorMessage(err);
       setError(message);
-      
+
       // 재시도 가능한 에러인지 확인
       if (isRetryableError(err)) {
         setTimeout(() => fetchUsers(), 3000);
@@ -550,16 +550,16 @@ function UserList() {
 
 ```typescript
 // ✅ 에러 타입별 세밀한 처리
-import { 
-  ApiError, 
-  ApiResponseError, 
+import {
+  ApiError,
+  ApiResponseError,
   getErrorMessage,
-  type UserFriendlyError 
+  type UserFriendlyError,
 } from "@/utils/errorHandling";
 
 function handleApiError(error: unknown): UserFriendlyError {
   const errorInfo = getErrorMessage(error);
-  
+
   // 에러 타입별 UI 처리
   switch (errorInfo.type) {
     case "network":
@@ -568,21 +568,21 @@ function handleApiError(error: unknown): UserFriendlyError {
         retryable: true,
         showRetryButton: true,
       };
-      
+
     case "server":
       if (errorInfo.status === 401) {
         // 인증 에러 - 로그인 페이지로 리다이렉트
         redirectToLogin();
       }
       return errorInfo;
-      
+
     case "client":
       // 사용자 입력 오류 - 폼 검증 메시지 표시
       return {
         ...errorInfo,
         showInForm: true,
       };
-      
+
     default:
       return errorInfo;
   }

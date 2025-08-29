@@ -134,9 +134,9 @@ src/
 
 ```typescript
 type ApiResponse<T> = {
-  result: "SUCCESS" | "ERROR";  // 응답 결과 상태
-  message: string;              // 응답 메시지  
-  data: T;                     // 실제 데이터
+  result: "SUCCESS" | "ERROR"; // 응답 결과 상태
+  message: string; // 응답 메시지
+  data: T; // 실제 데이터
 };
 ```
 
@@ -167,7 +167,7 @@ graph TD
 // 기본 API 클라이언트 (인증 불필요)
 export const baseApiClient = createBaseApiClient();
 
-// 인증용 API 클라이언트 (httpOnly 쿠키 포함)  
+// 인증용 API 클라이언트 (httpOnly 쿠키 포함)
 export const authApiClient = createAuthApiClient();
 ```
 
@@ -178,7 +178,7 @@ export const authApiClient = createAuthApiClient();
 responseInterceptor: {
   onSuccess: (response) => {
     const responseData = response.data;
-    
+
     // ApiResponse<T> 형식인지 확인
     if (isStandardApiResponse(responseData)) {
       if (isSuccessResponse(responseData)) {
@@ -189,7 +189,7 @@ responseInterceptor: {
         throw new ApiResponseError(responseData.message, responseData.result);
       }
     }
-    
+
     return response;
   },
   onError: (error) => {
@@ -212,8 +212,8 @@ type AppError = ApiResponseError | ApiError | Error;
 const errorInfo = getErrorMessage(error);
 switch (errorInfo.type) {
   case "network": // 네트워크 오류
-  case "server":  // 서버 오류 (5xx)
-  case "client":  // 클라이언트 오류 (4xx)
+  case "server": // 서버 오류 (5xx)
+  case "client": // 클라이언트 오류 (4xx)
   case "unknown": // 기타 오류
 }
 ```
@@ -527,7 +527,7 @@ const messages = {
 
 - **배경**: 백엔드 ApiResponse<T> 구조와 프론트엔드 불일치
 - **결정**: 인터셉터 기반 자동 응답 변환 채택
-- **이유**: 
+- **이유**:
   - 기존 코드 호환성 유지하면서 점진적 전환 가능
   - 일관된 에러 처리로 개발 생산성 향상
   - 백엔드 표준 응답 활용으로 API 안정성 향상
