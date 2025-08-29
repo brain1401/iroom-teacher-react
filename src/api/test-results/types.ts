@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/api/client/types";
 import type { Grade } from "@/types/grade";
 
 /**
@@ -20,3 +21,34 @@ export type TestAverage = {
   /** 평균 점수 */
   average: number;
 };
+
+/**
+ * 학년별 시험 평균 조회 데이터
+ * @description 시험 평균 배열 (실제 데이터 부분)
+ */
+export type TestAveragesData = TestAverage[];
+
+/**
+ * 학년별 시험 평균 조회 API 응답 타입
+ * @description 백엔드 표준 ApiResponse<T> 형식으로 래핑된 시험 평균 응답
+ *
+ * 인터셉터에 의해 자동 처리:
+ * - SUCCESS인 경우: TestAveragesData만 추출하여 반환
+ * - ERROR인 경우: ApiResponseError 발생
+ *
+ * @example
+ * ```typescript
+ * // 백엔드 원본 응답 형식
+ * const backendResponse: TestAveragesApiResponse = {
+ *   result: "SUCCESS",
+ *   message: "시험 평균 조회 성공",
+ *   data: [
+ *     { testName: "중간고사", average: 85.5 },
+ *     { testName: "기말고사", average: 88.2 }
+ *   ]
+ * };
+ *
+ * // 인터셉터 처리 후 API 함수에서 받는 형태: TestAveragesData
+ * ```
+ */
+export type TestAveragesApiResponse = ApiResponse<TestAveragesData>;

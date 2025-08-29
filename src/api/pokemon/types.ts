@@ -1,4 +1,14 @@
 /**
+ * 포켓몬 API 타입 정의
+ * @description PokeAPI (외부 API) 응답 타입들
+ *
+ * 주의사항:
+ * - 이 타입들은 외부 API (https://pokeapi.co)용이므로 ApiResponse<T> 래핑 불필요
+ * - 내부 백엔드 API와 달리 표준 ApiResponse 형식을 사용하지 않음
+ * - 인터셉터 처리 대상이 아닌 외부 API 직접 응답 형식
+ */
+
+/**
  * API에서 자주 사용되는 기본 리소스 타입
  * @description 포켓몬 API의 모든 리소스가 공통으로 가지는 이름과 URL 정보
  */

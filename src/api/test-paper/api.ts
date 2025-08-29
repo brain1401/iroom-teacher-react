@@ -1,7 +1,7 @@
 import { authApiClient } from "@/api/client";
-import type { AxiosRequestConfig, ApiResponse } from "@/api/client";
+import type { AxiosRequestConfig } from "@/api/client";
 import type { Grade } from "@/types/grade";
-import type { UnitsByGradeResponse } from "./types";
+import type { UnitsByGradeData } from "./types";
 
 /**
  * 학년별 단원 조회 API
@@ -19,13 +19,16 @@ import type { UnitsByGradeResponse } from "./types";
 export async function getUnitsByGrade(
   grade: Grade,
   options?: Pick<AxiosRequestConfig, "signal">,
-): Promise<UnitsByGradeResponse> {
-  const { data } = await authApiClient.get<UnitsByGradeResponse>(
+): Promise<UnitsByGradeData> {
+  // 인터셉터가 ApiResponse<T>에서 T만 추출하여 response.data에 저장
+  // 따라서 response.data를 반환해야 함
+  const response = await authApiClient.get<UnitsByGradeData>(
     "/test-paper/units",
     {
       params: { grade },
       signal: options?.signal,
     },
   );
-  return data ?? [];
+
+  return response.data;
 }

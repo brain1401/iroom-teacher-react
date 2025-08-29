@@ -12,10 +12,10 @@ export type ResultStatus = "SUCCESS" | "ERROR";
 /**
  * 백엔드 표준 API 응답 래퍼 타입
  * @description 모든 API 응답이 이 형태로 래핑됨
- * 
+ *
  * 구조:
  * - result: 응답 결과 상태 (필수)
- * - message: 응답 메시지 (필수, 빈 문자열 가능)  
+ * - message: 응답 메시지 (필수, 빈 문자열 가능)
  * - data: 실제 응답 데이터 (선택적, null 가능)
  *
  * @example
@@ -29,7 +29,7 @@ export type ResultStatus = "SUCCESS" | "ERROR";
  *
  * // 성공 응답 (데이터 없음)
  * const successNoData: ApiResponse<void> = {
- *   result: "SUCCESS", 
+ *   result: "SUCCESS",
  *   message: "삭제 완료",
  *   data: null
  * };
@@ -37,7 +37,7 @@ export type ResultStatus = "SUCCESS" | "ERROR";
  * // 에러 응답
  * const errorResponse: ApiResponse<void> = {
  *   result: "ERROR",
- *   message: "권한이 없습니다", 
+ *   message: "권한이 없습니다",
  *   data: null
  * };
  * ```
@@ -66,7 +66,7 @@ export function isSuccessResponse<T>(
 }
 
 /**
- * API 에러 응답 타입 가드  
+ * API 에러 응답 타입 가드
  * @description 응답이 에러인지 확인하는 타입 가드 함수
  * @param response API 응답 객체
  * @returns 에러 응답 여부
@@ -88,17 +88,25 @@ export function extractResponseData<T>(response: ApiResponse<T>): T {
   if (isSuccessResponse(response)) {
     return response.data;
   }
-  
+
   throw new ApiResponseError(response.message, response.result);
 }
 
 /**
  * API 응답 에러 클래스
  * @description 백엔드 표준 응답의 에러를 나타내는 전용 에러 클래스
+ *
+ * TypeScript Result 패턴을 적용하여 discriminant property 활용:
+ * - readonly type 속성으로 타입 구별
+ * - 에러 타입별 구체적인 처리 가능
  */
 export class ApiResponseError extends Error {
+  /** 에러 타입 식별자 (TypeScript discriminant property) */
+  readonly type = "api-response-error" as const;
+
   constructor(
     message: string,
+    /** 백엔드 응답의 result 상태 */
     public readonly result: ResultStatus,
   ) {
     super(message);
@@ -132,6 +140,6 @@ export function safeExtractResponseData<T>(
   if (isSuccessResponse(response) && hasResponseData(response)) {
     return response.data;
   }
-  
+
   return defaultValue;
 }

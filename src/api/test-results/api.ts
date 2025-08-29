@@ -1,6 +1,6 @@
 import { authApiClient } from "@/api/client";
 import type { AxiosRequestConfig } from "@/api/client";
-import type { Grade, TestAverage } from "./types";
+import type { Grade, TestAveragesData } from "./types";
 
 /**
  * 학년별 시험 평균 조회 API
@@ -18,13 +18,16 @@ import type { Grade, TestAverage } from "./types";
 export async function getTestAveragesByGrade(
   grade: Grade,
   options?: Pick<AxiosRequestConfig, "signal">,
-): Promise<TestAverage[]> {
-  const { data } = await authApiClient.get<TestAverage[]>(
+): Promise<TestAveragesData> {
+  // 인터셉터가 ApiResponse<T>에서 T만 추출하여 response.data에 저장
+  // 따라서 response.data를 반환해야 함
+  const response = await authApiClient.get<TestAveragesData>(
     "/test-results/averages",
     {
       params: { grade },
       signal: options?.signal,
     },
   );
-  return data ?? [];
+
+  return response.data;
 }
