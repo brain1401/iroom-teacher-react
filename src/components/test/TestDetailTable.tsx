@@ -10,6 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  tableStyles,
+  buttonStyles,
+  badgeStyles,
+  getStatusBadgeVariant,
+} from "@/utils/commonStyles";
 import type { TestSubmission } from "@/types/test";
 import { Link } from "@tanstack/react-router";
 
@@ -39,57 +48,94 @@ export function TestDetailTable({
   onSelect,
   onOpenDetail,
 }: TestDetailTableProps) {
+  // "전체 선택" 체크박스의 상태를 결정하는 변수
+  const isAllSelected =
+    submissions.length > 0 && selectedIds.size === submissions.length;
+
   return (
-    <Table className="w-full">
-      {/* 2. TableHeader와 "전체 선택" 체크박스 추가 */}
-      <TableHeader className="bg-gray-100 w-full">
-        <TableRow>
-          <TableHead className="w-10">
-            <Checkbox
-              checked={selectedIds.size === submissions.length}
-              onCheckedChange={onSelectAll}
-            />
-          </TableHead>
-          <TableHead>이름</TableHead>
-          <TableHead>전화번호</TableHead>
-          <TableHead>시험명</TableHead>
-          <TableHead>제출일자</TableHead>
-          <TableHead></TableHead>
-          <TableHead>답안확인</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {submissions.map((submission) => (
-          <TableRow key={submission.studentId}>
-            <TableCell>
+    <div className={tableStyles.container}>
+      <Table>
+        {/* 2. TableHeader와 "전체 선택" 체크박스 추가 */}
+        <TableHeader>
+          <TableRow className={tableStyles.header}>
+            <TableHead className="w-[50px] text-center">
               <Checkbox
-                checked={selectedIds.has(submission.studentId)}
-                onCheckedChange={(checked) =>
-                  onSelect(submission.studentId, Boolean(checked))
-                }
+                checked={isAllSelected}
+                onCheckedChange={onSelectAll}
+                className={tableStyles.checkbox}
               />
-            </TableCell>
-            <TableCell>{submission.studentName}</TableCell>
-            <TableCell>{submission.phoneNumber}</TableCell>
-            <TableCell>{submission.testName}</TableCell>
-            <TableCell>{submission.submittedAt}</TableCell>
-            <TableCell>{submission.submittedAnswer}</TableCell>
-            {/* 3. UI에 있던 버튼들도 추가 */}
-            <TableCell>
-              <Link
-                to="/main/test-management/$examId"
-                params={{ examId: "1" }}
-                className="bg-sky-100 text-sky-500 hover:bg-sky-200 hover:text-sky-600 rounded-md px-2 py-1"
-                onClick={() => onOpenDetail(submission)}
-              >
-                답안확인
-              </Link>
-            </TableCell>
-            <TableCell className="flex gap-2 justify-center"></TableCell>
+            </TableHead>
+            <TableHead className={tableStyles.headerCell}>이름</TableHead>
+            <TableHead className={tableStyles.headerCell}>전화번호</TableHead>
+            <TableHead className={tableStyles.headerCell}>시험명</TableHead>
+            <TableHead className={tableStyles.headerCell}>제출일자</TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              제출 상태
+            </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              답안확인
+            </TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {submissions.map((submission, index) => (
+            <TableRow
+              key={submission.studentId}
+              className={cn(
+                tableStyles.row,
+                index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
+              )}
+            >
+              <TableCell className={tableStyles.cellCenter}>
+                <Checkbox
+                  checked={selectedIds.has(submission.studentId)}
+                  onCheckedChange={(checked) =>
+                    onSelect(submission.studentId, Boolean(checked))
+                  }
+                  className={tableStyles.checkbox}
+                />
+              </TableCell>
+              <TableCell className={tableStyles.cellMedium}>
+                {submission.studentName}
+              </TableCell>
+              <TableCell className={tableStyles.cell}>
+                {submission.phoneNumber}
+              </TableCell>
+              <TableCell className={tableStyles.cell}>
+                {submission.testName}
+              </TableCell>
+              <TableCell className={tableStyles.cell}>
+                {submission.submittedAt}
+              </TableCell>
+              <TableCell className={tableStyles.cellCenter}>
+                <Badge
+                  variant={getStatusBadgeVariant("제출 완료")}
+                  className={badgeStyles[getStatusBadgeVariant("제출 완료")]}
+                >
+                  제출 완료
+                </Badge>
+              </TableCell>
+              {/* 3. UI에 있던 버튼들도 추가 */}
+              <TableCell className={tableStyles.cellCenter}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className={buttonStyles.primary}
+                >
+                  <Link
+                    to="/main/test-management/$examId"
+                    params={{ examId: "1" }}
+                    onClick={() => onOpenDetail(submission)}
+                  >
+                    답안확인
+                  </Link>
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

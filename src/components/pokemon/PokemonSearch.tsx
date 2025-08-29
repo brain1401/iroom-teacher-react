@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 type PokemonSearchProps = {
   /** 현재 검색 키워드 */
   keyword?: string;
-}
+};
 
 /**
  * 포켓몬 검색 폼 컴포넌트

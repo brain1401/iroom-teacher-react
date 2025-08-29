@@ -12,6 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Trash2 } from "lucide-react";
 import type { TestLevel, TestStatus } from "@/types/test";
 
 type Test = {
@@ -175,7 +184,6 @@ const fakeTestData: Test[] = [
 ];
 
 export function TestListTab() {
-  // ... (useState 및 핸들러 함수들은 동일)
   // Use static fake data directly (no state needed)
   const papers = fakeTestData;
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
@@ -183,6 +191,12 @@ export function TestListTab() {
   const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(
     null,
   );
+
+  // 검색 관련 상태
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchScope, setSearchScope] = useState<
+    "all" | "testName" | "unitName"
+  >("all");
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -216,29 +230,107 @@ export function TestListTab() {
     setSelectedPaper(null);
   };
 
+  // 개별 삭제 핸들러
+  const handleDelete = (id: string) => {
+    if (confirm("정말로 이 시험을 삭제하시겠습니까?")) {
+      // 실제 삭제 로직 구현 예정
+      console.log("삭제된 시험 ID:", id);
+    }
+  };
+
+  // 선택된 항목들 삭제 핸들러
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+
+    if (confirm(`선택된 ${selectedIds.size}개의 시험을 삭제하시겠습니까?`)) {
+      // 실제 삭제 로직 구현 예정
+      console.log("삭제된 시험 ID들:", Array.from(selectedIds));
+      setSelectedIds(new Set());
+    }
+  };
+
+  // 검색 필터링된 데이터
+  const filteredPapers = papers.filter((paper) => {
+    if (!searchKeyword.trim()) return true;
+
+    const keyword = searchKeyword.toLowerCase();
+
+    switch (searchScope) {
+      case "testName":
+        return paper.testName.toLowerCase().includes(keyword);
+      case "unitName":
+        return paper.unitName.toLowerCase().includes(keyword);
+      case "all":
+      default:
+        return (
+          paper.testName.toLowerCase().includes(keyword) ||
+          paper.unitName.toLowerCase().includes(keyword)
+        );
+    }
+  });
+
   return (
     <div className="space-y-4 w-full">
       <div className="text-[2.5rem] font-bold">시험 목록</div>
 
-      {/* 1. 툴바 영역: 필터와 삭제 버튼 */}
+      {/* 1. 툴바 영역: 검색, 필터, 삭제 */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button variant="outline">전체</Button>
+        <div className="flex items-center gap-4">
+          {/* 검색 영역 */}
+          <div className="flex items-center gap-2">
+            <Select
+              value={searchScope}
+              onValueChange={(value: "all" | "testName" | "unitName") =>
+                setSearchScope(value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">시험명+단원명</SelectItem>
+                <SelectItem value="testName">시험명</SelectItem>
+                <SelectItem value="unitName">단원명</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <Input
+                placeholder="검색어를 입력하세요"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                className="w-[250px] pr-8"
+              />
+              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+
+          {/* 학년 선택 */}
           <SelectGrade />
         </div>
-        <Button variant="destructive" disabled={selectedIds.size === 0}>
-          삭제
-        </Button>
+
+        {/* 삭제 버튼 */}
+        {selectedIds.size > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={handleDeleteSelected}
+          >
+            <Trash2 className="h-4 w-4" />
+            삭제 ({selectedIds.size})
+          </Button>
+        )}
       </div>
 
       {/* 2. 테이블 컴포넌트 */}
       <TestTable
-        papers={papers}
+        papers={filteredPapers}
         selectedIds={selectedIds}
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}
-        onOpenPrint={handleOpenPrint} // ✅ 누락된 prop 추가
+        onOpenPrint={handleOpenPrint}
         onOpenDetail={handleOpenDetail}
+        onDelete={handleDelete}
       />
 
       {/* 3. 페이지네이션 컴포넌트 */}

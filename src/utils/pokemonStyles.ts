@@ -173,15 +173,15 @@ export type PokemonType = keyof typeof pokemonTypeColors;
 /**
  * 포켓몬 타입명이 유효한지 확인하는 타입 가드
  * @description API에서 받은 문자열이 정의된 포켓몬 타입 중 하나인지 검증
- * 
+ *
  * 주요 기능:
  * - 런타임 타입 안전성 보장
  * - 유효하지 않은 타입명 필터링
  * - TypeScript 타입 내로잉 지원
- * 
+ *
  * @param type 검증할 포켓몬 타입 문자열
  * @returns 유효한 포켓몬 타입명 여부
- * 
+ *
  * @example
  * ```typescript
  * const apiType = pokemon.types[0].type.name;

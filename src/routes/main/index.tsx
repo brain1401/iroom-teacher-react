@@ -1,11 +1,17 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
 import { ExamSubmissionStatus } from "@/components/ExamSubmissionStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetAtom } from "jotai";
 import { useLayoutEffect } from "react";
 import { GradeDistributionChart } from "@/components/Gradedistributionchart";
 import type { ChartConfig } from "@/components/ui/chart";
+import { CircleQuestionMarkIcon } from "lucide-react";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
@@ -115,11 +121,40 @@ function RouteComponent() {
         </div>
       </Card>
       <div>
-        <Card className="flex-1 w-[70rem] p-5 border-0">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold mt-4">
-              성적 분포도
-            </CardTitle>
+        <Card className=" flex w-[70rem] p-5 border-0">
+          <CardHeader className="flex flex-row items-center">
+            <CardTitle className="text-3xl font-bold">성적 분포도</CardTitle>
+            <HoverCard openDelay={0} closeDelay={0}>
+              <HoverCardTrigger asChild>
+                <div className="ml-2 p-2 hover:cursor-help">
+                  <CircleQuestionMarkIcon className="text-blue-500 pointer-events-none" />
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent
+                side="top"
+                className="bg-white border-2 border-blue-500 rounded-lg shadow-lg p-3 w-150"
+              >
+                <div className="space-y-2 text-lg ">
+                  <span className="text-gray-800">
+                    성적 분포도는 기본적으로{" "}
+                  </span>
+                  <span className="text-blue-800">
+                    전체(중1~중3) 학생들의 평균 점수를 합산하여 상·중·하위권으로
+                    구분
+                  </span>
+                  <span className="text-gray-800">
+                    {" "}
+                    해 보여줍니다. 학년을 선택하면 해당 학년만 필터링된 분포도를
+                    확인할 수 있으며, 이를 통해
+                  </span>
+                  <span className="text-blue-800">
+                    학교 전체 성적 흐름과 학년별 특성을 한눈에 비교할 수
+                    있습니다
+                  </span>
+                  .
+                </div>
+              </HoverCardContent>
+            </HoverCard>
             <hr className="my-7 text-gray-200" />
           </CardHeader>
           <CardContent className="p-10 -mt-12">

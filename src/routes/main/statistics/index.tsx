@@ -225,7 +225,6 @@ function RouteComponent() {
     return computed;
   }, [wrongSources]);
 
-
   useLayoutEffect(() => {
     setIsShowHeader(false);
   }, [setIsShowHeader]);

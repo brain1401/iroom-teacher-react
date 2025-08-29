@@ -1,5 +1,9 @@
 import { cn } from "@/lib/utils";
-import { getTypeBgGradient, formatPokemonId, isPokemonTypeName } from "@/utils/pokemonStyles";
+import {
+  getTypeBgGradient,
+  formatPokemonId,
+  isPokemonTypeName,
+} from "@/utils/pokemonStyles";
 import type { Pokemon } from "@/api/pokemon/types";
 import { usePokemonImage } from "@/hooks/pokemon";
 
@@ -11,7 +15,9 @@ type Props = {
 /** 이미지 섹션 컴포넌트 -함 */
 export function PokemonDetailImage({ pokemon, idParam }: Props) {
   const primaryTypeName = pokemon.types[0]?.type?.name || "normal";
-  const primaryType = isPokemonTypeName(primaryTypeName) ? primaryTypeName : "normal";
+  const primaryType = isPokemonTypeName(primaryTypeName)
+    ? primaryTypeName
+    : "normal";
   const bgGradient = getTypeBgGradient(primaryType);
 
   const {

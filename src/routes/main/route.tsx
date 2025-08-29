@@ -8,13 +8,15 @@ export const Route = createFileRoute("/main")({
 
 function RouteComponent() {
   return (
-    <div className="flex w-full">
+    <div className="flex w-full h-screen">
       <SideMenu />
       <div className="ml-32 flex-grow p-8 flex-1 flex flex-col w-full px-14 py-10">
-        <div className="mb-[3rem]">
+        <div className="mb-[3rem] flex-shrink-0">
           <HeaderTitle />
         </div>
-        <Outlet />
+        <div className="flex-1">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
