@@ -1,4 +1,4 @@
-import { ApiError } from "@/api/client";
+import { ApiError, ApiResponseError } from "@/api/client";
 
 /**
  * 에러 메시지 추출 유틸리티
@@ -7,6 +7,11 @@ import { ApiError } from "@/api/client";
  * @returns 사용자에게 표시할 메시지
  */
 export function getErrorMessage(error: unknown): string {
+  // ApiResponseError 인스턴스인 경우 (우선 처리)
+  if (error instanceof ApiResponseError) {
+    return error.message;
+  }
+
   // ApiError 인스턴스인 경우
   if (error instanceof ApiError) {
     // 상태 코드별 메시지 처리

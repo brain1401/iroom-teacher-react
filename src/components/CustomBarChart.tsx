@@ -1,17 +1,17 @@
 // @/components/CustomBarChart.tsx (수정 후)
 
-"use client"
+"use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import type { ChartConfig } from "@/components/ui/chart"
-import React from "react"
+} from "@/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
+import React from "react";
 
 interface CustomBarChartProps {
   chartData: Array<{ [key: string]: string | number }>;
@@ -31,7 +31,10 @@ export const CustomBarChart: React.FC<CustomBarChartProps> = ({
   const dataKeys = Object.keys(chartConfig);
 
   return (
-    <ChartContainer config={chartConfig} className={`min-h-[200px] w-full ${className}`}>
+    <ChartContainer
+      config={chartConfig}
+      className={`min-h-[200px] w-full ${className}`}
+    >
       <BarChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -44,7 +47,7 @@ export const CustomBarChart: React.FC<CustomBarChartProps> = ({
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        
+
         {dataKeys.map((key) => (
           <Bar
             key={key}
@@ -55,5 +58,5 @@ export const CustomBarChart: React.FC<CustomBarChartProps> = ({
         ))}
       </BarChart>
     </ChartContainer>
-  )
-}
+  );
+};

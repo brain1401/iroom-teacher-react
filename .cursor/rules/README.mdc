@@ -1,0 +1,52 @@
+---
+description: Overview of Cursor rules for the iroom-teacher React project
+alwaysApply: false
+---
+
+# Cursor Rules for iroom-teacher React Project
+
+This directory contains comprehensive Cursor rules that enforce consistent development patterns across the iroom-teacher React project.
+
+## Rules Structure
+
+### Core Rules (Always Active)
+
+- **`project-main.mdc`** - Main project development rules and tech stack guidelines
+- **`typescript-patterns.mdc`** - TypeScript type safety and documentation standards
+
+### Domain-Specific Rules (Auto-attached)
+
+- **`src/frontend-components.mdc`** - React component development patterns
+- **`api/backend-api.mdc`** - API client and server state management rules
+- **`state-management.mdc`** - Jotai + TanStack Query + SSR patterns
+- **`testing-utils.mdc`** - Testing patterns and utility function standards
+
+## Key Features
+
+- **Auto-activation**: Rules automatically apply based on file patterns (globs)
+- **Hierarchical structure**: Core rules + domain-specific rules  
+- **AI-optimized**: Designed for Claude Code and similar AI assistants
+- **Pattern enforcement**: Ensures consistency across the entire codebase
+
+> 💡 **Detailed patterns and examples** are defined in each individual `.mdc` file.
+
+## Usage
+
+These rules are automatically applied based on file patterns (globs). The main project rules apply to all TypeScript files, while domain-specific rules activate when working in relevant directories.
+
+### Rule Priority
+
+1. **`alwaysApply: true`** - Always active rules (project-main, typescript-patterns)
+2. **Glob-matched rules** - Auto-attached based on file patterns
+3. **Manual rules** - Can be referenced with `@ruleName` when needed
+
+## Quick Reference
+
+- **Need specific coding rules?** → See `project-main.mdc`
+- **Working with React components?** → `src/frontend-components.mdc` auto-applies
+- **Building APIs?** → `api/backend-api.mdc` auto-applies  
+- **Managing state?** → `state-management.mdc` auto-applies
+
+---
+
+**💡 Each rule file contains detailed examples and patterns for consistent development.**

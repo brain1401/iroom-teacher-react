@@ -1,6 +1,14 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -28,10 +36,15 @@ type GradeChartProps = {
   levelInfo: LevelInfo[];
 };
 
-
 // config : 디자인 정보 객체 (색상,공식명칭)
-// 상중하 퍼센트율 
-const CustomLegend = ({ levelInfo, config }: { levelInfo: LevelInfo[], config: ChartConfig }) => {
+// 상중하 퍼센트율
+const CustomLegend = ({
+  levelInfo,
+  config,
+}: {
+  levelInfo: LevelInfo[];
+  config: ChartConfig;
+}) => {
   return (
     <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
       {levelInfo.map(({ level, percentage }) => (
@@ -47,7 +60,11 @@ const CustomLegend = ({ levelInfo, config }: { levelInfo: LevelInfo[], config: C
   );
 };
 
-export const GradeDistributionChart = ({ data, chartConfig, levelInfo }: GradeChartProps) => {
+export const GradeDistributionChart = ({
+  data,
+  chartConfig,
+  levelInfo,
+}: GradeChartProps) => {
   return (
     <div className="flex flex-col gap-4 bg-chart-1">
       {/*  커스텀 범례 렌더링 */}
@@ -64,18 +81,23 @@ export const GradeDistributionChart = ({ data, chartConfig, levelInfo }: GradeCh
           <XAxis
             dataKey="score"
             tickLine={false}
-            tickMargin={10} 
+            tickMargin={10}
             axisLine={false}
           />
           {/*  YAxis(세로축) label(학생 수) */}
           <YAxis
-            label={{ value: "학생 수 (명)", angle: -90, position: "insideLeft", offset: -10 }}
+            label={{
+              value: "학생 수 (명)",
+              angle: -90,
+              position: "insideLeft",
+              offset: -10,
+            }}
           />
           <ChartTooltip
             cursor={false}
             content={
               <ChartTooltipContent
-                formatter={(value, name, props) => (
+                formatter={(value, _name, props) => (
                   <>
                     <p>학생 수: {value}명</p>
                     <p>레벨: {props.payload.level}</p>

@@ -1,0 +1,541 @@
+---
+description: API and backend logic development rules for iroom-teacher project
+globs: src/api/**/*.ts,src/api/**/*.tsx,src/atoms/**/*.ts,src/atoms/**/*.tsx,src/utils/**/*.ts,src/utils/**/*.tsx
+alwaysApply: false
+---
+
+# API & Backend Logic Development Rules
+
+Comprehensive rules for API client architecture, state management, and server state handling in the iroom-teacher React project.
+
+## 🌐 API Client Architecture
+
+### API Client Usage Rules
+
+**Absolutely Forbidden:** Direct `fetch()` usage
+**Required:** `baseApiClient` or `authApiClient`
+
+```typescript
+// ✅ Correct API function implementation
+import { baseApiClient } from "@/api/client";
+
+/**
+ * Fetches Pokemon list from API
+ * @description Retrieves paginated Pokemon list with search support
+ * 
+ * Key features:
+ * - Pagination support (limit, offset)
+ * - Search filtering
+ * - Request cancellation (AbortSignal)
+ * - Defensive programming with safe error handling
+ * 
+ * @param filters Query filter options
+ * @param options Additional options (signal, etc.)
+ * @returns Pokemon list response data
+ * @throws {ApiError} Network error or server error
+ */
+export async function fetchPokemonList(
+  filters?: { 
+    limit?: number; 
+    offset?: number; 
+    search?: string; 
+  },
+  options?: { signal?: AbortSignal },
+): Promise<PokemonListResponse> {
+  try {
+    const response = await baseApiClient<PokemonListResponse>({
+      method: "GET",
+      url: buildPokemonListUrl(filters),
+      signal: options?.signal,
+    });
+    
+    return response;
+  } catch (error) {
+    console.error(`[API Error] Pokemon list fetch failed:`, filters, error);
+    throw error;
+  }
+}
+
+// ❌ Forbidden approach
+export async function fetchData() {
+  const response = await fetch("/api/data"); // Never use direct fetch!
+  return response.json();
+}
+```
+
+### Authenticated API Pattern
+
+```typescript
+import { authApiClient } from "@/api/client";
+
+/**
+ * Fetch user profile API
+ * @description Secure API using httpOnly cookie authentication
+ */
+export async function fetchUserProfile(): Promise<UserProfile> {
+  try {
+    return await authApiClient<UserProfile>({
+      method: "GET",
+      url: "/api/user/profile",
+    });
+  } catch (error) {
+    // 401 errors automatically handled by interceptors
+    console.error("[Auth API Error] Profile fetch failed:", error);
+    throw error;
+  }
+}
+```
+
+## 📊 React Query Patterns
+
+### Query Options Definition
+
+```typescript
+// api/your-domain/query.ts
+import { queryOptions } from "@tanstack/react-query";
+import { ApiError } from "@/api/client";
+import { fetchYourData, fetchYourDetail } from "./api";
+
+/**
+ * Domain-specific query key management
+ * @description Systematic cache key management for efficient caching and invalidation
+ */
+export const yourDomainKeys = {
+  /** Base key for all domain queries */
+  all: ["your-domain"] as const,
+  /** List queries */
+  lists: () => [...yourDomainKeys.all, "list"] as const,
+  /** Filtered list query */
+  list: (filters?: ListFilters) => [...yourDomainKeys.lists(), filters] as const,
+  /** Detail queries */
+  details: () => [...yourDomainKeys.all, "detail"] as const,
+  /** Specific ID detail query */
+  detail: (id: string) => [...yourDomainKeys.details(), id] as const,
+} as const;
+
+/**
+ * React Query options for list fetching
+ * @description Query options for useQuery or Jotai atomWithQuery
+ * 
+ * Caching strategy:
+ * - staleTime: 5 minutes fresh data consideration
+ * - gcTime: 10 minutes memory cache retention
+ * - retry: Don't retry 404, other errors retry up to 3 times
+ */
+export const yourDataListQueryOptions = (
+  filters?: { page?: number; limit?: number; search?: string }
+) => {
+  return queryOptions({
+    queryKey: yourDomainKeys.list(filters),
+    queryFn: async ({ signal }): Promise<YourDataListResponse> => {
+      return await fetchYourDataList(filters, { signal });
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: (failureCount, error) => {
+      // Don't retry 404 errors
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+};
+
+/**
+ * React Query options for detail fetching
+ * @description Query options for specific item detail
+ */
+export const yourDataDetailQueryOptions = (id: string) => {
+  return queryOptions({
+    queryKey: yourDomainKeys.detail(id),
+    queryFn: async ({ signal }): Promise<YourDataDetail> => {
+      if (!id || id === "placeholder") {
+        throw new Error("Invalid ID provided");
+      }
+      return await fetchYourDataDetail(id, { signal });
+    },
+    staleTime: 10 * 60 * 1000, // Detail data cached longer
+    gcTime: 30 * 60 * 1000,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      return failureCount < 2; // Reduced retry count for detail
+    },
+    enabled: Boolean(id && id !== "placeholder"), // Only execute with valid ID
+  });
+};
+```
+
+### Mutation Pattern
+
+```typescript
+/**
+ * Mutation options for data creation/modification
+ * @description Options for server state changing operations
+ */
+export const createYourDataMutationOptions = () => {
+  return {
+    mutationFn: async (data: CreateYourDataRequest): Promise<YourDataDetail> => {
+      return await createYourData(data);
+    },
+    onSuccess: (newData: YourDataDetail, variables, context) => {
+      // Invalidate related queries on success
+      queryClient.invalidateQueries({
+        queryKey: yourDomainKeys.lists(),
+      });
+      
+      // Add newly created data to cache
+      queryClient.setQueryData(
+        yourDomainKeys.detail(newData.id),
+        newData
+      );
+    },
+    onError: (error: ApiError, variables, context) => {
+      console.error("[Mutation Error] Data creation failed:", error);
+      // Show error toast, etc.
+    },
+  };
+};
+```
+
+## 🧠 Jotai State Management Patterns
+
+### Domain-based Atom Structure
+
+```typescript
+// atoms/your-domain.ts
+import { atom } from "jotai";
+import { atomWithStorage, atomWithQuery } from "jotai-tanstack-query";
+import { 
+  yourDataListQueryOptions, 
+  yourDataDetailQueryOptions 
+} from "@/api/your-domain/query";
+
+/**
+ * URL parameter state atoms
+ * @description Basic states connected with routing
+ */
+export const yourPageAtom = atom<number>(1);
+export const yourSearchAtom = atom<string>("");
+export const yourSelectedIdAtom = atom<string>("");
+
+/**
+ * User settings atom (localStorage persistent)
+ * @description User preferences stored in localStorage
+ */
+export const yourSettingsAtom = atomWithStorage("your-settings", {
+  pageSize: 20,
+  sortBy: "created_at" as "created_at" | "name",
+  sortOrder: "desc" as "desc" | "asc",
+});
+
+/**
+ * Combined filter conditions atom (computed)
+ * @description Combines multiple states to create filters for API calls
+ */
+export const yourListFiltersAtom = atom((get) => {
+  const page = get(yourPageAtom);
+  const search = get(yourSearchAtom);
+  const settings = get(yourSettingsAtom);
+  
+  return {
+    page,
+    limit: settings.pageSize,
+    search: search.trim() || undefined,
+    sort: `${settings.sortBy}:${settings.sortOrder}`,
+  };
+});
+
+/**
+ * Server state atom (React Query integration)
+ * @description Main query atom managing API data
+ */
+export const yourDataListQueryAtom = atomWithQuery((get) => {
+  const filters = get(yourListFiltersAtom);
+  return yourDataListQueryOptions(filters);
+});
+
+/**
+ * Detail data atom
+ * @description Detail information for selected item
+ */
+export const yourDataDetailQueryAtom = atomWithQuery((get) => {
+  const id = get(yourSelectedIdAtom);
+  if (!id) {
+    return {
+      queryKey: ["your-domain", "detail", "empty"],
+      queryFn: () => null,
+      enabled: false,
+    };
+  }
+  return yourDataDetailQueryOptions(id);
+});
+
+/**
+ * Filtered results atom (computed/derived)
+ * @description Applies client-side filtering to server data
+ */
+export const filteredYourDataAtom = atom((get) => {
+  const { data, isPending, isError, error } = get(yourDataListQueryAtom);
+  
+  return {
+    results: data?.results || [],
+    totalCount: data?.count || 0,
+    isPending,
+    isError,
+    error,
+    hasNextPage: Boolean(data?.next),
+    hasPreviousPage: Boolean(data?.previous),
+  };
+});
+
+/**
+ * Statistics and meta information atom (computed)
+ * @description Calculates statistics or meta information based on data
+ */
+export const yourDataStatsAtom = atom((get) => {
+  const { results, totalCount } = get(filteredYourDataAtom);
+  const settings = get(yourSettingsAtom);
+  
+  return {
+    itemCount: results.length,
+    totalCount,
+    currentPage: Math.floor(results.length / settings.pageSize) + 1,
+    totalPages: Math.ceil(totalCount / settings.pageSize),
+  };
+});
+```
+
+### SSR Hydration Pattern
+
+```typescript
+// Component SSR hydration handling
+export function YourPageComponent() {
+  const { id, page, search } = Route.useParams();
+  
+  /**
+   * SSR hydration optimization
+   * @description Syncs server pre-rendered state to client
+   * 
+   * Important notes:
+   * - useHydrateAtoms executes only once initially
+   * - URL parameter changes handled separately with useEffect
+   * - Pattern prevents infinite re-rendering
+   */
+  useHydrateAtoms([
+    [yourPageAtom, page || 1],
+    [yourSearchAtom, search || ""],
+    [yourSelectedIdAtom, id || ""],
+  ]);
+  
+  // Update atoms on URL changes (separate from hydration)
+  const setPage = useSetAtom(yourPageAtom);
+  const setSearch = useSetAtom(yourSearchAtom);
+  const setSelectedId = useSetAtom(yourSelectedIdAtom);
+  
+  useEffect(() => {
+    setPage(page || 1);
+  }, [page, setPage]);
+  
+  useEffect(() => {
+    setSearch(search || "");
+  }, [search, setSearch]);
+  
+  useEffect(() => {
+    setSelectedId(id || "");
+  }, [id, setSelectedId]);
+  
+  // Read data (read-only optimization)
+  const data = useAtomValue(filteredYourDataAtom);
+  
+  return <YourDataDisplay data={data} />;
+}
+```
+
+## 🔧 Utility Function Patterns
+
+### URL Builder Functions
+
+```typescript
+// utils/your-domain/urlBuilder.ts
+
+/**
+ * API URL generation functions
+ * @description Consistent URL creation and query parameter handling
+ */
+
+/**
+ * Generate base API URL
+ * @param endpoint API endpoint
+ * @returns Complete API URL
+ */
+function buildBaseUrl(endpoint: string): string {
+  const baseUrl = process.env.VITE_API_BASE_URL || "https://api.example.com";
+  return `${baseUrl}${endpoint}`;
+}
+
+/**
+ * Add query parameters to URL
+ * @param url Base URL
+ * @param params Query parameter object
+ * @returns URL with query parameters added
+ */
+function buildUrlWithParams(
+  url: string, 
+  params?: Record<string, string | number | boolean | undefined>
+): string {
+  if (!params) return url;
+  
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+  
+  const queryString = searchParams.toString();
+  return queryString ? `${url}?${queryString}` : url;
+}
+
+/**
+ * Generate list query URL
+ * @param filters Filter conditions
+ * @returns Complete list query URL
+ */
+export function buildYourDataListUrl(filters?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: string;
+}): string {
+  const baseUrl = buildBaseUrl("/api/your-data");
+  
+  return buildUrlWithParams(baseUrl, {
+    page: filters?.page,
+    limit: filters?.limit,
+    search: filters?.search,
+    sort: filters?.sort,
+  });
+}
+
+/**
+ * Generate detail query URL
+ * @param id ID of item to query
+ * @returns Complete detail query URL
+ */
+export function buildYourDataDetailUrl(id: string | number): string {
+  if (!id) {
+    throw new Error("ID is required");
+  }
+  
+  return buildBaseUrl(`/api/your-data/${encodeURIComponent(id)}`);
+}
+```
+
+### Error Handling Utilities
+
+```typescript
+// utils/errorHandling.ts (extending existing file)
+
+/**
+ * Domain-specific error message handling
+ * @param error Error that occurred
+ * @param context Context where error occurred
+ * @returns User-friendly error message
+ */
+export function getYourDomainErrorMessage(error: unknown, context?: string): string {
+  if (error instanceof ApiError) {
+    switch (error.status) {
+      case 404:
+        return "The requested data could not be found.";
+      case 403:
+        return "You don't have permission to perform this action.";
+      case 409:
+        return "This data already exists.";
+      case 422:
+        return "The information provided is not valid.";
+      case 429:
+        return "Too many requests. Please try again later.";
+      default:
+        return error.message || "A server error occurred.";
+    }
+  }
+  
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  console.error(`[${context}] Unknown error:`, error);
+  return "An unknown error occurred.";
+}
+
+/**
+ * Structured error logging
+ * @param error Error object
+ * @param context Location where error occurred
+ * @param metadata Additional metadata
+ */
+export function logDomainError(
+  error: unknown,
+  context: string,
+  metadata?: Record<string, unknown>
+): void {
+  const errorInfo = {
+    timestamp: new Date().toISOString(),
+    context,
+    error: error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    } : error,
+    metadata,
+  };
+  
+  console.error(`[Domain Error] ${context}:`, errorInfo);
+  
+  // Send to external logging service in production
+  if (process.env.NODE_ENV === "production") {
+    // sendToLoggingService(errorInfo);
+  }
+}
+```
+
+## 📋 API Development Checklist
+
+When developing new API features:
+
+### API Function Implementation
+- [ ] Use `baseApiClient` or `authApiClient`
+- [ ] Write detailed TSDoc comments
+- [ ] Define type-safe parameters and return values
+- [ ] Include error handling and logging
+- [ ] Support AbortSignal (request cancellation)
+
+### React Query Options
+- [ ] Set appropriate staleTime and gcTime
+- [ ] Define error-specific retry strategies
+- [ ] Manage query keys systematically
+- [ ] Establish cache invalidation strategy
+
+### Jotai Atom Design
+- [ ] Apply single responsibility principle
+- [ ] Separate computation logic with derived atoms
+- [ ] Apply SSR hydration pattern
+- [ ] Prevent unnecessary re-rendering
+
+### Type Definitions
+- [ ] Define complete API response types
+- [ ] Define request parameter types
+- [ ] Define error types
+- [ ] Document fields with TSDoc
+
+### Testing and Validation
+- [ ] Pass `bun run check`
+- [ ] Resolve type errors
+- [ ] Test error scenarios
+- [ ] Verify network failure handling
+
+Apply these patterns consistently to build a stable and scalable API layer.

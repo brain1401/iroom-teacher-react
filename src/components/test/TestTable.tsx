@@ -1,17 +1,22 @@
 // src/routes/test-paper/_components/TestTable.tsx
 
-
 // 1. shadcn/ui 컴포넌트들을 모두 import
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
 import { Button } from "@/components/ui/button";
-import type { Test } from "@/types/test";  
-
+import type { Test } from "@/types/test";
 
 /**
  * 시험지 테이블 컴포넌트 props 타입
  * @description 목록 렌더링, 선택 제어, 모달 오픈 콜백 전달
- * 
+ *
  * 주요 속성:
  * - papers: 시험지 목록 데이터
  * - selectedIds: 체크된 행의 ID 집합
@@ -29,7 +34,13 @@ type TestTableProps = {
   onOpenDetail: (paper: Test) => void;
 };
 
-export function TestTable({ papers, selectedIds, onSelectAll, onSelect, onOpenDetail }: TestTableProps) {
+export function TestTable({
+  papers,
+  selectedIds,
+  onSelectAll,
+  onSelect,
+  onOpenDetail,
+}: TestTableProps) {
   // "전체 선택" 체크박스의 상태를 결정하는 변수
   const isAllSelected = papers.length > 0 && selectedIds.size === papers.length;
 
@@ -39,12 +50,9 @@ export function TestTable({ papers, selectedIds, onSelectAll, onSelect, onOpenDe
       <TableHeader>
         <TableRow>
           <TableHead className="w-[50px]">
-            <Checkbox
-              checked={isAllSelected}
-              onCheckedChange={onSelectAll}
-            />
+            <Checkbox checked={isAllSelected} onCheckedChange={onSelectAll} />
           </TableHead>
-          
+
           <TableHead>단원정보</TableHead>
           <TableHead>시험명</TableHead>
           <TableHead>문항수</TableHead>
@@ -58,7 +66,9 @@ export function TestTable({ papers, selectedIds, onSelectAll, onSelect, onOpenDe
             <TableCell>
               <Checkbox
                 checked={selectedIds.has(paper.id)}
-                onCheckedChange={(checked) => onSelect(paper.id, Boolean(checked))}
+                onCheckedChange={(checked) =>
+                  onSelect(paper.id, Boolean(checked))
+                }
               />
             </TableCell>
             <TableCell>{paper.unitName}</TableCell>
@@ -67,9 +77,14 @@ export function TestTable({ papers, selectedIds, onSelectAll, onSelect, onOpenDe
             <TableCell>{paper.questionLevel}</TableCell>
             {/* 3. UI에 있던 버튼들도 추가 */}
             <TableCell>
-              <Button className="bg-sky-100 text-sky-500 hover:bg-sky-200 hover:text-sky-600" size="sm" onClick={() => onOpenDetail(paper)}>상세보기</Button>
+              <Button
+                className="bg-sky-100 text-sky-500 hover:bg-sky-200 hover:text-sky-600"
+                size="sm"
+                onClick={() => onOpenDetail(paper)}
+              >
+                상세보기
+              </Button>
             </TableCell>
-            
           </TableRow>
         ))}
       </TableBody>

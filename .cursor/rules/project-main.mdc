@@ -1,0 +1,195 @@
+---
+description: "AI coding assistant rules for iroom-teacher React project - strict development patterns"
+alwaysApply: true
+---
+
+> 💡 **Note**: 자세한 프로젝트 문서와 팀 가이드는 `docs/README.md`를 참조하세요.
+
+# iroom-teacher React Project Development Rules
+
+You are a professional developer working on the iroom-teacher React project. Strictly follow these rules.
+
+## 🎯 Core Tech Stack
+
+- **React 19** + **TypeScript** (strict mode)
+- **TanStack Start** (SSR) + **TanStack Router** (file-based routing)
+- **Jotai** (state management) + **TanStack Query** (server state)
+- **Tailwind CSS v4** + **shadcn/ui** components
+- **Bun** (package manager - use instead of Node.js)
+
+## 📝 Coding Conventions
+
+### Comment Standards
+- **Korean noun-form comments** (no honorifics) for Korean-specific explanations
+- **TSDoc format** required for all functions/components/types
+- Detailed explanations accessible to React beginners
+- Always include purpose and examples for functions/components/types
+
+### Type Definitions
+- **Always use `type`** (NEVER use `interface`)
+- Complete type definitions for all API responses and Props
+- TSDoc comments explaining each field
+
+```typescript
+// ✅ Correct example
+type PokemonCardProps = {
+  /** Pokemon name */
+  name: string;
+  /** Pokemon API URL */
+  url: string;
+};
+
+// ❌ Forbidden
+interface PokemonCardProps {
+  name: string;
+}
+```
+
+### Import/Export Rules
+- **Use absolute paths (`@/`) required**
+- Import order: React → external libraries → internal modules → relative paths
+- **Prefer named exports** (minimize default exports)
+
+## 🏗️ Architecture Patterns
+
+### Folder Structure Compliance
+```
+src/
+├── api/[domain]/     # API functions
+├── atoms/           # Jotai state management
+├── components/      # React components
+├── hooks/          # Custom hooks
+├── routes/         # File-based routing
+└── utils/          # Utility functions
+```
+
+### Component Writing Rules
+- **Function components only** (class components absolutely forbidden)
+- Extract complex logic into **custom hooks**
+- **Conditional rendering order**: loading → error → empty state → normal state
+
+### API Client Usage
+- **Must use `baseApiClient` or `authApiClient`**
+- Direct `fetch()` usage absolutely forbidden
+- Include error handling and type safety in all API functions
+
+## 🌐 Data Fetching Pattern (Critical!)
+
+### SSR with TanStack Start Required Pattern
+
+**Follow Pokemon example exactly for this pattern:**
+
+1. **Define loader in Route file:**
+```typescript
+export const Route = createFileRoute("/your-page/")({
+  loader: async ({ context: { queryClient }, params, search }) => {
+    // Prefetch data with TanStack Query
+    await queryClient.ensureQueryData(
+      yourDataQueryOptions(params)
+    );
+    return { preloadData: "any additional data" };
+  },
+  component: YourPageComponent,
+});
+```
+
+2. **Define Query Options (Required):**
+```typescript
+// api/your-domain/query.ts
+export const yourDataQueryOptions = (params: Params) => ({
+  queryKey: ["your-domain", params],
+  queryFn: () => fetchYourData(params),
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000,   // 10 minutes
+});
+```
+
+3. **Jotai + SSR Hydration:**
+```typescript
+// In component
+import { useHydrateAtoms } from "jotai-ssr";
+
+function YourPageComponent() {
+  const { param } = Route.useParams();
+  
+  // SSR hydration (prevents flickering)
+  useHydrateAtoms([[yourParamAtom, param]]);
+  
+  // Read data from atom
+  const { data, isPending, isError } = useAtomValue(yourDataQueryAtom);
+}
+```
+
+4. **Atom Definition:**
+```typescript
+// atoms/your-domain.ts
+export const yourParamAtom = atom<string>("");
+
+export const yourDataQueryAtom = atomWithQuery((get) => {
+  const param = get(yourParamAtom);
+  return yourDataQueryOptions(param);
+});
+```
+
+### Error Handling Pattern
+```typescript
+if (isPending) return <YourLoadingSkeleton />;
+if (isError) {
+  logError(isError, "YourPageComponent");
+  return <YourErrorComponent message={getErrorMessage(isError)} />;
+}
+```
+
+## 🎨 Styling Rules
+
+### Tailwind CSS Usage
+- **Use `cn()` function for className combination**
+- Always consider responsive design
+- Support dark mode (`dark:` prefix)
+
+### shadcn/ui Components
+- Use shadcn/ui for basic UI components
+- Use variant system for customization
+- **Actively use asChild pattern**
+
+```typescript
+<Button variant="ghost" asChild>
+  <Link to="/your-path">Link Button</Link>
+</Button>
+```
+
+## 🔧 Development Tools
+
+### Bun Usage (Important!)
+- `bun install` (instead of npm install)
+- `bun run dev` (instead of npm run dev) 
+- `bun test` (instead of npm test)
+- `bun run build` (instead of npm run build)
+
+### Code Quality Checks
+- Always run `bun run check` after completing work
+- Resolve all TypeScript errors required
+- Resolve ESLint warnings recommended
+
+## ❌ Absolutely Forbidden
+
+1. **Using `interface`** → Use `type` instead
+2. **Class components** → Use function components only
+3. **Direct `fetch()` usage** → Use API clients
+4. **Relative path imports** → Use `@/` absolute paths
+5. **Using npm/yarn** → Use Bun
+6. **Plain data fetching without SSR** → Use TanStack Start loader + Jotai pattern
+
+## 📋 Development Checklist
+
+When developing new features:
+- [ ] Check existing patterns (especially Pokemon example)
+- [ ] Follow domain-based folder structure
+- [ ] Write TSDoc comments
+- [ ] Apply SSR data fetching pattern
+- [ ] Ensure type safety
+- [ ] Include error handling
+- [ ] Pass `bun run check`
+- [ ] Support responsive + dark mode
+
+Strictly follow these rules to write consistent, high-quality code.

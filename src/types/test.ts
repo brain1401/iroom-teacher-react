@@ -1,7 +1,7 @@
 /**
  * 시험지 관련 타입 정의
  * @description 시험지 목록, 상세 정보, 등록 등에 사용되는 타입들
- * 
+ *
  * 주요 타입:
  * - Test: 기본 시험지 정보
  * - TestDetail: 시험지 상세 정보
@@ -22,7 +22,7 @@ export type Test = {
   unitName: string;
   /** 시험명 */
   testName: string;
-  /** 문항 수 */ 
+  /** 문항 수 */
   questionCount: number;
   /** 시험 난이도 */
   questionLevel: TestLevel;
@@ -54,19 +54,19 @@ export type StudentTestSubmission = {
   studentId: string;
   studentName: string;
   testName: string;
-  submittedAt: string;     // 제출일자
-  totalScore: number;      // 총점
+  submittedAt: string; // 제출일자
+  totalScore: number; // 총점
   answers: QuestionAnswer[]; // 문제별 답안 배열
 };
 
 export type QuestionAnswer = {
   questionId: string;
-  questionText: string;    // 문제 내용
-  studentAnswer: string;   // 학생 답안
-  correctAnswer: string;   // 정답
-  isCorrect: boolean;      // 정답 여부
-  score: number;           // 배점
-  earnedScore: number;     // 획득 점수
+  questionText: string; // 문제 내용
+  studentAnswer: string; // 학생 답안
+  correctAnswer: string; // 정답
+  isCorrect: boolean; // 정답 여부
+  score: number; // 배점
+  earnedScore: number; // 획득 점수
 };
 /**
  * 시험 문항 정보 타입
@@ -101,7 +101,7 @@ export type TestSubmission = {
   /** 시험명 */
   testName: string;
   /** 제출 상태 */
-  status: "미제출" |"제출"| "제출완료";
+  status: "미제출" | "제출" | "제출완료";
   /** 제출 일시 */
   submittedAt?: string;
   /** 제출한 답안 */
@@ -109,8 +109,6 @@ export type TestSubmission = {
 };
 
 export type TestSubmitStatus = "미제출" | "제출" | "제출완료";
-
-
 
 /**
  * 시험 난이도 구분 타입
@@ -122,9 +120,15 @@ export type TestLevel = "기초" | "보통" | "심화" | "최고급";
  * 시험 상태 구분 타입
  * @description 시험지의 현재 상태
  */
-export type TestStatus = "작성중" | "검토중" | "승인완료" | "배포중" | "시험중" | "종료";
+export type TestStatus =
+  | "작성중"
+  | "검토중"
+  | "승인완료"
+  | "배포중"
+  | "시험중"
+  | "종료";
 
-/** 
+/**
  * 시험지 생성 요청 타입
  * @description 새로운 시험지 등록 시 사용
  */
