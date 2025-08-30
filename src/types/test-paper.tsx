@@ -1,16 +1,25 @@
-// src/types/test.ts
+// src/types/test-paper.tsx
 
-// 시험지 데이터의 타입을 정의
+/**
+ * 문제지 데이터 타입
+ * @description 문제지의 기본 정보를 담는 타입
+ */
 export type TestPaper = {
+  /** 문제지 고유 ID */
   id: string;
+  /** 단원명 */
   unitName: string;
+  /** 문제지명 */
   testName: string;
+  /** 문항 수 */
   questionCount: number;
+  /** 생성일시 */
+  createdAt?: string;
 };
 
 /**
  * 문제 데이터 타입
- * @description 시험지에 포함될 문제의 상세 정보
+ * @description 문제지에 포함될 문제의 상세 정보
  */
 export type Problem = {
   /** 문제 고유 ID */
@@ -38,11 +47,11 @@ export type Problem = {
 };
 
 /**
- * 시험지 생성 요청 타입
- * @description 시험지 생성에 필요한 정보
+ * 문제지 생성 요청 타입
+ * @description 문제지 생성에 필요한 정보
  */
 export type TestPaperCreateRequest = {
-  /** 시험지명 */
+  /** 문제지명 */
   testName: string;
   /** 총 문항수 */
   totalQuestions: number;

@@ -5,3 +5,4 @@ export { PrintOptionsModal } from "./PrintOptionsModal";
 export { ProblemListTab } from "./ProblemListTab";
 export { UnitSelectionModal } from "./UnitSelectionModal";
 export { ProblemDetailModal } from "./ProblemDetailModal";
+export { UnitTreeItem } from "./UnitTreeItem";

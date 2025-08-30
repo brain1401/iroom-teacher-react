@@ -120,13 +120,13 @@ export function ProblemDetailModal({
             <div className="space-y-2">
               <h4 className="font-medium text-gray-700">보기</h4>
               <div className="space-y-2">
-                {problem.options.map((option, index) => (
+                {problem.options?.map((option, optionIndex) => (
                   <div
-                    key={index}
-                    className="flex items-center gap-2 p-2 border rounded-lg"
+                    key={`option-${optionIndex}-${option}`}
+                    className="flex items-center gap-2 p-2 rounded border"
                   >
                     <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-sm font-medium">
-                      {String.fromCharCode(65 + index)}
+                      {String.fromCharCode(65 + optionIndex)}
                     </span>
                     <span className="text-sm">{option}</span>
                   </div>

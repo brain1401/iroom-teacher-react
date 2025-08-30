@@ -130,12 +130,10 @@ export const getDifficultyBadgeVariant = (level: string) => {
 export const getStatusBadgeVariant = (status: string) => {
   switch (status.toLowerCase()) {
     case "완료":
-    case "제출 완료":
+    case "제출완료":
     case "success":
       return "default" as const;
-    case "진행중":
-    case "processing":
-      return "secondary" as const;
+    case "미제출":
     case "오류":
     case "error":
       return "destructive" as const;

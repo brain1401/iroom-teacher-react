@@ -68,7 +68,7 @@ export function ExamList() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="text-[1.6rem] font-bold">"입력한 시험지명" 문제 목록</div>
+      <div className="text-[1.6rem] font-bold">"입력한 문제지명" 문제 목록</div>
 
       <Card>
         <CardContent className="p-0">
@@ -109,12 +109,8 @@ export function ExamList() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-center">
-        <PagePagination />
-      </div>
-
       <div>
-        <Button className="w-full h-11">시험지 생성</Button>
+        <Button className="w-full h-11">문제지 생성</Button>
       </div>
 
       {/* 문제 상세 모달 */}

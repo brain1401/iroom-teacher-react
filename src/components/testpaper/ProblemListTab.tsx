@@ -3,33 +3,54 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { badgeStyles } from "@/utils/commonStyles";
-import type { Problem } from "@/types/test-paper";
+import type { Problem, TestPaper } from "@/types/test-paper";
 import { UnitSelectionModal } from "./UnitSelectionModal";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
 
 /**
  * 문제 목록 탭 컴포넌트
- * @description 시험지 작성 시 선택된 문제들을 보여주고 관리하는 화면
+ * @description 문제지 작성 시 선택된 문제들을 보여주고 관리하는 화면
  *
  * 주요 기능:
  * - 선택된 문제 목록 표시
  * - 문제 교체 기능
- * - 시험지 미리보기
- * - 시험지 생성
+ * - 문제지 미리보기
+ * - 문제지 생성
  */
 type ProblemListTabProps = {
-  /** 시험지명 */
+  /** 문제지명 */
   testName: string;
   /** 선택된 문제 목록 */
   problems: Problem[];
+  /** 문제 순서 변경 핸들러 */
+  onReorderProblems: (problems: Problem[]) => void;
   /** 문제 교체 핸들러 */
   onReplaceProblem: (oldProblemId: string, newProblemId: string) => void;
-  /** 시험지 미리보기 핸들러 */
+  /** 문제지 미리보기 핸들러 */
   onPreviewTestPaper: () => void;
-  /** 시험지 생성 핸들러 */
-  onCreateTestPaper: () => void;
   /** 뒤로가기 핸들러 */
   onBack: () => void;
   /** 이미 선택된 문제 ID들 */
@@ -39,15 +60,79 @@ type ProblemListTabProps = {
 export function ProblemListTab({
   testName,
   problems,
+  onReorderProblems,
   onReplaceProblem,
   onPreviewTestPaper,
-  onCreateTestPaper,
   onBack,
   selectedProblemIds,
 }: ProblemListTabProps) {
+  const navigate = useNavigate();
+  const [isCreating, setIsCreating] = useState(false);
+
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [targetProblemId, setTargetProblemId] = useState<string>("");
+
+  // 드래그 앤 드롭 센서 설정
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  // 드래그 종료 핸들러
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = problems.findIndex(
+        (problem) => problem.id === active.id,
+      );
+      const newIndex = problems.findIndex((problem) => problem.id === over?.id);
+
+      const newProblems = arrayMove(problems, oldIndex, newIndex);
+      onReorderProblems(newProblems);
+    }
+  };
+
+  // 문제지 생성 핸들러
+  const handleCreateTestPaper = async () => {
+    setIsCreating(true);
+
+    try {
+      // 문제지 생성 로직 (실제로는 API 호출)
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 지연 시뮬레이션
+
+      // 새로 생성된 문제지 데이터
+      const newTestPaper: TestPaper = {
+        id: `paper-${Date.now()}`, // 고유 ID 생성
+        unitName: problems.map((problem) => problem.unitName).join(", "),
+        testName,
+        questionCount: problems.length,
+        createdAt: new Date().toISOString(),
+      };
+
+      // localStorage에 새 문제지 저장
+      const existingPapers = JSON.parse(
+        localStorage.getItem("newTestPapers") || "[]",
+      );
+      existingPapers.unshift(newTestPaper);
+      localStorage.setItem("newTestPapers", JSON.stringify(existingPapers));
+
+      // 성공 메시지 표시
+      toast.success("문제지가 성공적으로 생성되었습니다!");
+
+      // 문제지 목록 탭으로 이동
+      setTimeout(() => {
+        navigate({ to: "/main/test-paper", search: { tab: "list" } });
+      }, 1500);
+    } catch (error) {
+      toast.error("문제지 생성에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   // 교체 버튼 클릭 핸들러
   const handleReplaceClick = (problemId: string) => {
@@ -77,31 +162,43 @@ export function ProblemListTab({
           </Button>
           <Button onClick={onPreviewTestPaper}>
             <Eye className="h-4 w-4 mr-2" />
-            시험지 미리보기
+            문제지 미리보기
           </Button>
         </div>
       </div>
 
       {/* 문제 목록 */}
-      <div className="space-y-4">
-        {problems.map((problem, index) => (
-          <ProblemCard
-            key={problem.id}
-            problem={problem}
-            problemNumber={index + 1}
-            onReplace={() => handleReplaceClick(problem.id)}
-          />
-        ))}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={problems.map((problem) => problem.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-4">
+            {problems.map((problem, index) => (
+              <SortableProblemCard
+                key={`problem-${problem.id}-${index}`}
+                problem={problem}
+                problemNumber={index + 1}
+                onReplace={() => handleReplaceClick(problem.id)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
-      {/* 시험지 생성 버튼 */}
+      {/* 문제지 생성 버튼 */}
       <div className="flex justify-center pt-6">
         <Button
           size="lg"
           className="w-full max-w-md h-12 text-lg font-semibold"
-          onClick={onCreateTestPaper}
+          onClick={handleCreateTestPaper}
+          disabled={isCreating}
         >
-          시험지 생성
+          {isCreating ? "생성 중..." : "문제지 생성"}
         </Button>
       </div>
 
@@ -118,16 +215,34 @@ export function ProblemListTab({
 }
 
 /**
- * 문제 카드 컴포넌트
- * @description 개별 문제를 표시하는 카드
+ * 드래그 가능한 문제 카드 컴포넌트
+ * @description 개별 문제를 표시하는 드래그 가능한 카드
  */
-type ProblemCardProps = {
+type SortableProblemCardProps = {
   problem: Problem;
   problemNumber: number;
   onReplace: () => void;
 };
 
-function ProblemCard({ problem, problemNumber, onReplace }: ProblemCardProps) {
+function SortableProblemCard({
+  problem,
+  problemNumber,
+  onReplace,
+}: SortableProblemCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: problem.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const getDifficultyText = (difficulty: string) => {
     switch (difficulty) {
       case "low":
@@ -146,10 +261,25 @@ function ProblemCard({ problem, problemNumber, onReplace }: ProblemCardProps) {
   };
 
   return (
-    <Card className="border-2">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "border-2 transition-all duration-200",
+        isDragging && "opacity-50 shadow-lg scale-105",
+      )}
+    >
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* 드래그 핸들 */}
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </div>
             <h3 className="text-lg font-semibold">{problemNumber}번</h3>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className={badgeStyles.outline}>

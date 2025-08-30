@@ -1,6 +1,5 @@
-// src/routes/test-paper/_components/TestTable.tsx
+// src/components/test/TestDetailTable.tsx
 
-// 1. shadcn/ui 컴포넌트들을 모두 import
 import {
   Table,
   TableBody,
@@ -9,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -19,12 +18,11 @@ import {
   badgeStyles,
   getStatusBadgeVariant,
 } from "@/utils/commonStyles";
-import type { TestSubmission } from "@/types/test";
-import { Link } from "@tanstack/react-router";
+import type { TestSubmitStatusDetail } from "@/types/test";
 
 /**
- * 시험지 테이블 컴포넌트 props 타입
- * @description 목록 렌더링, 선택 제어, 모달 오픈 콜백 전달
+ * 시험 제출 현황 테이블 컴포넌트 props 타입
+ * @description 학생별 제출 현황 목록 렌더링, 선택 제어, 모달 오픈 콜백 전달
  *
  * 주요 속성:
  * - submissions: 시험 제출 현황 목록 데이터
@@ -34,11 +32,11 @@ import { Link } from "@tanstack/react-router";
  * - onOpenDetail: 시험 제출 상세 모달 오픈 콜백
  */
 type TestDetailTableProps = {
-  submissions: TestSubmission[];
+  submissions: TestSubmitStatusDetail[];
   selectedIds: Set<string>;
   onSelectAll: (checked: boolean) => void;
   onSelect: (id: string, checked: boolean) => void;
-  onOpenDetail: (paper: TestSubmission) => void;
+  onOpenDetail: (submission: TestSubmitStatusDetail) => void;
 };
 
 export function TestDetailTable({
@@ -80,7 +78,7 @@ export function TestDetailTable({
         <TableBody>
           {submissions.map((submission, index) => (
             <TableRow
-              key={submission.studentId}
+              key={submission.student.id}
               className={cn(
                 tableStyles.row,
                 index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
@@ -88,48 +86,46 @@ export function TestDetailTable({
             >
               <TableCell className={tableStyles.cellCenter}>
                 <Checkbox
-                  checked={selectedIds.has(submission.studentId)}
+                  checked={selectedIds.has(submission.student.id)}
                   onCheckedChange={(checked) =>
-                    onSelect(submission.studentId, Boolean(checked))
+                    onSelect(submission.student.id, Boolean(checked))
                   }
                   className={tableStyles.checkbox}
                 />
               </TableCell>
               <TableCell className={tableStyles.cellMedium}>
-                {submission.studentName}
+                {submission.student.name}
               </TableCell>
               <TableCell className={tableStyles.cell}>
-                {submission.phoneNumber}
+                {submission.student.phoneNumber}
               </TableCell>
               <TableCell className={tableStyles.cell}>
                 {submission.testName}
               </TableCell>
               <TableCell className={tableStyles.cell}>
-                {submission.submittedAt}
+                {submission.submissionDate}
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
                 <Badge
-                  variant={getStatusBadgeVariant("제출 완료")}
-                  className={badgeStyles[getStatusBadgeVariant("제출 완료")]}
+                  variant={getStatusBadgeVariant(submission.submissionStatus)}
+                  className={
+                    badgeStyles[
+                      getStatusBadgeVariant(submission.submissionStatus)
+                    ]
+                  }
                 >
-                  제출 완료
+                  {submission.submissionStatus}
                 </Badge>
               </TableCell>
-              {/* 3. UI에 있던 버튼들도 추가 */}
               <TableCell className={tableStyles.cellCenter}>
                 <Button
                   variant="outline"
                   size="sm"
-                  asChild
                   className={buttonStyles.primary}
+                  onClick={() => onOpenDetail(submission)}
+                  disabled={submission.submissionStatus === "미제출"}
                 >
-                  <Link
-                    to="/main/test-management/$examId"
-                    params={{ examId: "1" }}
-                    onClick={() => onOpenDetail(submission)}
-                  >
-                    답안확인
-                  </Link>
+                  답안확인
                 </Button>
               </TableCell>
             </TableRow>

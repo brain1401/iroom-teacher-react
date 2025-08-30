@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { unitTreeData } from "@/data/test-paper-mock-data";
+import type { UnitTreeNode } from "@/data/test-paper-mock-data";
 
 /**
  * 단원 선택 모달 컴포넌트
@@ -40,42 +42,7 @@ export function UnitSelectionModal({
   // 선택된 문제 상태
   const [selectedProblemId, setSelectedProblemId] = useState<string>("");
 
-  // 가짜 단원 트리 데이터
-  const unitTreeData = [
-    {
-      id: "unit1",
-      name: "대단원명",
-      children: [
-        {
-          id: "subunit1",
-          name: "중단원명",
-          children: [
-            {
-              id: "detail1",
-              name: "상세단원명 (30)",
-              children: [
-                { id: "problem1", name: "문제 내용 간략히..." },
-                { id: "problem2", name: "문제 내용 간략히..." },
-                { id: "problem3", name: "문제 내용 간략히..." },
-              ],
-            },
-            {
-              id: "detail2",
-              name: "상세단원명 (30)",
-              children: [],
-            },
-          ],
-        },
-        { id: "subunit2", name: "중단원명", children: [] },
-        { id: "subunit3", name: "중단원명", children: [] },
-      ],
-    },
-    {
-      id: "unit2",
-      name: "대단원명",
-      children: [],
-    },
-  ];
+  // 공통 단원 트리 데이터 사용
 
   // 교체하기 핸들러
   const handleReplace = () => {
@@ -120,7 +87,7 @@ export function UnitSelectionModal({
         onClick={(e) => e.stopPropagation()}
       >
         <CardHeader className="flex-shrink-0">
-          <CardTitle className="text-sky-600">단원 선택</CardTitle>
+          <CardTitle className="text-sky-600"> 문제 선택</CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto">
           <div className="space-y-2">
@@ -154,7 +121,7 @@ export function UnitSelectionModal({
  * @description 계층적 단원 구조를 표시하는 컴포넌트
  */
 type UnitTreeItemProps = {
-  unit: any;
+  unit: UnitTreeNode;
   level?: number;
   selectedProblemId: string;
   onSelectProblem: (problemId: string) => void;
@@ -170,7 +137,7 @@ function UnitTreeItem({
 }: UnitTreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(level < 2);
   const hasChildren = unit.children && unit.children.length > 0;
-  const isProblem = unit.name.includes("문제 내용");
+  const isProblem = unit.id.startsWith("problem");
 
   return (
     <div className="space-y-1">
@@ -195,10 +162,10 @@ function UnitTreeItem({
         <Checkbox
           checked={selectedProblemId === unit.id}
           disabled={
-            unit.name.includes("문제 내용") && selectedProblemIds.has(unit.id)
+            unit.id.startsWith("problem") && selectedProblemIds.has(unit.id)
           }
           onCheckedChange={() => {
-            if (unit.name.includes("문제 내용")) {
+            if (unit.id.startsWith("problem")) {
               // 이미 선택된 문제는 선택할 수 없음
               if (selectedProblemIds.has(unit.id)) {
                 return;
@@ -225,7 +192,7 @@ function UnitTreeItem({
 
       {isExpanded && hasChildren && (
         <div className="space-y-1">
-          {unit.children.map((child: any) => (
+          {unit.children?.map((child: UnitTreeNode) => (
             <UnitTreeItem
               key={child.id}
               unit={child}

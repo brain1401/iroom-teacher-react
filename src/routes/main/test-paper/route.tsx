@@ -28,7 +28,7 @@ function RouteComponent() {
               value="list"
               className="relative px-6 py-3 text-muted-foreground data-[state=active]:text-sky-600 "
             >
-              시험지 목록
+              문제지 목록
               {/* 활성 탭 하단 밑줄 애니메이션 렌더링 */}
               {activeTab === "list" && (
                 <motion.div
@@ -44,7 +44,7 @@ function RouteComponent() {
               value="register"
               className="relative px-6 py-3 text-muted-foreground  data-[state=active]:text-sky-600"
             >
-              시험지 등록
+              문제지 등록
               {/* 활성 탭 하단 밑줄 애니메이션 렌더링 */}
               {activeTab === "register" && (
                 <motion.div

@@ -22,7 +22,7 @@ export function HeaderTitle() {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
-        <h1 className="text-5xl font-bold">태극 스쿨</h1>
+        <h1 className="text-5xl font-bold">러브버그 중등수학</h1>
         <div className="ml-6 mr-2.5">{isShowHeader && <SelectGrade />}</div>
       </div>
 

@@ -20,6 +20,7 @@ import {
   getDifficultyBadgeVariant,
   getStatusBadgeVariant,
 } from "@/utils/commonStyles";
+import { ParticipationBadge } from "./ParticipationBadge";
 import type { Test } from "@/types/test";
 import { Link } from "@tanstack/react-router";
 
@@ -76,9 +77,11 @@ export function TestTable({
               시험 난이도
             </TableHead>
             <TableHead className={tableStyles.headerCellCenter}>
-              시험 제출 현황
+              참여 현황
             </TableHead>
-            <TableHead className={tableStyles.headerCellCenter}>액션</TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              제출명단
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -121,12 +124,10 @@ export function TestTable({
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
-                <Badge
-                  variant={getStatusBadgeVariant("제출 완료")}
-                  className={badgeStyles[getStatusBadgeVariant("제출 완료")]}
-                >
-                  제출 완료
-                </Badge>
+                <ParticipationBadge
+                  actualParticipants={paper.actualParticipants}
+                  totalParticipants={paper.totalParticipants}
+                />
               </TableCell>
               {/* 3. UI에 있던 버튼들도 추가 */}
               <TableCell className={tableStyles.cellCenter}>
@@ -137,9 +138,9 @@ export function TestTable({
                   className={buttonStyles.primary}
                 >
                   <Link
-                    to="/main/test-management/$examId"
-                    params={{ examId: "1" }}
-                    onClick={() => onOpenDetail(paper)}
+                    to="/main/test-management/$testId"
+                    params={{ testId: paper.id }}
+                    search={{ testName: paper.testName }}
                   >
                     상세보기
                   </Link>

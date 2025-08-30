@@ -2,18 +2,79 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { z } from "zod";
+import { useTestList } from "@/hooks/test/useTestList";
+import type { TestLevel, TestStatus } from "@/types/test";
+
+// 검색 파라미터 스키마 정의
+const searchSchema = z.object({
+  selectedTest: z.string().optional(),
+  testName: z.string().optional(),
+});
 
 export const Route = createFileRoute("/main/test-management")({
+  validateSearch: searchSchema,
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { selectedTest, testName } = Route.useSearch();
+
   /** 현재 활성 탭 값 상태 */
   const [activeTab, setActiveTab] = useState<string>("list");
 
+  // 시험 목록 훅 사용
+  const { addNewTest } = useTestList();
+
+  // 선택된 시험이 있으면 상세 탭으로 자동 전환
+  useEffect(() => {
+    if (selectedTest && testName) {
+      setActiveTab("list");
+      // TODO: 선택된 시험의 상세 정보를 표시하는 로직 추가
+      console.log("선택된 시험:", { selectedTest, testName });
+    }
+  }, [selectedTest, testName]);
+
+  /**
+   * 시험 출제 완료 후 목록 탭으로 이동하고 새로운 시험 추가
+   */
+  const handleTestCreated = (newTest: {
+    unitName: string;
+    testName: string;
+    questionCount: number;
+    questionLevel: TestLevel;
+    status: TestStatus;
+  }) => {
+    // 새로운 시험을 목록에 추가
+    addNewTest(newTest);
+
+    // 시험 목록 탭으로 이동
+    setActiveTab("list");
+  };
+
   return (
     <Card className="w-full h-full p-8 flex flex-col">
+      {/* 선택된 시험 정보 표시 */}
+      {selectedTest && testName && (
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800">
+                선택된 시험
+              </h3>
+              <p className="text-blue-600">{testName}</p>
+            </div>
+            <button
+              onClick={() => window.history.back()}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              뒤로가기
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 제어형 탭 구성 */}
       <Tabs
         value={activeTab}

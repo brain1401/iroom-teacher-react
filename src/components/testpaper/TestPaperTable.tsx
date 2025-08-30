@@ -57,6 +57,8 @@ type TestPaperTableProps = {
   sortField?: SortField;
   sortOrder?: SortOrder;
   onSort?: (field: SortField) => void;
+  isAllSelected?: boolean;
+  isIndeterminate?: boolean;
 };
 
 export function TestPaperTable({
@@ -70,10 +72,9 @@ export function TestPaperTable({
   sortField,
   sortOrder,
   onSort,
+  isAllSelected = false,
+  isIndeterminate = false,
 }: TestPaperTableProps) {
-  // "전체 선택" 체크박스의 상태를 결정하는 변수
-  const isAllSelected = papers.length > 0 && selectedIds.size === papers.length;
-
   return (
     <div className={tableStyles.container}>
       <Table>
@@ -85,6 +86,10 @@ export function TestPaperTable({
                 checked={isAllSelected}
                 onCheckedChange={onSelectAll}
                 className={tableStyles.checkbox}
+                ref={(el) => {
+                  if (el)
+                    (el as HTMLInputElement).indeterminate = isIndeterminate;
+                }}
               />
             </TableHead>
             <SortableHeader
@@ -183,7 +188,7 @@ export function TestPaperTable({
                     variant="outline"
                     size="sm"
                     onClick={() => onOpenPrint(paper)}
-                    className="text-xs px-2 py-1"
+                    className="text-xs px-2 py-1 bg-blue-500 text-white"
                   >
                     <Printer className="w-4 h-4" />
                   </Button>

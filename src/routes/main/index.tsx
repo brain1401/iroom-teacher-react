@@ -6,49 +6,24 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { createFileRoute } from "@tanstack/react-router";
-import { useSetAtom } from "jotai";
-import { useLayoutEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSetAtom, useAtomValue } from "jotai";
+import { useLayoutEffect, useEffect } from "react";
 import { GradeDistributionChart } from "@/components/Gradedistributionchart";
 import type { ChartConfig } from "@/components/ui/chart";
-import { CircleQuestionMarkIcon } from "lucide-react";
+import { CircleQuestionMarkIcon, ChevronRight } from "lucide-react";
+import {
+  dashboardTestSubmissions,
+  calculateDashboardStats
+  
+} from "@/data/test-submission-dashboard";
+import type {DashboardTestSubmission} from "@/data/test-submission-dashboard";
+import { isAuthenticatedAtom } from "@/atoms/auth";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
 });
-type ExamSubmissionStatus = {
-  unitName: string;
-  submittedCount: number;
-  totalStudents: number;
-  submissionRate: number;
-};
-
-const examSubmissionStatusList: ExamSubmissionStatus[] = [
-  {
-    unitName: "test1",
-    submittedCount: 35,
-    totalStudents: 50,
-    submissionRate: 70,
-  },
-  {
-    unitName: "test2",
-    submittedCount: 20,
-    totalStudents: 30,
-    submissionRate: 66.67,
-  },
-  {
-    unitName: "test3",
-    submittedCount: 10,
-    totalStudents: 30,
-    submissionRate: 33.33,
-  },
-  {
-    unitName: "test4",
-    submittedCount: 15,
-    totalStudents: 30,
-    submissionRate: 50,
-  },
-];
 
 const chartData = [
   { count: 0, level: "하위권", score: "0-39점" },
@@ -78,10 +53,31 @@ const chartConfig = {
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
+  const navigate = useNavigate();
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
 
   useLayoutEffect(() => {
     setIsShowHeader(true);
   }, [setIsShowHeader]);
+
+  // 인증 상태 확인
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate({ to: "/" });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // 인증되지 않은 경우 로딩 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">인증 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   //  퍼센트 계산 로직
   const totalStudents = chartData.reduce((sum, item) => sum + item.count, 0);
@@ -99,6 +95,47 @@ function RouteComponent() {
       return (order[a.level] || 0) - (order[b.level] || 0);
     });
 
+  /**
+   * 시험 제출 현황 카드 클릭 핸들러
+   */
+  const handleTestSubmissionClick = (test: DashboardTestSubmission) => {
+    // 해당 시험의 제출 현황 상세 페이지로 이동
+    navigate({
+      to: "/main/test-management/$testId",
+      params: { testId: test.id },
+      search: { testName: test.testName },
+    });
+  };
+
+  /**
+   * 더보기 버튼 클릭 핸들러
+   */
+  const handleViewMoreClick = () => {
+    navigate({
+      to: "/main/test-management",
+    });
+  };
+
+  /**
+   * 성적 분포도 차트 클릭 핸들러
+   */
+  const handleChartClick = (data: any) => {
+    // 통계 페이지로 이동
+    navigate({
+      to: "/main/statistics",
+    });
+  };
+
+  /**
+   * 대시보드 통계 계산
+   */
+  const dashboardStats = calculateDashboardStats();
+
+  /**
+   * 최근 4개의 시험 제출 현황만 표시
+   */
+  const recentTestSubmissions = dashboardTestSubmissions.slice(0, 4);
+
   return (
     <div className="flex flex-1 gap-8 ">
       <Card className="w-[25rem] border-0 flex-1">
@@ -106,18 +143,45 @@ function RouteComponent() {
           <CardTitle className="text-3xl font-bold mt-4">
             시험 제출 현황
           </CardTitle>
+          {/* 대시보드 통계 요약 */}
+          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+            <span>총 {dashboardStats.totalTests}개 시험</span>
+            <span>•</span>
+            <span>평균 제출률 {dashboardStats.averageSubmissionRate}%</span>
+            <span>•</span>
+            <span>
+              {dashboardStats.totalSubmitted}/{dashboardStats.totalStudents}명
+              제출
+            </span>
+          </div>
           <hr className="my-7 text-gray-200" />
         </CardHeader>
         <div className="-mt-10 p-4 gap-4 flex flex-col">
-          {examSubmissionStatusList.map((item) => (
+          {recentTestSubmissions.map((test) => (
             <ExamSubmissionStatus
-              key={item.unitName}
-              unitName={item.unitName}
-              submittedCount={item.submittedCount}
-              totalStudents={item.totalStudents}
-              submissionRate={item.submissionRate}
-            ></ExamSubmissionStatus>
+              key={test.id}
+              unitName={`${test.unitName} : ${test.testName}`}
+              submittedCount={test.submittedCount}
+              totalStudents={test.totalStudents}
+              submissionRate={test.submissionRate}
+              onClick={() => handleTestSubmissionClick(test)}
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+            />
           ))}
+
+          {/* 더보기 버튼 */}
+          {dashboardTestSubmissions.length > 4 && (
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={handleViewMoreClick}
+                className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <span>더보기</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
       <div>
@@ -163,6 +227,7 @@ function RouteComponent() {
               data={chartData}
               chartConfig={chartConfig}
               levelInfo={levelInfo}
+              onBarClick={handleChartClick}
             />
           </CardContent>
         </Card>

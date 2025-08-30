@@ -34,6 +34,7 @@ type GradeChartProps = {
   data: GradeChartData[];
   chartConfig: ChartConfig;
   levelInfo: LevelInfo[];
+  onBarClick?: (data: GradeChartData) => void;
 };
 
 // config : 디자인 정보 객체 (색상,공식명칭)
@@ -64,6 +65,7 @@ export function GradeDistributionChart({
   data,
   chartConfig,
   levelInfo,
+  onBarClick,
 }: GradeChartProps) {
   return (
     <div className="flex flex-col gap-4 bg-chart-1">
@@ -107,7 +109,13 @@ export function GradeDistributionChart({
             }
           />
           {/* 데이터에서  count값으로 막대 그래프 */}
-          <Bar dataKey="count" radius={4} fill="hsl(var(--chart-1))">
+          <Bar
+            dataKey="count"
+            radius={4}
+            fill="hsl(var(--chart-1))"
+            onClick={(data) => onBarClick?.(data)}
+            style={{ cursor: onBarClick ? "pointer" : "default" }}
+          >
             {/* 막대 위에 값(학생 수) 표시 */}
             <LabelList
               dataKey="count"

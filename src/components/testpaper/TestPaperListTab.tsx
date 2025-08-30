@@ -1,21 +1,11 @@
-// src/routes/test-paper/_components/TestPaperListTab.tsx
+// src/components/testpaper/TestPaperListTab.tsx
 
 import { useState } from "react";
 import { TestPaperTable } from "./TestPaperTable";
-import { Button } from "@/components/ui/button";
-import { SelectGrade } from "../layout/SelectGrade";
-import { PagePagination } from "../layout/PagePagination";
-import { ProblemModal } from "../layout/ProblemModal";
+import { PagePagination } from "@/components/layout/PagePagination";
+import { Toolbar } from "@/components/layout/Toolbar";
+import { ProblemModal } from "@/components/layout/ProblemModal";
 import { PrintOptionsModal } from "./PrintOptionsModal";
-import { Input } from "@/components/ui/input";
-import { Trash2, Search, ChevronDown } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type TestPaper = {
   id: string;
@@ -99,11 +89,19 @@ const fakeTestPaperData: TestPaper[] = [
 ];
 
 export function TestPaperListTab() {
-  // Use static fake data directly (no state needed)
-  const papers = fakeTestPaperData;
+  // 문제지 데이터를 상태로 관리하여 동적으로 추가/삭제 가능
+  const [papers, setPapers] = useState(() => {
+    // localStorage에서 새로 생성된 문제지들 불러오기
+    const newPapers = JSON.parse(localStorage.getItem("newTestPapers") || "[]");
+    return [...newPapers, ...fakeTestPaperData];
+  });
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedPaper, setSelectedPaper] = useState<TestPaper | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // 페이지당 표시할 항목 수
 
   // 정렬 상태
   const [sortField, setSortField] = useState<
@@ -125,10 +123,19 @@ export function TestPaperListTab() {
   );
 
   const handleSelectAll = (checked: boolean) => {
+    // 현재 페이지의 모든 항목 ID
+    const currentPageIds = paginatedPapers.map((paper) => paper.id);
+
     if (checked) {
-      setSelectedIds(new Set(papers.map((p) => p.id)));
+      // 현재 페이지의 모든 항목을 선택에 추가
+      setSelectedIds((prev) => new Set([...prev, ...currentPageIds]));
     } else {
-      setSelectedIds(new Set());
+      // 현재 페이지의 모든 항목을 선택에서 제거
+      setSelectedIds((prev) => {
+        const newSet = new Set(prev);
+        currentPageIds.forEach((id) => newSet.delete(id));
+        return newSet;
+      });
     }
   };
 
@@ -184,6 +191,11 @@ export function TestPaperListTab() {
       // 선택 상태 초기화
       setSelectedIds(new Set());
     }
+  };
+
+  // 새 문제지 추가 함수
+  const addNewTestPaper = (testPaper: TestPaper) => {
+    setPapers((prev) => [testPaper, ...prev]);
   };
 
   // 정렬 처리 함수
@@ -247,6 +259,26 @@ export function TestPaperListTab() {
     return 0;
   });
 
+  // 페이지네이션된 데이터 계산
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPapers = sortedPapers.slice(startIndex, endIndex);
+
+  // 전체 페이지 수 재계산 (필터링된 결과 기준)
+  const totalPages = Math.ceil(sortedPapers.length / itemsPerPage);
+
+  // 현재 페이지의 전체 선택 상태 계산
+  const currentPageIds = paginatedPapers.map((paper) => paper.id);
+  const selectedCurrentPageIds = currentPageIds.filter((id) =>
+    selectedIds.has(id),
+  );
+  const isAllSelected =
+    selectedCurrentPageIds.length === currentPageIds.length &&
+    currentPageIds.length > 0;
+  const isIndeterminate =
+    selectedCurrentPageIds.length > 0 &&
+    selectedCurrentPageIds.length < currentPageIds.length;
+
   const handleClosePrintModal = () => {
     setIsPrintModalOpen(false);
     setSelectedPaper(null);
@@ -295,61 +327,33 @@ export function TestPaperListTab() {
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div className="text-[2.5rem] font-bold flex-shrink-0">시험지 목록</div>
+      <div className="text-[2.5rem] font-bold flex-shrink-0">문제지 목록</div>
 
       {/* 1. 툴바 영역: 필터와 검색 */}
-      <div className="flex justify-between items-center flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <SelectGrade />
-          {/* 삭제 아이콘 - 체크된 항목이 있을 때만 표시 */}
-          {selectedIds.size > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-              className="h-8 px-2"
-              title={`선택된 ${selectedIds.size}개 삭제`}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="ml-1 text-xs">({selectedIds.size})</span>
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {/* 검색 범위 선택 드롭다운 */}
-          <Select
-            value={searchScope}
-            onValueChange={(value: "both" | "unitName" | "testName") =>
-              setSearchScope(value)
-            }
-          >
-            <SelectTrigger className="w-40 h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="both">단원정보+시험지명</SelectItem>
-              <SelectItem value="unitName">단원정보</SelectItem>
-              <SelectItem value="testName">시험지명</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* 검색 입력창 */}
-          <div className="relative">
-            <Input
-              placeholder="검색어를 입력하세요."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              className="w-64 h-8 pr-8"
-            />
-            <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          </div>
-        </div>
-      </div>
+      <Toolbar
+        searchKeyword={searchKeyword}
+        onSearchChange={(value) => {
+          setSearchKeyword(value);
+          // 검색어 변경 시 첫 페이지로 이동
+          setCurrentPage(1);
+        }}
+        searchScope={searchScope}
+        onSearchScopeChange={(value) =>
+          setSearchScope(value as "both" | "unitName" | "testName")
+        }
+        searchScopeOptions={[
+          { value: "both", label: "단원정보+문제지명" },
+          { value: "unitName", label: "단원정보" },
+          { value: "testName", label: "문제지명" },
+        ]}
+        selectedCount={selectedIds.size}
+        onDelete={handleDeleteSelected}
+      />
 
       {/* 2. 테이블 컴포넌트 - 스크롤 영역 */}
       <div className="flex-1 min-h-0">
         <TestPaperTable
-          papers={sortedPapers}
+          papers={paginatedPapers}
           selectedIds={selectedIds}
           onSelectAll={handleSelectAll}
           onSelect={handleSelect}
@@ -359,13 +363,18 @@ export function TestPaperListTab() {
           sortField={sortField}
           sortOrder={sortOrder}
           onSort={handleSort}
-          searchKeyword={searchKeyword}
-          onSearchChange={setSearchKeyword}
+          isAllSelected={isAllSelected}
+          isIndeterminate={isIndeterminate}
         />
       </div>
 
       {/* 3. 페이지네이션 컴포넌트 */}
-      <PagePagination className="flex-shrink-0" />
+      <PagePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        className="flex-shrink-0"
+      />
 
       {/* 인쇄 옵션 모달 */}
       <PrintOptionsModal
