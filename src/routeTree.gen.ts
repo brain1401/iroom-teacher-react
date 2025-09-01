@@ -19,6 +19,7 @@ import { Route as MainTestPaperIndexRouteImport } from './routes/main/test-paper
 import { Route as MainTestManagementIndexRouteImport } from './routes/main/test-management/index'
 import { Route as MainStatisticsIndexRouteImport } from './routes/main/statistics/index'
 import { Route as ExamplesPokemonIndexRouteImport } from './routes/examples/pokemon/index'
+import { Route as MainTestManagementTestIdRouteImport } from './routes/main/test-management/$testId'
 import { Route as MainTestPaperExamIdIndexRouteImport } from './routes/main/test-paper/$examId/index'
 import { Route as MainTestManagementExamIdIndexRouteImport } from './routes/main/test-management/$examId/index'
 import { Route as ExamplesPokemonIdIndexRouteImport } from './routes/examples/pokemon/$id/index'
@@ -73,6 +74,12 @@ const ExamplesPokemonIndexRoute = ExamplesPokemonIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ExamplesPokemonRouteRoute,
 } as any)
+const MainTestManagementTestIdRoute =
+  MainTestManagementTestIdRouteImport.update({
+    id: '/$testId',
+    path: '/$testId',
+    getParentRoute: () => MainTestManagementRouteRoute,
+  } as any)
 const MainTestPaperExamIdIndexRoute =
   MainTestPaperExamIdIndexRouteImport.update({
     id: '/$examId/',
@@ -98,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/main/test-management': typeof MainTestManagementRouteRouteWithChildren
   '/main/test-paper': typeof MainTestPaperRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
+  '/main/test-management/$testId': typeof MainTestManagementTestIdRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
   '/main/test-management/': typeof MainTestManagementIndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/main': typeof MainIndexRoute
+  '/main/test-management/$testId': typeof MainTestManagementTestIdRoute
   '/examples/pokemon': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
   '/main/test-management': typeof MainTestManagementIndexRoute
@@ -125,6 +134,7 @@ export interface FileRoutesById {
   '/main/test-management': typeof MainTestManagementRouteRouteWithChildren
   '/main/test-paper': typeof MainTestPaperRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
+  '/main/test-management/$testId': typeof MainTestManagementTestIdRoute
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics/': typeof MainStatisticsIndexRoute
   '/main/test-management/': typeof MainTestManagementIndexRoute
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/main/test-management'
     | '/main/test-paper'
     | '/main/'
+    | '/main/test-management/$testId'
     | '/examples/pokemon/'
     | '/main/statistics'
     | '/main/test-management/'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/main'
+    | '/main/test-management/$testId'
     | '/examples/pokemon'
     | '/main/statistics'
     | '/main/test-management'
@@ -168,6 +180,7 @@ export interface FileRouteTypes {
     | '/main/test-management'
     | '/main/test-paper'
     | '/main/'
+    | '/main/test-management/$testId'
     | '/examples/pokemon/'
     | '/main/statistics/'
     | '/main/test-management/'
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExamplesPokemonIndexRouteImport
       parentRoute: typeof ExamplesPokemonRouteRoute
     }
+    '/main/test-management/$testId': {
+      id: '/main/test-management/$testId'
+      path: '/$testId'
+      fullPath: '/main/test-management/$testId'
+      preLoaderRoute: typeof MainTestManagementTestIdRouteImport
+      parentRoute: typeof MainTestManagementRouteRoute
+    }
     '/main/test-paper/$examId/': {
       id: '/main/test-paper/$examId/'
       path: '/$examId'
@@ -280,12 +300,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface MainTestManagementRouteRouteChildren {
+  MainTestManagementTestIdRoute: typeof MainTestManagementTestIdRoute
   MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
   MainTestManagementExamIdIndexRoute: typeof MainTestManagementExamIdIndexRoute
 }
 
 const MainTestManagementRouteRouteChildren: MainTestManagementRouteRouteChildren =
   {
+    MainTestManagementTestIdRoute: MainTestManagementTestIdRoute,
     MainTestManagementIndexRoute: MainTestManagementIndexRoute,
     MainTestManagementExamIdIndexRoute: MainTestManagementExamIdIndexRoute,
   }

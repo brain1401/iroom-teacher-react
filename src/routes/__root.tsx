@@ -12,6 +12,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import appCss from "@/css/root.css?url";
 import { useAtomValue } from "jotai";
 import { mainBgExtraCombinedClassAtom } from "@/atoms/ui";
+import { isAuthenticatedAtom } from "@/atoms/auth";
 import { cn } from "@/lib/utils";
 
 /**
@@ -128,6 +129,8 @@ function RootComponent() {
    * - 성능 최적화: 값 변경 기능이 없어 더 가벼운 훅 사용
    */
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
+
   return (
     <>
       {/* <NavigationBar /> */}

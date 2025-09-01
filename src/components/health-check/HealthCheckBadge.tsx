@@ -10,7 +10,7 @@ type HealthCheckBadgeProps = {
   status: HealthStatus | "checking" | "disabled";
   text?: string;
   className?: string;
-}
+};
 
 export function HealthCheckBadge({
   status,

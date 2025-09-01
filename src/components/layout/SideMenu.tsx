@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const menuItems: { path: string; icon: LucideIcon; label: string }[] = [
   { path: "/main", icon: House, label: "홈" },
-  { path: "/main/test-paper", icon: FolderCog, label: "시험지 관리" },
+  { path: "/main/test-paper", icon: FolderCog, label: "문제지 관리" },
   { path: "/main/test-management", icon: FileCog, label: "시험 관리" },
   { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" },
 ];
@@ -14,9 +14,14 @@ const menuItems: { path: string; icon: LucideIcon; label: string }[] = [
 export function SideMenu() {
   const location = useLocation({ select: (loc) => loc.pathname });
 
-  // isActive 함수는 그대로 사용
+  // isActive 함수 수정 - 정확한 경로 매칭만
   const isActive = (path: string) => {
-    return location === path;
+    if (path === "/main") {
+      // 홈의 경우 정확히 /main이거나 /main/statistics만 매치
+      return location === path || location === "/main/statistics";
+    }
+    // 다른 메뉴의 경우 해당 경로와 하위 경로 매치
+    return location === path || location.startsWith(`${path}/`);
   };
 
   return (

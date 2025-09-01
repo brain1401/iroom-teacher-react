@@ -7,7 +7,7 @@ type UsePokemonCardImageProps = {
   name: string;
   /** 포켓몬 API URL */
   url: string;
-}
+};
 
 type UsePokemonCardImageReturn = {
   /** 최종 사용할 이미지 URL */
@@ -22,7 +22,7 @@ type UsePokemonCardImageReturn = {
   handleImageLoad: () => void;
   /** 이미지 에러 핸들러 */
   handleImageError: (e: React.SyntheticEvent<HTMLImageElement>) => void;
-}
+};
 
 /**
  * 포켓몬 카드 이미지 로딩 상태 관리 훅

@@ -13,7 +13,7 @@ type PokemonCardProps = {
   url: string;
   /** 카드 클릭 시 이동할 경로 */
   href?: string;
-}
+};
 
 /**
  * 포켓몬 카드 컴포넌트

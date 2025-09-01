@@ -8,7 +8,7 @@ import type { HealthStatus } from "@/api/health-check/types";
 type HealthCheckIconProps = {
   status: HealthStatus | "checking" | "disabled";
   className?: string;
-}
+};
 
 export function HealthCheckIcon({
   status,

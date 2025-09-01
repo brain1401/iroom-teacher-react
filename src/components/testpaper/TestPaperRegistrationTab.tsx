@@ -1,313 +1,360 @@
-// src/routes/test-paper/_components/TestPaperRegistrationTab.tsx
-import { useMemo, useState } from "react";
+// src/components/testpaper/TestPaperRegistrationTab.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { SelectGrade } from "../layout/SelectGrade";
-import { useAtomValue } from "jotai";
-import { selectedGradeAtom } from "@/atoms/grade";
-import { useQuery } from "@tanstack/react-query";
-import { unitsByGradeQueryOptions } from "@/api/test-paper";
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { Circle, Square, GripVertical, Eye } from "lucide-react";
+import { ProblemListTab } from "./ProblemListTab";
+import { ProblemDetailModal } from "./ProblemDetailModal";
+import { UnitTreeItem } from "./UnitTreeItem";
+import { useTestPaperRegistration } from "@/hooks/test-paper/useTestPaperRegistration";
+import { unitTreeData, findProblemInTree } from "@/data/test-paper-mock-data";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import type { TestLevel, TestStatus } from "@/types/test";
 
 /**
- * 시험지 등록 탭 콘텐츠
- * @description 상단 `문항 조건`, 좌측 `단원 선택`, 우측 `선택 단원` 및 하단 작성 버튼 구성
+ * 문제지 등록 탭 콘텐츠
+ * @description 이미지와 동일한 구조로 문제지 정보, 단원 선택, 선택된 단원 확인 및 문제지 생성 기능 제공
  *
  * 주요 구성:
- * - 문항 수 선택 (최대 20)
- * - 좌측: 학년 선택 + 단원 버튼 그리드
- * - 우측: 선택 단원 목록 + 시험지명 입력 + 작성 버튼
+ * - 문제지 정보 섹션 (문제지명, 문항수, 객관식/주관식, 학년)
+ * - 좌측: 단원 선택 트리 구조
+ * - 우측: 선택된 단원 목록 및 문제지 생성
+ * - 시험 출제 완료 후 목록 탭으로 자동 이동
  */
 export function TestPaperRegistrationTab() {
-  /** 현재 선택된 학년 */
-  const grade = useAtomValue(selectedGradeAtom);
+  const navigate = useNavigate();
 
-  /** 문항 수 상태 (최대 20) */
-  const [questionCount, setQuestionCount] = useState<number>(20);
-
-  /** 학년별 단원 목록 조회 */
   const {
-    data: apiUnits = [],
-    isPending,
-    isError,
-  } = useQuery(unitsByGradeQueryOptions(grade));
+    // 상태
+    examName,
+    selectedGrade,
+    selectedProblems,
+    showProblemList,
+    isProblemDetailModalOpen,
+    selectedProblemForDetail,
+    selectedObjectiveCount,
+    selectedSubjectiveCount,
+    totalQuestionCount,
+    selectedProblemList,
 
-  /** 가데이터: API 미연동 시 프리뷰용 더미 단원 */
-  const mockUnitsByGrade = useMemo(
-    () => ({
-      중1: Array.from({ length: 16 }).map((_, i) => ({
-        id: `g1-u${i + 1}`,
-        name: `${i + 1}단원`,
-      })),
-      중2: Array.from({ length: 14 }).map((_, i) => ({
-        id: `g2-u${i + 1}`,
-        name: `${i + 1}단원`,
-      })),
-      중3: Array.from({ length: 12 }).map((_, i) => ({
-        id: `g3-u${i + 1}`,
-        name: `${i + 1}단원`,
-      })),
-    }),
-    [],
-  );
+    // 액션
+    setExamName,
+    setSelectedGrade,
+    toggleProblem,
+    removeProblem,
+    replaceProblem,
+    reorderProblems,
+    handleProblemDetail,
+    handleCloseProblemDetail,
+    handleCreateExam,
+    handleBack,
+    handleCreateTestPaper,
+    handlePreviewTestPaper,
+    getSelectedProblems,
+    setTestCreatedCallback,
+  } = useTestPaperRegistration();
 
-  /** 실제 사용 단원: API 성공 시 API 데이터, 아니면 가데이터 */
-  const units = useMemo(() => {
-    if (!isError && apiUnits.length > 0) return apiUnits;
-    return mockUnitsByGrade[grade];
-  }, [apiUnits, isError, mockUnitsByGrade, grade]);
+  /**
+   * 시험 출제 완료 후 시험 목록 탭으로 이동
+   */
+  useEffect(() => {
+    setTestCreatedCallback((newTest) => {
+      // 시험 목록 탭으로 이동
+      console.log("시험 출제 완료:", newTest);
+      // localStorage에 새로운 시험 정보 저장
+      const newTests = JSON.parse(localStorage.getItem("newTests") || "[]");
+      newTests.push(newTest);
+      localStorage.setItem("newTests", JSON.stringify(newTests));
 
-  /** 선택 단원 상태 */
-  const [selectedUnitIds, setSelectedUnitIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const selectedUnits = useMemo(
-    () => units.filter((u) => selectedUnitIds.has(u.id)),
-    [units, selectedUnitIds],
-  );
-
-  /** 시험지명 상태 */
-  const [examName, setExamName] = useState<string>("");
-
-  /** 단원 토글 선택 처리 */
-  const toggleUnit = (id: string) => {
-    setSelectedUnitIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+      // 시험 목록 탭으로 이동
+      window.location.href = "/main/test-management?tab=list";
     });
-  };
+  }, [setTestCreatedCallback]);
 
-  /** 우측 목록 개별 삭제 처리 */
-  const removeUnit = (id: string) => {
-    setSelectedUnitIds((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  };
+  // 문제 목록 화면이 활성화된 경우
+  if (showProblemList) {
+    return (
+      <ProblemListTab
+        testName={examName}
+        problems={getSelectedProblems()}
+        onReorderProblems={reorderProblems}
+        onReplaceProblem={replaceProblem}
+        onPreviewTestPaper={handlePreviewTestPaper}
+        onBack={handleBack}
+        selectedProblemIds={selectedProblems}
+      />
+    );
+  }
 
   return (
     <div className="w-full space-y-6">
-      {/* 상단: 문항 조건 */}
-      <div className="w-full rounded-md border p-4">
-        <div className="flex items-center gap-6">
-          <div className="text-sky-600 font-bold">문항 조건</div>
-          <QuestionCountCombobox
-            value={questionCount}
-            onChange={(n) => setQuestionCount(Math.max(1, Math.min(20, n)))}
-          />
-          <div className="text-xs text-muted-foreground">(최대20문항)</div>
-        </div>
-      </div>
+      {/* 문제지 정보 섹션 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sky-600">문제지 정보</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* 문제지명 */}
+          <div className="space-y-2">
+            <Label htmlFor="exam-name">문제지명</Label>
+            <Input
+              id="exam-name"
+              placeholder="문제지명 입력"
+              value={examName}
+              onChange={(e) => setExamName(e.target.value)}
+              className="truncate"
+            />
+          </div>
 
-      {/* 본문: 좌측 단원 선택 / 우측 선택 단원 */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_420px]">
-        {/* 좌측: 단원 선택 */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sky-600">단원 선택</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <SelectGrade />
-              <Button
-                type="button"
-                variant="default"
-                className="ml-2"
-                disabled={selectedUnitIds.size === 0}
-              >
-                선택한 단원 적용
-              </Button>
+          {/* 학년 선택 */}
+          <div className="space-y-2">
+            <Label>학년</Label>
+            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="중1">중1</SelectItem>
+                <SelectItem value="중2">중2</SelectItem>
+                <SelectItem value="중3">중3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 문항 수, 객관식, 주관식 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>문항 수</Label>
+              <Input
+                value={totalQuestionCount}
+                className="text-center font-semibold"
+                readOnly
+              />
+              <div className="text-xs text-muted-foreground">(최대30문항)</div>
             </div>
 
-            {isPending && (
-              <div className="text-sm text-muted-foreground">
-                단원 불러오는 중...
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Circle className="h-4 w-4 text-blue-500" />
+                <Label>객관식</Label>
               </div>
-            )}
-            {isError && apiUnits.length === 0 && (
-              <div className="text-sm text-red-500">
-                단원 목록을 불러오지 못함 (가데이터 표시)
-              </div>
-            )}
-            {units.length > 0 && (
-              <div className="grid grid-cols-5 gap-3 sm:grid-cols-6 lg:grid-cols-8 ">
-                {units.map((unit) => {
-                  const isSelected = selectedUnitIds.has(unit.id);
-                  return (
-                    <Button
-                      key={unit.id}
-                      type="button"
-                      size="sm"
-                      variant={isSelected ? "default" : "outline"}
-                      className="h-8"
-                      onClick={() => toggleUnit(unit.id)}
-                    >
-                      {unit.name}
-                    </Button>
-                  );
-                })}
-              </div>
-            )}
-            {!isPending && units.length === 0 && (
-              <div className="text-sm text-muted-foreground">
-                표시할 단원이 없음
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              <Input
+                value={selectedObjectiveCount}
+                className={`text-center font-semibold text-blue-600 ${
+                  selectedObjectiveCount === 0 ? "opacity-50" : ""
+                }`}
+                readOnly
+              />
+            </div>
 
-        {/* 우측: 선택 단원 */}
-        <div className="flex flex-col gap-4">
-          <Card className="flex-1">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sky-600">선택 단원</CardTitle>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Square className="h-4 w-4 text-green-500" />
+                <Label>주관식</Label>
+              </div>
+              <Input
+                value={selectedSubjectiveCount}
+                className={`text-center font-semibold text-green-600 ${
+                  selectedSubjectiveCount === 0 ? "opacity-50" : ""
+                }`}
+                readOnly
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 본문: 좌측 단원 선택 / 우측 선택 단원 */}
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="h-[600px] rounded-lg border group relative"
+      >
+        {/* 좌측: 단원 선택 트리 */}
+        <ResizablePanel defaultSize={60} minSize={30}>
+          <Card className="h-full flex flex-col border-none">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="text-sky-600 flex items-center gap-2">
+                문제 선택
+                <div className="flex items-center gap-1 text-xs text-gray-400 font-normal">
+                  <GripVertical className="h-3 w-3" />
+                </div>
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 overflow-y-auto">
               <div className="space-y-2">
-                {selectedUnits.length === 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    선택된 단원이 없음
-                  </div>
-                )}
-                {selectedUnits.map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between gap-2 rounded-md border p-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Checkbox defaultChecked id={u.id} />
-                      <Label htmlFor={u.id} className="text-sm">
-                        {u.name}
-                      </Label>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => removeUnit(u.id)}
-                    >
-                      삭제
-                    </Button>
-                  </div>
+                {unitTreeData.map((unit) => (
+                  <UnitTreeItem
+                    key={unit.id}
+                    unit={unit}
+                    selectedItems={selectedProblems}
+                    onToggleItem={toggleProblem}
+                    onProblemDetail={handleProblemDetail}
+                  />
                 ))}
               </div>
             </CardContent>
           </Card>
+        </ResizablePanel>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[110px_1fr]">
-            <Label htmlFor="exam-name" className="self-center text-sm">
-              시험지명
-            </Label>
-            <Input
-              id="exam-name"
-              placeholder="시험지명 입력"
-              value={examName}
-              onChange={(e) => setExamName(e.target.value)}
-            />
+        <ResizableHandle
+          className="w-4 hover:w-6 transition-all duration-200 hover:bg-blue-100 group-hover:bg-gray-100 cursor-col-resize relative group/handle"
+          withHandle
+        >
+          {/* 드래그 가능한 영역을 시각적으로 강조 */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-1 h-12 bg-gray-400 rounded-full group-hover/handle:bg-blue-500 transition-colors duration-200" />
           </div>
 
-          <div>
+          {/* 드래그 힌트 아이콘 - 항상 표시 */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-60 group-hover/handle:opacity-100 transition-opacity duration-200 pointer-events-none">
+            <GripVertical className="h-4 w-4 text-gray-600 group-hover/handle:text-blue-600" />
+          </div>
+
+          {/* 드래그 방향 힌트 - 작은 점들 */}
+          <div className="absolute inset-0 flex items-center justify-between px-1 opacity-40 group-hover/handle:opacity-80 transition-opacity duration-200 pointer-events-none">
+            <div className="w-1 h-2 bg-gray-500 rounded-full group-hover/handle:bg-blue-500" />
+            <div className="w-1 h-2 bg-gray-500 rounded-full group-hover/handle:bg-blue-500" />
+          </div>
+
+          {/* 호버 시 배경 효과 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50 to-transparent opacity-0 group-hover/handle:opacity-100 transition-opacity duration-200 pointer-events-none" />
+
+          {/* 드래그 가능함을 나타내는 애니메이션 효과 */}
+          <div className="absolute inset-0 border-l border-r border-dashed border-gray-300 opacity-0 group-hover/handle:opacity-100 transition-opacity duration-200 pointer-events-none" />
+        </ResizableHandle>
+
+        {/* 우측: 선택 단원 */}
+        <ResizablePanel defaultSize={40} minSize={25}>
+          <div className="h-full flex flex-col space-y-4 ">
+            <Card className="flex-1 flex flex-col border-none">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="text-sky-600 flex items-center gap-2">
+                  문제 단원 선택
+                  <div className="flex items-center gap-1 text-xs text-gray-400 font-normal">
+                    <GripVertical className="h-3 w-3" />
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto">
+                <div className="space-y-2">
+                  {selectedProblemList.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      <p className="text-sm">선택된 문제가 없습니다.</p>
+                      <p className="text-xs mt-1">
+                        좌측에서 문제를 선택해주세요.
+                      </p>
+                    </div>
+                  ) : (
+                    selectedProblemList.map((group) => (
+                      <div key={group.detailName} className="space-y-2">
+                        {/* 소단원 헤더 */}
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                          <span className="text-sm font-medium text-gray-700 truncate flex-1 min-w-0">
+                            {group.detailName}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-xs flex-shrink-0 ml-2"
+                          >
+                            {group.problems.length}개 선택
+                          </Badge>
+                        </div>
+
+                        {/* 해당 소단원의 문제들 */}
+                        {group.problems.map((problem) => (
+                          <div
+                            key={problem.id}
+                            className="flex items-center justify-between gap-2 rounded-md border p-3 ml-4 min-w-0"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Checkbox
+                                checked={selectedProblems.has(problem.id)}
+                                onCheckedChange={() =>
+                                  toggleProblem(problem.id)
+                                }
+                                className="flex-shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {findProblemInTree(problem.id)?.type ===
+                                  "objective" ? (
+                                    <Circle className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                                  ) : (
+                                    <Square className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                  )}
+                                  <div className="min-w-0 flex-1 overflow-hidden">
+                                    <Label className="text-sm font-medium truncate block w-full">
+                                      {problem.name}
+                                    </Label>
+                                    {problem.hierarchy && (
+                                      <p className="text-xs text-gray-500 mt-1 truncate w-full">
+                                        문제 ID: {problem.id}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 flex-shrink-0"
+                                onClick={() => handleProblemDetail(problem.id)}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-shrink-0 whitespace-nowrap"
+                                onClick={() => removeProblem(problem.id)}
+                              >
+                                삭제
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Button
-              type="button"
-              className="w-full h-10"
-              disabled={
-                selectedUnitIds.size === 0 ||
-                questionCount <= 0 ||
-                examName.trim().length === 0
-              }
-              onClick={() => {
-                const unitIds = Array.from(selectedUnitIds);
-                console.log("시험지 작성 요청:", {
-                  examName: examName.trim(),
-                  count: questionCount,
-                  units: unitIds,
-                });
-                // TODO: 시험지 작성 페이지로 이동 구현 필요
-                alert("시험지 작성 기능이 준비 중입니다.");
-              }}
+              className="w-full h-12 text-lg font-semibold flex-shrink-0"
+              onClick={handleCreateExam}
+              disabled={selectedProblems.size === 0 || !examName.trim()}
             >
-              시험 작성
+              문제지 작성
             </Button>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
-type QuestionCountComboboxProps = {
-  value: number;
-  onChange: (value: number) => void;
-};
-
-/**
- * 문항 수 콤보박스
- * @description 입력과 선택을 동시에 지원하는 Command 기반 컴포넌트
- */
-function QuestionCountCombobox({
-  value,
-  onChange,
-}: QuestionCountComboboxProps) {
-  const [open, setOpen] = useState(false);
-  const items = useMemo(() => [5, 10, 15, 20], []);
-
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-foreground/80">문항 수</span>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[96px] justify-between">
-            {value}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[220px] p-0">
-          <Command>
-            <CommandInput
-              placeholder="숫자 입력(최대 20)"
-              value={String(value)}
-              onValueChange={(v) => {
-                const n = Number(v.replace(/[^0-9]/g, ""));
-                if (!Number.isNaN(n)) onChange(Math.max(1, Math.min(20, n)));
-              }}
-            />
-            <CommandList>
-              <CommandEmpty>결과 없음</CommandEmpty>
-              <CommandGroup heading="추천">
-                {items.map((n) => (
-                  <CommandItem
-                    key={n}
-                    value={String(n)}
-                    onSelect={() => {
-                      onChange(n);
-                      setOpen(false);
-                    }}
-                  >
-                    {n}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      {/* 문제 상세보기 모달 */}
+      <ProblemDetailModal
+        isOpen={isProblemDetailModalOpen}
+        onClose={handleCloseProblemDetail}
+        problem={selectedProblemForDetail}
+      />
     </div>
   );
 }

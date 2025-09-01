@@ -21,6 +21,12 @@ import {
   LabelList,
 } from "recharts";
 import type { TooltipProps } from "recharts";
+import { HelpCircle } from "lucide-react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 /** 평균 차트 커스텀 툴팁 */
 function AverageTooltip(props: TooltipProps<number, string>) {
@@ -225,16 +231,51 @@ function RouteComponent() {
     return computed;
   }, [wrongSources]);
 
-
   useLayoutEffect(() => {
     setIsShowHeader(false);
   }, [setIsShowHeader]);
 
   return (
-    <Card className="flex-1 p-8 flex w-full bg-white shadow-2xl rounded-sm">
-      <div className="text-[2.5rem] font-bold">통계</div>
-      <SelectGrade />
-      <div className="flex flex-1 gap-4 ">
+    <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm">
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="text-[2.5rem] font-bold">통계</div>
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <HelpCircle className="h-6 w-6 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+            </HoverCardTrigger>
+            <HoverCardContent
+              side="right"
+              className="bg-white border-2 border-blue-500 rounded-lg shadow-lg p-3 w-150"
+            >
+              <div className="space-y-2 text-lg ">
+                <span className="text-gray-800">시험 통계는 </span>
+                <span className="text-blue-800">
+                  최근 4개 시험의 학년별 평균 점수
+                </span>
+                <span className="text-gray-800">
+                  {" "}
+                  를 꺽은선 그래로 보여주며,
+                </span>
+                <span className="text-blue-800">
+                  오답률이 높은 상위 4개 단원을 퍼센트로 표시해 취약 영역을 확인
+                </span>
+                <span className="text-gray-800">
+                  {" "}
+                  할 수 있고, 학년 버튼을 선택하면 해당 학년 데이터만 볼 수
+                  있습니다.
+                </span>
+                .
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">학년 선택:</span>
+          <SelectGrade />
+        </div>
+      </div>
+      <div className="flex flex-1 gap-4">
         <div className="flex-1 w-1/2  flex flex-col gap-4 ">
           <div className="flex w-full h-[15%] bg-blue-200 text-center items-center justify-center font-extrabold text-xl">
             시험별 평균 점수

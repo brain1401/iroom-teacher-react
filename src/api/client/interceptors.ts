@@ -5,11 +5,7 @@ import type {
 } from "axios";
 import { isAxiosError } from "axios";
 import { ApiError } from "./baseClient";
-import {
-  isSuccessResponse,
-  isErrorResponse,
-  ApiResponseError,
-} from "./types";
+import { isSuccessResponse, isErrorResponse, ApiResponseError } from "./types";
 import type { ApiResponse } from "./types";
 
 /**

@@ -1,10 +1,8 @@
-// src/routes/test-paper/_components/TestListTab.tsx
-
-import { useState } from "react";
+// src/components/test/TestListTab.tsx
 import { TestTable } from "./TestListTable";
-import { Button } from "@/components/ui/button";
-import { SelectGrade } from "../layout/SelectGrade";
+import { TestSubmissionTable } from "./TestSubmissionTable";
 import { PagePagination } from "@/components/layout/PagePagination";
+import { Toolbar } from "@/components/layout/Toolbar";
 import {
   Dialog,
   DialogContent,
@@ -12,258 +10,139 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { TestLevel, TestStatus } from "@/types/test";
+import { useTestList } from "@/hooks/test/useTestList";
 
-type Test = {
-  id: string;
-  unitName: string;
-  testName: string;
-  questionCount: number;
-  questionLevel: TestLevel;
-  status: TestStatus;
-  createdAt: string;
-  updatedAt: string;
+/**
+ * 시험 목록 탭 컴포넌트 Props
+ */
+type TestListTabProps = {
+  /** 선택된 시험 ID (대시보드에서 전달) */
+  selectedTestId?: string;
+  /** 선택된 시험명 (대시보드에서 전달) */
+  selectedTestName?: string;
 };
 
-type TestSubmitStatusDetail = {
-  name: string;
-  phoneNumber: string;
-  TestName: string;
-  submissionDate: string;
-  submissionManagement: string;
-};
+/**
+ * 시험 목록 탭 컴포넌트
+ * @description 시험 목록을 표시하고 관리하는 메인 컴포넌트
+ *
+ * 주요 기능:
+ * - 시험 목록 표시
+ * - 검색 및 필터링
+ * - 선택된 항목 관리
+ * - 삭제 기능
+ * - 상세 정보 모달
+ * - 대시보드에서 선택된 시험 하이라이트
+ */
+export function TestListTab({
+  selectedTestId,
+  selectedTestName,
+}: TestListTabProps) {
+  const {
+    // 상태
+    filteredPapers,
+    selectedIds,
+    activeModal,
+    selectedPaper,
+    fakeTestSubmitStatusDetail,
+    filters,
 
-const _fakeTestSubmitStatusDetail: TestSubmitStatusDetail[] = [
-  {
-    name: "윤아연",
-    phoneNumber: "010-9185-8023",
-    TestName: "기말 대비 모의고사",
-    submissionDate: "2025-01-15",
-    submissionManagement: "제출",
-  },
-  {
-    name: "윤아연",
-    phoneNumber: "010-9185-8023",
-    TestName: "기말 대비 모의고사",
-    submissionDate: "2025-01-15",
-    submissionManagement: "제출",
-  },
-  {
-    name: "윤아연",
-    phoneNumber: "010-9185-8023",
-    TestName: "기말 대비 모의고사",
-    submissionDate: "2025-01-15",
-    submissionManagement: "제출",
-  },
-  {
-    name: "윤아연",
-    phoneNumber: "010-9185-8023",
-    TestName: "기말 대비 모의고사",
-    submissionDate: "2025-01-15",
-    submissionManagement: "제출",
-  },
-  {
-    name: "윤아연",
-    phoneNumber: "010-9185-8023",
-    TestName: "기말 대비 모의고사",
-    submissionDate: "2025-01-15",
-    submissionManagement: "제출",
-  },
-];
+    // 액션
+    setSearchKeyword,
+    setSearchScope,
+    setSelectedGrade,
+    handleSelectAll,
+    handleSelect,
+    handleDeleteSelected,
+    handleOpenPrint,
+    handleOpenDetail,
+    handleClose,
+  } = useTestList();
 
-const fakeTestData: Test[] = [
-  {
-    id: "paper-001",
-    unitName: "1단원: 다항식의 연산",
-    testName: "2025-1학기 중간고사 대비",
-    questionCount: 20,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-002",
-    unitName: "2단원: 나머지정리와 인수분해",
-    testName: "2025-1학기 중간고사 대비",
-    questionCount: 20,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-003",
-    unitName: "3단원: 복소수와 이차방정식",
-    testName: "단원 평가 (A)",
-    questionCount: 20,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-004",
-    unitName: "4단원: 이차방정식과 이차함수",
-    testName: "단원 평가 (B)",
-    questionCount: 20,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-005",
-    unitName: "5단원: 여러 가지 방정식",
-    testName: "2025-1학기 기말고사 대비",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-006",
-    unitName: "6단원: 부등식",
-    testName: "2025-1학기 기말고사 대비",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-007",
-    unitName: "1단원 종합",
-    testName: "오답노트 클리닉",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-008",
-    unitName: "2단원 종합",
-    testName: "심화 문제 풀이",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-009",
-    unitName: "3단원 종합",
-    testName: "월말 평가",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-  {
-    id: "paper-010",
-    unitName: "4단원 종합",
-    testName: "온라인 모의고사",
-    questionCount: 25,
-    questionLevel: "기초",
-    status: "승인완료",
-    createdAt: "2025-01-15",
-    updatedAt: "2025-01-15",
-  },
-];
-
-export function TestListTab() {
-  // ... (useState 및 핸들러 함수들은 동일)
-  // Use static fake data directly (no state needed)
-  const papers = fakeTestData;
-  const [selectedIds, setSelectedIds] = useState(new Set<string>());
-  const [selectedPaper, setSelectedPaper] = useState<Test | null>(null);
-  const [activeModal, setActiveModal] = useState<"print" | "detail" | null>(
-    null,
-  );
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(papers.map((p) => p.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
-  const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  };
-
-  const handleOpenPrint = (paper: Test) => {
-    setSelectedPaper(paper);
-    setActiveModal("print");
-  };
-
-  const handleOpenDetail = (paper: Test) => {
-    setSelectedPaper(paper);
-    setActiveModal("detail");
-  };
-
-  const handleClose = () => {
-    setActiveModal(null);
-    setSelectedPaper(null);
-  };
+  // 검색 범위 옵션
+  const searchScopeOptions = [
+    { value: "all", label: "시험명+단원명" },
+    { value: "testName", label: "시험명" },
+    { value: "unitName", label: "단원명" },
+  ];
 
   return (
     <div className="space-y-4 w-full">
       <div className="text-[2.5rem] font-bold">시험 목록</div>
 
-      {/* 1. 툴바 영역: 필터와 삭제 버튼 */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button variant="outline">전체</Button>
-          <SelectGrade />
+      {/* 선택된 시험 정보 표시 */}
+      {selectedTestId && selectedTestName && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-800">
+              선택된 시험:
+            </span>
+            <span className="text-blue-600">{selectedTestName}</span>
+          </div>
         </div>
-        <Button variant="destructive" disabled={selectedIds.size === 0}>
-          삭제
-        </Button>
-      </div>
+      )}
+
+      {/* 1. 툴바 영역: 필터와 검색 */}
+      <Toolbar
+        searchKeyword={filters.searchKeyword}
+        onSearchChange={setSearchKeyword}
+        searchScope={filters.searchScope}
+        onSearchScopeChange={(value) => setSearchScope(value as any)}
+        searchScopeOptions={searchScopeOptions}
+        selectedCount={selectedIds.size}
+        onDelete={handleDeleteSelected}
+        isShowGradeSelect={true}
+      />
 
       {/* 2. 테이블 컴포넌트 */}
       <TestTable
-        papers={papers}
+        papers={filteredPapers}
         selectedIds={selectedIds}
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}
-        onOpenPrint={handleOpenPrint} // ✅ 누락된 prop 추가
+        onOpenPrint={handleOpenPrint}
         onOpenDetail={handleOpenDetail}
       />
 
-      {/* 3. 페이지네이션 컴포넌트 */}
-      <PagePagination />
-      {/* 모달: 인쇄/상세 공용 다이얼로그 */}
+      {/* 4. 모달: 시험 제출 현황 다이얼로그 */}
       <Dialog
         open={activeModal !== null}
         onOpenChange={(o) => {
           if (!o) handleClose();
         }}
       >
-        <DialogContent className="max-w-3xl">
-          {activeModal === "detail" && (
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-hidden">
+          {activeModal === "detail" && selectedPaper && (
             <>
               <DialogHeader>
-                <DialogTitle>시험 제출 상세</DialogTitle>
-                <DialogDescription>{selectedPaper?.testName}</DialogDescription>
+                <DialogTitle>시험 제출 현황</DialogTitle>
+                <DialogDescription>
+                  {selectedPaper.testName} - {selectedPaper.unitName}
+                </DialogDescription>
               </DialogHeader>
-              {/* 상세 정보 콘텐츠 구성 예정 */}
-              <div className="space-y-2">
-                <div>이름: {selectedPaper?.unitName}</div>
-                <div>전화번호: {selectedPaper?.questionCount}</div>
-                <div>시험: {selectedPaper?.questionCount}</div>
-                <div>제출 일자: {selectedPaper?.questionCount}</div>
-                <div>제출 상태: {selectedPaper?.questionCount}</div>
+              {/* 시험 제출 현황 테이블 */}
+              <div className="overflow-y-auto max-h-[60vh]">
+                <TestSubmissionTable
+                  submissions={fakeTestSubmitStatusDetail.filter(
+                    (submission) =>
+                      submission.testName === selectedPaper.testName,
+                  )}
+                  selectedIds={new Set()}
+                  onSelectAll={() => {}}
+                  onSelect={() => {}}
+                  onOpenDetail={(submission) => {
+                    console.log("학생 상세 정보:", submission);
+                    alert(
+                      `${submission.student.name} 학생의 상세 정보를 확인합니다.`,
+                    );
+                  }}
+                  onDownloadAnswer={(submission) => {
+                    console.log("답안 다운로드:", submission);
+                    alert(
+                      `${submission.student.name} 학생의 답안을 다운로드합니다.`,
+                    );
+                  }}
+                />
               </div>
             </>
           )}

@@ -10,6 +10,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  tableStyles,
+  buttonStyles,
+  badgeStyles,
+  getDifficultyBadgeVariant,
+  getStatusBadgeVariant,
+} from "@/utils/commonStyles";
+import { ParticipationBadge } from "./ParticipationBadge";
 import type { Test } from "@/types/test";
 import { Link } from "@tanstack/react-router";
 
@@ -45,52 +56,100 @@ export function TestTable({
   const isAllSelected = papers.length > 0 && selectedIds.size === papers.length;
 
   return (
-    <Table className="w-full">
-      {/* 2. TableHeader와 "전체 선택" 체크박스 추가 */}
-      <TableHeader className="bg-gray-100 w-full">
-        <TableRow>
-          <TableHead className="w-10">
-            <Checkbox checked={isAllSelected} onCheckedChange={onSelectAll} />
-          </TableHead>
-
-          <TableHead>단원정보</TableHead>
-          <TableHead>시험명</TableHead>
-          <TableHead>문항수</TableHead>
-          <TableHead>시험 난이도</TableHead>
-          <TableHead>시험 제출 현황</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {papers.map((paper) => (
-          <TableRow key={paper.id}>
-            <TableCell>
+    <div className={tableStyles.container}>
+      <Table>
+        {/* 2. TableHeader와 "전체 선택" 체크박스 추가 */}
+        <TableHeader>
+          <TableRow className={tableStyles.header}>
+            <TableHead className="w-[50px] text-center">
               <Checkbox
-                checked={selectedIds.has(paper.id)}
-                onCheckedChange={(checked) =>
-                  onSelect(paper.id, Boolean(checked))
-                }
+                checked={isAllSelected}
+                onCheckedChange={onSelectAll}
+                className={tableStyles.checkbox}
               />
-            </TableCell>
-            <TableCell>{paper.unitName}</TableCell>
-            <TableCell>{paper.testName}</TableCell>
-            <TableCell>{paper.questionCount}</TableCell>
-            <TableCell>{paper.questionLevel}</TableCell>
-            {/* 3. UI에 있던 버튼들도 추가 */}
-            <TableCell>
-              <Link
-                to="/main/test-management/$examId"
-                params={{ examId: "1" }}
-                className="bg-sky-100 text-sky-500 hover:bg-sky-200 hover:text-sky-600 rounded-md px-2 py-1"
-                onClick={() => onOpenDetail(paper)}
-              >
-                상세보기
-              </Link>
-            </TableCell>
-            <TableCell className="flex gap-2 justify-center"></TableCell>
+            </TableHead>
+            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
+            <TableHead className={tableStyles.headerCell}>시험명</TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              문항수
+            </TableHead>
+            <TableHead className={tableStyles.headerCell}>
+              시험 난이도
+            </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              참여 현황
+            </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              제출명단
+            </TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {papers.map((paper, index) => (
+            <TableRow
+              key={paper.id}
+              className={cn(
+                tableStyles.row,
+                index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
+              )}
+            >
+              <TableCell className={tableStyles.cellCenter}>
+                <Checkbox
+                  checked={selectedIds.has(paper.id)}
+                  onCheckedChange={(checked) =>
+                    onSelect(paper.id, Boolean(checked))
+                  }
+                  className={tableStyles.checkbox}
+                />
+              </TableCell>
+              <TableCell className={tableStyles.cellMedium}>
+                {paper.unitName}
+              </TableCell>
+              <TableCell className={tableStyles.cell}>
+                {paper.testName}
+              </TableCell>
+              <TableCell className={tableStyles.cellCenter}>
+                <Badge variant="outline" className={badgeStyles.outline}>
+                  {paper.questionCount}문항
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={getDifficultyBadgeVariant(paper.questionLevel)}
+                  className={
+                    badgeStyles[getDifficultyBadgeVariant(paper.questionLevel)]
+                  }
+                >
+                  {paper.questionLevel}
+                </Badge>
+              </TableCell>
+              <TableCell className={tableStyles.cellCenter}>
+                <ParticipationBadge
+                  actualParticipants={paper.actualParticipants}
+                  totalParticipants={paper.totalParticipants}
+                />
+              </TableCell>
+              {/* 3. UI에 있던 버튼들도 추가 */}
+              <TableCell className={tableStyles.cellCenter}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className={buttonStyles.primary}
+                >
+                  <Link
+                    to="/main/test-management/$testId"
+                    params={{ testId: paper.id }}
+                    search={{ testName: paper.testName }}
+                  >
+                    상세보기
+                  </Link>
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
