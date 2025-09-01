@@ -9,7 +9,7 @@ import type { TestSubmitStatusDetail } from "@/types/test";
 import type { QuestionAnswer } from "./TestDetail";
 
 type AnswerSheetResultProps = {
-  selectedSubmission: TestSubmitStatusDetail;
+  selectedSubmission: TestSubmitStatusDetail | null;
   selectedAnswers: QuestionAnswer[];
   onClose: () => void;
 };
