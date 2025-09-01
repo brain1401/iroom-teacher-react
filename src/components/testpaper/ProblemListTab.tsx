@@ -32,28 +32,233 @@ import { CSS } from "@dnd-kit/utilities";
 
 /**
  * 문제 목록 탭 컴포넌트
- * @description 문제지 작성 시 선택된 문제들을 보여주고 관리하는 화면
- *
+ * @description 문제지 생성 과정에서 자동 선택된 문제들을 관리하고 최종 문제지를 생성하는 핵심 컴포넌트
+ * 
  * 주요 기능:
- * - 선택된 문제 목록 표시
- * - 문제 교체 기능
- * - 문제지 미리보기
- * - 문제지 생성
+ * - 조건에 따라 자동 선택된 문제들의 목록 표시
+ * - 드래그 앤 드롭을 통한 문제 순서 재배치
+ * - 개별 문제 교체 기능 (단원 선택 모달을 통해)
+ * - 문제지 미리보기 기능
+ * - 최종 문제지 생성 및 저장
+ * - 문제 상세 정보 표시 (단원, 난이도, 유형, 점수, 보기 등)
+ * - 반응형 디자인으로 다양한 화면 크기 지원
+ * - 접근성을 고려한 키보드 드래그 앤 드롭 지원
+ * 
+ * 설계 원칙:
+ * - 사용자가 생성하고자 하는 문제지의 전체적인 구성을 한눈에 파악할 수 있도록 설계
+ * - 각 문제별로 충분한 정보를 제공하여 교체 필요성을 쉽게 판단할 수 있음
+ * - 드래그 앤 드롭 인터페이스로 직관적인 문제 순서 조정 가능
+ * - 실제 출제 환경을 고려한 문제 표시 형식 (번호, 점수, 보기 등)
+ * - 안전한 문제지 생성을 위한 확인 과정과 에러 처리 포함
+ * 
+ * 사용 시나리오:
+ * - 교사가 특정 조건으로 자동 생성된 문제지를 검토하는 경우
+ * - 일부 문제가 마음에 들지 않아 다른 문제로 교체하고 싶은 경우
+ * - 문제 순서를 교육과정이나 난이도에 맞게 재배치하고 싶은 경우
+ * - 최종 문제지 생성 전 미리보기로 전체 구성을 확인하고 싶은 경우
+ * - 생성된 문제지를 나중에 사용하기 위해 저장하고 싶은 경우
+ * 
+ * 기술적 특징:
+ * - @dnd-kit 라이브러리를 사용한 고성능 드래그 앤 드롭
+ * - 키보드 네비게이션 지원으로 접근성 향상
+ * - React Suspense와 호환되는 비동기 상태 관리
+ * - localStorage를 활용한 로컬 데이터 지속성
+ * - Toast 알림으로 사용자 피드백 제공
+ * - TanStack Router를 통한 타입 안전한 네비게이션
+ * 
+ * @example
+ * ```tsx
+ * // 기본 사용법
+ * function TestPaperCreationFlow() {
+ *   const [problems, setProblems] = useState<Problem[]>(generatedProblems);
+ *   const [selectedIds, setSelectedIds] = useState(new Set<string>());
+ * 
+ *   const handleReorderProblems = (reorderedProblems: Problem[]) => {
+ *     setProblems(reorderedProblems);
+ *     console.log('문제 순서가 변경되었습니다:', reorderedProblems);
+ *   };
+ * 
+ *   const handleReplaceProblem = (oldId: string, newId: string) => {
+ *     // API에서 새 문제 데이터 가져오기
+ *     const newProblem = await fetchProblemById(newId);
+ *     const updatedProblems = problems.map(p => 
+ *       p.id === oldId ? newProblem : p
+ *     );
+ *     setProblems(updatedProblems);
+ *   };
+ * 
+ *   return (
+ *     <ProblemListTab
+ *       testName="중간고사 수학 문제지"
+ *       problems={problems}
+ *       onReorderProblems={handleReorderProblems}
+ *       onReplaceProblem={handleReplaceProblem}
+ *       onPreviewTestPaper={() => openPreviewModal()}
+ *       onBack={() => navigate(-1)}
+ *       selectedProblemIds={selectedIds}
+ *     />
+ *   );
+ * }
+ * 
+ * // 커스텀 문제지 생성 워크플로우
+ * function CustomTestCreationWorkflow() {
+ *   const [currentStep, setCurrentStep] = useState(1);
+ *   const [testConfig, setTestConfig] = useState(initialConfig);
+ *   
+ *   return (
+ *     <div className="multi-step-workflow">
+ *       {currentStep === 1 && (
+ *         <TestConfigurationStep 
+ *           onNext={(config) => {
+ *             setTestConfig(config);
+ *             setCurrentStep(2);
+ *           }}
+ *         />
+ *       )}
+ *       {currentStep === 2 && (
+ *         <ProblemListTab
+ *           testName={testConfig.testName}
+ *           problems={testConfig.generatedProblems}
+ *           onReorderProblems={(problems) => 
+ *             setTestConfig(prev => ({ ...prev, problems }))
+ *           }
+ *           // ... 기타 props
+ *         />
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * 접근성:
+ * - 키보드로 드래그 앤 드롭 조작 가능 (Space, Arrow keys)
+ * - 스크린 리더를 위한 적절한 ARIA 레이블
+ * - 고대비 모드에서도 문제 구분 가능한 시각적 요소
+ * - 포커스 인디케이터로 현재 선택된 요소 명확히 표시
+ * - 색상에 의존하지 않는 정보 전달 (텍스트 라벨 병행 사용)
+ * 
+ * 성능 고려사항:
+ * - 드래그 앤 드롭 중 불필요한 리렌더링 최소화
+ * - 이미지 lazy loading으로 초기 로딩 시간 단축
+ * - 대량의 문제 목록 처리를 위한 가상화 준비
+ * - 메모이제이션을 통한 복잡한 계산 최적화
+ * - 문제지 생성 시 진행 상태 표시로 UX 향상
  */
 type ProblemListTabProps = {
-  /** 문제지명 */
+  /** 
+   * 문제지명
+   * @description 생성할 문제지의 제목
+   * - 화면 상단에 표시되며 사용자가 현재 작업 중인 문제지를 식별하는 데 사용
+   * - 최종 문제지 저장 시 식별자로도 활용
+   * @example "중간고사 수학 문제지", "1학년 국어 단원평가"
+   */
   testName: string;
-  /** 선택된 문제 목록 */
+
+  /** 
+   * 선택된 문제 목록
+   * @description 자동 생성되거나 사용자가 선택한 문제들의 배열
+   * - 각 문제는 Problem 타입의 완전한 데이터를 포함
+   * - 순서는 실제 문제지에서의 출제 순서를 나타냄
+   * - 드래그 앤 드롭으로 순서 변경 가능
+   * - 개별 문제는 교체 가능
+   */
   problems: Problem[];
-  /** 문제 순서 변경 핸들러 */
+
+  /** 
+   * 문제 순서 변경 핸들러
+   * @description 드래그 앤 드롭으로 문제 순서가 변경될 때 호출되는 콜백 함수
+   * @param problems 새로운 순서로 정렬된 문제 배열
+   * @example
+   * ```typescript
+   * const handleReorder = (newProblems: Problem[]) => {
+   *   setProblems(newProblems);
+   *   // 순서 변경을 서버에 저장하거나 로컬 상태 업데이트
+   *   saveProblemOrder(newProblems.map(p => p.id));
+   * };
+   * ```
+   */
   onReorderProblems: (problems: Problem[]) => void;
-  /** 문제 교체 핸들러 */
+
+  /** 
+   * 문제 교체 핸들러
+   * @description 특정 문제를 다른 문제로 교체할 때 호출되는 콜백 함수
+   * @param oldProblemId 교체될 기존 문제의 ID
+   * @param newProblemId 새로 선택된 문제의 ID
+   * @example
+   * ```typescript
+   * const handleReplace = async (oldId: string, newId: string) => {
+   *   try {
+   *     const newProblem = await fetchProblemById(newId);
+   *     const updatedProblems = problems.map(p => 
+   *       p.id === oldId ? newProblem : p
+   *     );
+   *     setProblems(updatedProblems);
+   *     toast.success('문제가 성공적으로 교체되었습니다.');
+   *   } catch (error) {
+   *     toast.error('문제 교체에 실패했습니다.');
+   *   }
+   * };
+   * ```
+   */
   onReplaceProblem: (oldProblemId: string, newProblemId: string) => void;
-  /** 문제지 미리보기 핸들러 */
+
+  /** 
+   * 문제지 미리보기 핸들러
+   * @description 현재 구성된 문제지를 미리보기 모드로 열 때 호출되는 콜백 함수
+   * - 일반적으로 새 창이나 모달에서 실제 문제지 형태로 표시
+   * - 인쇄 레이아웃을 미리 확인할 수 있음
+   * @example
+   * ```typescript
+   * const handlePreview = () => {
+   *   // 미리보기 모달 열기
+   *   setPreviewModalOpen(true);
+   *   
+   *   // 또는 새 창에서 미리보기
+   *   const previewWindow = window.open('/preview', '_blank');
+   *   previewWindow.postMessage({ problems, testName }, '*');
+   * };
+   * ```
+   */
   onPreviewTestPaper: () => void;
-  /** 뒤로가기 핸들러 */
+
+  /** 
+   * 뒤로가기 핸들러
+   * @description 이전 단계(문제지 설정 단계)로 돌아갈 때 호출되는 콜백 함수
+   * - 일반적으로 브라우저 뒤로가기나 라우터 네비게이션 사용
+   * - 현재 작업 중인 데이터 저장 여부 확인 필요할 수 있음
+   * @example
+   * ```typescript
+   * const handleBack = () => {
+   *   // 변경사항이 있는 경우 확인 대화상자 표시
+   *   if (hasUnsavedChanges) {
+   *     const confirmed = confirm('저장하지 않은 변경사항이 있습니다. 정말 뒤로가시겠습니까?');
+   *     if (!confirmed) return;
+   *   }
+   *   
+   *   navigate(-1); // 또는 특정 경로로 이동
+   * };
+   * ```
+   */
   onBack: () => void;
-  /** 이미 선택된 문제 ID들 */
+
+  /** 
+   * 이미 선택된 문제 ID들
+   * @description 현재 문제지에 포함된 문제들의 ID 집합
+   * - 문제 교체 시 중복 선택 방지용으로 사용
+   * - Set 자료구조를 사용하여 O(1) 시간 복잡도로 중복 확인 가능
+   * - UnitSelectionModal에서 이미 선택된 문제들을 비활성화 처리하는 데 활용
+   * @example
+   * ```typescript
+   * const selectedIds = new Set(problems.map(p => p.id));
+   * 
+   * // 문제 교체 시 중복 확인
+   * const isAlreadySelected = selectedIds.has(candidateProblemId);
+   * if (isAlreadySelected) {
+   *   toast.warning('이미 선택된 문제입니다.');
+   *   return;
+   * }
+   * ```
+   */
   selectedProblemIds: Set<string>;
 };
 
@@ -216,7 +421,28 @@ export function ProblemListTab({
 
 /**
  * 드래그 가능한 문제 카드 컴포넌트
- * @description 개별 문제를 표시하는 드래그 가능한 카드
+ * @description 개별 문제를 시각적으로 표현하는 드래그 가능한 카드 컴포넌트
+ * 
+ * 주요 기능:
+ * - @dnd-kit을 사용한 고성능 드래그 앤 드롭 지원
+ * - 문제 정보의 완전한 시각적 표현 (내용, 이미지, 보기 등)
+ * - 키보드 접근성을 고려한 드래그 핸들 제공
+ * - 드래그 중 시각적 피드백 (투명도, 그림자, 크기 변화)
+ * - 문제 교체를 위한 직관적인 버튼 인터페이스
+ * - 문제 유형별 맞춤형 표시 (객관식 보기, 주관식 답안 영역 등)
+ * 
+ * 설계 원칙:
+ * - 실제 문제지 출력 형태와 최대한 유사한 레이아웃
+ * - 한눈에 문제의 핵심 정보를 파악할 수 있는 정보 배치
+ * - 드래그 앤 드롭 시 사용자가 어떤 문제를 이동 중인지 명확히 인식 가능
+ * - 문제 번호, 단원, 유형, 난이도 등 메타데이터의 체계적 표시
+ * - 이미지가 있는 문제와 없는 문제 모두 균형잡힌 레이아웃
+ * 
+ * 접근성 고려사항:
+ * - 키보드로 드래그 앤 드롭 조작 가능
+ * - 스크린 리더를 위한 적절한 텍스트 라벨
+ * - 고대비 모드에서도 구분 가능한 시각적 요소
+ * - 포커스 상태의 명확한 시각적 표시
  */
 type SortableProblemCardProps = {
   problem: Problem;

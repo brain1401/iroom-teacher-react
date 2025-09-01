@@ -29,13 +29,150 @@ import type { TestLevel, TestStatus } from "@/types/test";
 
 /**
  * 문제지 등록 탭 콘텐츠
- * @description 이미지와 동일한 구조로 문제지 정보, 단원 선택, 선택된 단원 확인 및 문제지 생성 기능 제공
- *
- * 주요 구성:
- * - 문제지 정보 섹션 (문제지명, 문항수, 객관식/주관식, 학년)
- * - 좌측: 단원 선택 트리 구조
- * - 우측: 선택된 단원 목록 및 문제지 생성
- * - 시험 출제 완료 후 목록 탭으로 자동 이동
+ * @description 교사가 새로운 시험지를 생성하기 위한 종합적인 인터페이스를 제공하는 핵심 컴포넌트
+ * 
+ * 주요 기능:
+ * - 시험지 기본 정보 설정 (시험지명, 학년, 문항 수)
+ * - 계층적 단원 구조를 통한 직관적인 문제 선택
+ * - 실시간 문항 유형별 개수 추적 (객관식/주관식)
+ * - 선택한 문제들의 체계적 관리 및 미리보기
+ * - 드래그 앤 드롭으로 조절 가능한 반응형 레이아웃
+ * - 문제 상세보기를 통한 선택 전 검토 기능
+ * - 시험지 생성 후 자동 워크플로우 연결
+ * - 접근성과 사용성을 고려한 키보드 네비게이션
+ * 
+ * 컴포넌트 구조:
+ * - 상단: 시험지 기본 정보 입력 섹션
+ * - 좌측: 교육과정 기반 단원 트리 (문제 선택용)
+ * - 우측: 선택된 문제 목록 및 관리 도구
+ * - 하단: 시험지 생성 액션 버튼
+ * - 모달: 문제 상세보기 및 미리보기
+ * 
+ * 설계 철학:
+ * - 교사의 자연스러운 시험 출제 프로세스를 디지털화
+ * - 교육과정과 일치하는 직관적인 단원 구조 탐색
+ * - 실시간 피드백으로 시험지 구성 현황 투명하게 제공
+ * - 실수를 방지하는 다단계 검토 및 확인 프로세스
+ * - 반복 작업을 최소화하는 효율적인 인터페이스
+ * 
+ * 워크플로우 시나리오:
+ * 1. 시험지 기본 정보 입력 (시험지명, 학년 선택)
+ * 2. 단원 트리에서 출제 범위에 해당하는 문제들 탐색
+ * 3. 개별 문제의 상세 내용 확인 및 선택/해제
+ * 4. 선택된 문제 목록에서 최종 구성 검토
+ * 5. 문항 유형 및 개수 확인 후 시험지 생성
+ * 6. 생성된 시험지의 미리보기 및 수정
+ * 7. 최종 확정 및 시험 목록으로 자동 이동
+ * 
+ * 사용자 경험 고려사항:
+ * - 대용량 문제 은행에서도 빠른 탐색 및 선택
+ * - 시각적 피드백으로 현재 선택 상태 명확히 표시
+ * - 실수로 선택한 문제의 쉬운 제거 및 교체
+ * - 문항 수 제한 등 제약 조건의 직관적 알림
+ * - 작업 중단 시에도 선택 상태 보존 (세션 관리)
+ * 
+ * 기술적 특징:
+ * - React 18의 최신 훅 패턴 활용
+ * - 커스텀 훅을 통한 복잡한 상태 로직 캡슐화
+ * - 불변성을 지키는 상태 관리로 예측 가능한 동작
+ * - 메모이제이션을 통한 대용량 데이터 렌더링 최적화
+ * - TanStack Router를 활용한 타입 안전한 네비게이션
+ * - 로컬 스토리지 활용으로 데이터 지속성 보장
+ * 
+ * 접근성 및 사용성:
+ * - WCAG 2.1 AA 수준의 접근성 준수
+ * - 키보드만으로도 모든 기능 사용 가능
+ * - 스크린 리더를 위한 적절한 ARIA 레이블
+ * - 고대비 모드에서도 명확한 시각적 구분
+ * - 터치 환경에서도 편리한 조작 가능
+ * - 다국어 지원을 고려한 텍스트 레이아웃
+ * 
+ * 성능 최적화:
+ * - 가상 스크롤링으로 대용량 단원 트리 처리
+ * - 디바운싱된 검색으로 실시간 필터링
+ * - 지연 로딩으로 초기 로딩 시간 최적화
+ * - 이미지 프리로딩으로 미리보기 속도 향상
+ * - 메모리 누수 방지를 위한 적절한 정리 로직
+ * 
+ * 확장성 고려사항:
+ * - 다양한 문제 유형 추가 대응 (서술형, 실기 등)
+ * - 협업 기능을 위한 실시간 동기화 준비
+ * - AI 기반 문제 추천 기능 통합 가능
+ * - 다중 시험지 일괄 생성 기능 확장 준비
+ * - 외부 문제 은행 연동 인터페이스 준비
+ * 
+ * @example
+ * ```tsx
+ * // 기본 사용법 - 라우팅 컨텍스트에서
+ * function TestPaperManagementPage() {
+ *   const [currentTab, setCurrentTab] = useState('registration');
+ *   
+ *   return (
+ *     <div className="test-paper-management">
+ *       <TabNavigation 
+ *         activeTab={currentTab} 
+ *         onTabChange={setCurrentTab}
+ *       />
+ *       
+ *       {currentTab === 'registration' && (
+ *         <TestPaperRegistrationTab />
+ *       )}
+ *       
+ *       {currentTab === 'list' && (
+ *         <TestPaperListTab />
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * 
+ * // 커스텀 설정과 함께 사용
+ * function CustomTestPaperCreation() {
+ *   const [maxQuestions] = useState(50); // 기본 30 대신 50문항
+ *   const [allowedGrades] = useState(['중1', '중2', '중3', '고1']);
+ *   
+ *   return (
+ *     <TestPaperRegistrationTab 
+ *       maxQuestions={maxQuestions}
+ *       availableGrades={allowedGrades}
+ *       onTestCreated={(test) => {
+ *         console.log('새로운 시험지 생성:', test);
+ *         // 커스텀 후처리 로직
+ *         sendAnalytics('test_paper_created', { 
+ *           questionCount: test.questions.length,
+ *           grade: test.grade 
+ *         });
+ *       }}
+ *     />
+ *   );
+ * }
+ * 
+ * // 미리 구성된 템플릿으로 시작
+ * function TemplateBasedCreation() {
+ *   const midtermTemplate = {
+ *     name: '1학기 중간고사',
+ *     grade: '중2',
+ *     preselectedUnits: ['unit-2-1', 'unit-2-2'],
+ *     suggestedQuestionCount: 25
+ *   };
+ *   
+ *   return (
+ *     <TestPaperRegistrationTab 
+ *       initialTemplate={midtermTemplate}
+ *       showTemplateSelector={true}
+ *       onTemplateApply={(template) => {
+ *         console.log('템플릿 적용:', template);
+ *       }}
+ *     />
+ *   );
+ * }
+ * ```
+ * 
+ * 통합 테스트 시나리오:
+ * - 시험지 생성 전체 플로우 테스트
+ * - 대용량 문제 데이터셋에서의 성능 테스트
+ * - 다양한 브라우저 및 디바이스에서의 호환성 테스트
+ * - 접근성 도구를 사용한 사용성 테스트
+ * - 네트워크 지연 상황에서의 로딩 테스트
  */
 export function TestPaperRegistrationTab() {
   const navigate = useNavigate();

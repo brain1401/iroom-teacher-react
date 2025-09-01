@@ -1,5 +1,3 @@
-// src/types/test-paper.tsx
-
 /**
  * 문제지 데이터 타입
  * @description 문제지의 기본 정보를 담는 타입

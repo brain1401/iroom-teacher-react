@@ -16,15 +16,59 @@ import { useTestList } from "@/hooks/test/useTestList";
 import type { Test, TestLevel, TestStatus } from "@/types/test";
 
 /**
- * 시험 출제 탭 컴포넌트
- * @description 이미지와 동일한 구조로 시험 출제 정보 입력 및 미리보기 기능 제공
+ * 시험 출제 및 등록 탭 컴포넌트
+ * @description 교사가 새로운 시험을 생성하고 출제하기 위한 종합적인 폼 컴포넌트
+ *
+ * 설계 원칙:
+ * - 단계적 정보 입력: 학년 → 학생 수 → 시험명 순서로 직관적 입력 흐름
+ * - 실시간 미리보기: 선택 정보에 따른 즉시 피드백 제공
+ * - 사용자 경험 최우선: 복잡한 시험 출제 과정을 단순하게 추상화
+ * - 데이터 검증: 모든 필수 정보 입력 완료 후에만 제출 가능
+ * - 시각적 피드백: 선택 상태에 따른 미리보기 및 상태 표시
  *
  * 주요 기능:
- * - 학년 선택 (중1, 중2, 중3)
- * - 학생 수 선택 (10, 15, 20, 25, 30)
- * - 시험명 선택 (문제지명 선택)
- * - 시험 출제 미리보기 (3개의 문제지 미리보기)
- * - 시험 출제 실행 및 목록 탭으로 이동
+ * - 학년 선택 시스템 (중1, 중2, 중3) - Select 드롭다운
+ * - 학생 수 선택 옵션 (10, 15, 20, 25, 30명) - 유연한 클래스 크기 지원
+ * - 시험명 선택 드롭다운 (8가지 사전 정의된 시험 유형)
+ * - 실시간 시험 정보 미리보기 (3개 문제지 샘플 표시)
+ * - 시험 구성 정보 표시 (문항 수, 객관식/주관식 비율, 시간, 난이도)
+ * - 완전한 시험 출제 워크플로 (정보 입력 → 미리보기 → 출제 완료)
+ * - 자동 시험 목록 업데이트 및 페이지 이동
+ *
+ * 워크플로:
+ * 1. 기본 정보 입력 (학년, 학생 수, 시험명)
+ * 2. 입력 정보 기반 미리보기 자동 생성
+ * 3. 시험 구성 정보 확인 (문항 구성, 난이도 등)
+ * 4. 시험 출제 버튼으로 최종 생성
+ * 5. 시험 목록에 자동 추가 및 페이지 이동
+ *
+ * 상태 관리:
+ * - selectedGrade: 현재 선택된 학년 ("중1", "중2", "중3")
+ * - studentCount: 선택된 학생 수 (string 타입으로 Select 컴포넌트와 호환)
+ * - selectedTestName: 선택된 시험명 (testNameOptions에서 선택)
+ *
+ * @example
+ * ```tsx
+ * // 기본 사용법 (탭 시스템 내에서)
+ * <Tabs defaultValue="registration">
+ *   <TabsList>
+ *     <TabsTrigger value="list">시험 목록</TabsTrigger>
+ *     <TabsTrigger value="registration">시험 출제</TabsTrigger>
+ *   </TabsList>
+ *   <TabsContent value="registration">
+ *     <TestRegistrationTab />
+ *   </TabsContent>
+ * </Tabs>
+ *
+ * // 독립적인 페이지로 사용
+ * function TestCreationPage() {
+ *   return (
+ *     <div className="container mx-auto py-6">
+ *       <TestRegistrationTab />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 export function TestRegistrationTab() {
   const { addNewTest } = useTestList();
@@ -56,8 +100,39 @@ export function TestRegistrationTab() {
   ];
 
   /**
-   * 시험 출제 핸들러
-   * @description 시험 출제 완료 후 목록 탭으로 이동하고 새로운 시험을 목록에 추가
+   * 시험 출제 및 등록 처리 핸들러
+   * @description 사용자가 입력한 시험 정보를 검증하고 새로운 시험을 생성하여 시스템에 등록
+   *
+   * 처리 과정:
+   * 1. 입력 데이터 유효성 검증 (학년, 학생수, 시험명 필수 확인)
+   * 2. Test 객체 생성 (기본값 포함한 완전한 시험 정보 구성)
+   * 3. useTestList 훅을 통한 시험 목록 상태 업데이트
+   * 4. 사용자 피드백 (성공 알림 메시지 표시)
+   * 5. 시험 관리 페이지로 자동 리다이렉션
+   *
+   * 데이터 변환:
+   * - 폼 입력값들을 Test 타입 스키마에 맞게 변환
+   * - 기본값 자동 설정 (문항수 20개, 난이도 "기초", 상태 "승인대기")
+   * - unitName 자동 생성 (학년 + 과목 + 시험명 조합)
+   *
+   * 에러 처리:
+   * - 필수 필드 누락 시 사용자 친화적 알림
+   * - 조기 리턴을 통한 안전한 실행 흐름
+   *
+   * 사이드 이펙트:
+   * - 전역 시험 목록 상태 업데이트 (useTestList.addNewTest)
+   * - 브라우저 페이지 이동 (window.location.href)
+   * - 사용자 알림 (alert - 향후 Toast로 개선 가능)
+   *
+   * 성능 고려사항:
+   * - 폼 검증 로직이 가볍고 동기적 처리
+   * - 페이지 이동으로 현재 컴포넌트 언마운트되어 메모리 정리
+   *
+   * 향후 개선 방안:
+   * - alert 대신 Toast 컴포넌트 사용
+   * - window.location.href 대신 React Router 사용
+   * - 서버 API 연동으로 실제 시험 생성 처리
+   * - 로딩 상태 표시 및 에러 처리 강화
    */
   const handleSubmit = () => {
     if (!selectedGrade || !studentCount || !selectedTestName) {

@@ -9,3 +9,4 @@ export { TestDetailTable } from "./TestDetailTable";
 export { ParticipationBadge } from "./ParticipationBadge";
 export { TestDetail } from "./TestDetail";
 export { TestRegistrationTab } from "./TestRegistrationTab";
+export { ExamSubmissionStatus } from "./ExamSubmissionStatus";

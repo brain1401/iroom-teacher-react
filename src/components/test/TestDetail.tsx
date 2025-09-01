@@ -21,15 +21,28 @@ import type { TestSubmitStatusDetail } from "@/types/test";
 import { AnswerSheetResult } from "./AnswerSheetResult";
 
 /**
- * 문항 답안 타입
+ * 시험 문항 답안 정보 타입
+ * @description 학생이 제출한 개별 문항의 답안과 채점 결과를 나타내는 타입
+ *
+ * 주요 용도:
+ * - 답안지 상세 보기 모달에서 문항별 답안 표시
+ * - 채점 결과 및 점수 계산
+ * - 정답/오답 시각적 표시
  */
 export type QuestionAnswer = {
+  /** 문항 고유 식별자 */
   questionId: string;
+  /** 문항 내용 텍스트 */
   questionText: string;
+  /** 학생이 제출한 답안 */
   studentAnswer: string;
+  /** 정답 */
   correctAnswer: string;
+  /** 정답 여부 */
   isCorrect: boolean;
+  /** 문항 배점 */
   score: number;
+  /** 학생이 획득한 점수 (정답시 score와 동일, 오답시 0) */
   earnedScore: number;
 };
 

@@ -88,6 +88,103 @@ const fakeTestPaperData: TestPaper[] = [
   },
 ];
 
+/**
+ * 문제지 목록 관리 탭 컴포넌트
+ * @description 생성된 문제지들을 종합적으로 관리하는 메인 대시보드 컴포넌트
+ *
+ * 주요 기능:
+ * - 문제지 목록 조회 및 표시 (테이블 형태의 구조화된 뷰)
+ * - 대량 선택을 통한 일괄 관리 (체크박스 기반 다중 선택)
+ * - 실시간 검색 및 필터링 (단원명, 문제지명 기준)
+ * - 동적 정렬 기능 (단원명, 문제지명, 생성일시 기준)
+ * - 페이지네이션을 통한 성능 최적화
+ * - 문제지별 상세 액션 (인쇄, 문제 보기, 답안 확인, 삭제)
+ * - localStorage 기반 데이터 지속성 (새로 생성된 문제지 저장)
+ * - 모달 통합 관리 (인쇄 옵션, 문제 뷰어)
+ *
+ * 데이터 구조:
+ * ```typescript
+ * type TestPaper = {
+ *   id: string;           // 문제지 고유 식별자
+ *   unitName: string;     // 해당 단원명 (예: "1단원: 다항식의 연산")
+ *   testName: string;     // 문제지명 (예: "2025-1학기 중간고사 대비")
+ *   questionCount: number; // 총 문제 수
+ *   createdAt?: string;   // 생성 일시 (ISO 8601 형식)
+ * };
+ * ```
+ *
+ * 상태 관리 아키텍처:
+ * - `papers`: 전체 문제지 목록 (localStorage + 기본 데이터 병합)
+ * - `selectedIds`: 선택된 문제지 ID Set (성능 최적화를 위한 Set 사용)
+ * - `currentPage`: 현재 페이지 번호 (1부터 시작)
+ * - `sortField/sortOrder`: 정렬 기준과 방향 (ASC/DESC)
+ * - `searchKeyword/searchScope`: 검색어와 검색 범위
+ * - 모달 관련 상태들 (인쇄, 문제 보기)
+ *
+ * 성능 최적화:
+ * - 페이지네이션으로 대량 데이터 처리 최적화 (기본 8개 항목/페이지)
+ * - Set 기반 선택 상태 관리로 O(1) 조회 성능 확보
+ * - 불변성 유지를 통한 React 렌더링 최적화
+ * - 조건부 렌더링으로 불필요한 컴포넌트 생성 방지
+ *
+ * 사용자 경험 고려사항:
+ * - 검색어 변경 시 자동으로 첫 페이지로 이동 (일관된 UX)
+ * - 현재 페이지 기준 전체 선택/해제 기능
+ * - 정렬 상태 시각적 표시로 사용자 피드백 제공
+ * - 삭제 전 확인 대화상자로 실수 방지
+ * - 로딩 및 빈 상태에 대한 적절한 피드백
+ *
+ * 접근성 고려사항:
+ * - 테이블 헤더와 셀 간 명확한 연관성 제공
+ * - 체크박스 상태에 대한 적절한 aria-label 제공
+ * - 정렬 버튼의 현재 상태 스크린 리더 전달
+ * - 키보드 네비게이션 지원 (Tab, Enter, Space)
+ * - 모달 다이얼로그의 포커스 트랩 구현
+ *
+ * @example
+ * ```tsx
+ * // 기본 사용법 - 문제지 목록 탭으로 사용
+ * <TestPaperListTab />
+ *
+ * // 부모 컴포넌트에서 통합 사용 예시
+ * function TestPaperManagement() {
+ *   return (
+ *     <div className="test-paper-dashboard">
+ *       <TestPaperListTab />
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // localStorage 데이터 구조 예시
+ * localStorage.setItem("newTestPapers", JSON.stringify([
+ *   {
+ *     id: "user-001",
+ *     unitName: "7단원: 함수와 그래프",
+ *     testName: "사용자 생성 문제지",
+ *     questionCount: 15,
+ *     createdAt: "2025-01-25T10:00:00Z"
+ *   }
+ * ]));
+ * ```
+ *
+ * 기술적 구현 세부사항:
+ * - React useState를 통한 로컬 상태 관리
+ * - Array.prototype.sort()의 다중 기준 정렬 구현
+ * - String.prototype.includes()를 활용한 대소문자 무관 검색
+ * - Math.ceil()을 통한 페이지 수 계산
+ * - Set 데이터 구조의 효율적 활용 (add/delete/has 연산)
+ * - 조건부 렌더링을 통한 메모리 사용량 최적화
+ *
+ * 확장 가능성:
+ * - 서버 기반 데이터 소스로의 마이그레이션 준비
+ * - 무한 스크롤링 옵션 추가 가능
+ * - 고급 필터링 옵션 (날짜 범위, 문제 수 범위 등)
+ * - 문제지 내보내기/가져오기 기능
+ * - 실시간 협업 기능 (WebSocket 기반)
+ */
 export function TestPaperListTab() {
   // 문제지 데이터를 상태로 관리하여 동적으로 추가/삭제 가능
   const [papers, setPapers] = useState(() => {

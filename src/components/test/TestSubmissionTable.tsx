@@ -15,23 +15,109 @@ import type { TestSubmitStatusDetail } from "@/types/test";
 /**
  * 시험 제출 현황 테이블 Props
  */
+/**
+ * 시험 제출 현황 테이블 컴포넌트 Props
+ * @interface TestSubmissionTableProps
+ */
 type TestSubmissionTableProps = {
-  /** 제출 현황 데이터 */
+  /** 
+   * 시험 제출 현황 데이터 배열
+   * @description TestSubmitStatusDetail 타입의 배열로 각 학생의 제출 정보를 포함
+   * - 학생 기본 정보 (이름, 학년/반, 번호, 전화번호)
+   * - 제출 상태 정보 (제출일자, 상태, 점수, 제출시간, 오답수)
+   * - 빈 배열일 경우 "데이터 없음" 상태 표시
+   */
   submissions: TestSubmitStatusDetail[];
-  /** 선택된 항목 ID들 */
+  
+  /** 
+   * 현재 선택된 학생 ID들의 Set 컬렉션
+   * @description 체크박스 상태 관리를 위한 고유 식별자 집합
+   * - Set 자료구조로 O(1) 시간복잡도의 선택 상태 확인
+   * - 다중 선택 기능을 위한 핵심 데이터 구조
+   * - student.id를 키로 사용하여 학생별 선택 상태 추적
+   */
   selectedIds: Set<string>;
-  /** 전체 선택/해제 핸들러 */
+  
+  /** 
+   * 전체 선택/해제 토글 핸들러 함수
+   * @description 헤더의 마스터 체크박스 클릭 시 실행되는 함수
+   * - true: 모든 학생을 선택 상태로 변경
+   * - false: 모든 학생을 선택 해제 상태로 변경
+   * - 전체/부분 선택 상태에 따른 indeterminate 처리 포함
+   */
   onSelectAll: (checked: boolean) => void;
-  /** 개별 선택/해제 핸들러 */
+  
+  /** 
+   * 개별 학생 선택/해제 핸들러 함수
+   * @description 각 행의 체크박스 클릭 시 실행되는 함수
+   * - 첫 번째 인자: 선택/해제할 학생의 고유 ID
+   * - 두 번째 인자: 선택 상태 (true: 선택, false: 선택 해제)
+   * - selectedIds Set 업데이트를 위한 핵심 함수
+   */
   onSelect: (id: string, checked: boolean) => void;
-  /** 상세 보기 핸들러 */
+  
+  /** 
+   * 학생 답안 상세 보기 모달 열기 핸들러 함수
+   * @description Eye 아이콘 버튼 클릭 시 실행되는 함수
+   * - 선택된 학생의 상세 답안 정보를 모달로 표시
+   * - AnswerSheetResult 컴포넌트와 연동하여 문항별 답안 분석 제공
+   * - 제출 완료된 학생만 활성화 (미제출 학생은 버튼 비활성화)
+   */
   onOpenDetail: (submission: TestSubmitStatusDetail) => void;
-  /** 답안 다운로드 핸들러 */
+  
+  /** 
+   * 학생 답안 다운로드 핸들러 함수
+   * @description Download 아이콘 버튼 클릭 시 실행되는 함수
+   * - 학생의 답안지를 파일 형태로 다운로드 (PDF, 이미지 등)
+   * - 점수가 있는 학생만 다운로드 가능 (hasScore 조건)
+   * - 인쇄, 보관, 공유 목적의 답안지 출력 기능
+   */
   onDownloadAnswer: (submission: TestSubmitStatusDetail) => void;
 };
 
 /**
  * 제출 상태에 따른 배지 variant 반환
+ */
+/**
+ * 제출 상태에 따른 Badge variant 결정 함수
+ * @description 학생의 시험 제출 상태 문자열을 기반으로 적절한 shadcn/ui Badge variant를 반환
+ *
+ * 상태별 색상 매핑:
+ * - "미제출": destructive variant (빨간색) - 긴급하고 중요한 상태 표시
+ * - "제출완료": default variant (파란색) - 정상적인 완료 상태 표시
+ * - 기타 상태: outline variant (회색 테두리) - 중립적인 상태 표시
+ *
+ * 설계 특징:
+ * - 직관적 색상 시스템: 빨간색(미완료), 파란색(완료), 회색(기타)
+ * - shadcn/ui Badge 컴포넌트와 완전 호환
+ * - 확장 가능한 구조: 새로운 상태 추가 시 쉬운 확장
+ * - 타입 안전성: string 입력에 대한 안전한 처리
+ *
+ * @param status 학생의 시험 제출 상태 문자열
+ * @returns shadcn/ui Badge 컴포넌트에서 사용할 variant 문자열
+ *
+ * @example
+ * ```tsx
+ * // 기본 사용법
+ * const variant = GetStatusBadgeVariant("제출완료");
+ * // 결과: "default"
+ * 
+ * <Badge variant={GetStatusBadgeVariant(submission.submissionStatus)}>
+ *   {submission.submissionStatus}
+ * </Badge>
+ *
+ * // 다양한 상태들
+ * GetStatusBadgeVariant("미제출")    // "destructive" (빨간색)
+ * GetStatusBadgeVariant("제출완료")   // "default" (파란색)
+ * GetStatusBadgeVariant("채점중")    // "outline" (회색 테두리)
+ * GetStatusBadgeVariant("재시험")    // "outline" (회색 테두리)
+ * ```
+ *
+ * 향후 확장 가능한 상태들:
+ * - "채점중": secondary variant (노란색) - 진행 중 상태
+ * - "재시험": outline variant - 특별 처리 필요 상태  
+ * - "지각제출": destructive variant - 경고 상태
+ * - "부정행위": destructive variant - 문제 상태
  */
 function GetStatusBadgeVariant(status: string) {
   switch (status) {
