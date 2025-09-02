@@ -81,25 +81,25 @@ function RouteComponent() {
   // 가데이터 (학년별 시험 평균)
   const fakeAveragesByGrade: Record<
     Grade,
-    { testName: string; average: number; participants: number }[]
+    { examName: string; average: number; participants: number }[]
   > = {
     중1: [
-      { testName: "1학기 중간", average: 76, participants: 10 },
-      { testName: "1학기 기말", average: 81, participants: 10 },
-      { testName: "2학기 중간", average: 79, participants: 10 },
-      { testName: "2학기 기말", average: 83, participants: 10 },
+      { examName: "1학기 중간", average: 76, participants: 10 },
+      { examName: "1학기 기말", average: 81, participants: 10 },
+      { examName: "2학기 중간", average: 79, participants: 10 },
+      { examName: "2학기 기말", average: 83, participants: 10 },
     ],
     중2: [
-      { testName: "1학기 중간", average: 72, participants: 12 },
-      { testName: "1학기 기말", average: 78, participants: 12 },
-      { testName: "2학기 중간", average: 75, participants: 12 },
-      { testName: "2학기 기말", average: 80, participants: 12 },
+      { examName: "1학기 중간", average: 72, participants: 12 },
+      { examName: "1학기 기말", average: 78, participants: 12 },
+      { examName: "2학기 중간", average: 75, participants: 12 },
+      { examName: "2학기 기말", average: 80, participants: 12 },
     ],
     중3: [
-      { testName: "1학기 중간", average: 70, participants: 11 },
-      { testName: "1학기 기말", average: 77, participants: 11 },
-      { testName: "2학기 중간", average: 74, participants: 11 },
-      { testName: "2학기 기말", average: 79, participants: 11 },
+      { examName: "1학기 중간", average: 70, participants: 11 },
+      { examName: "1학기 기말", average: 77, participants: 11 },
+      { examName: "2학기 중간", average: 74, participants: 11 },
+      { examName: "2학기 기말", average: 79, participants: 11 },
     ],
   };
   const results = fakeAveragesByGrade[grade];
@@ -200,7 +200,7 @@ function RouteComponent() {
   const chartData = useMemo(() => {
     const list = results;
     return list.map((r) => ({
-      name: r.testName,
+      name: r.examName,
       avg: r.average,
       participants: r.participants,
     }));

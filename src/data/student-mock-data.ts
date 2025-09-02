@@ -1,4 +1,8 @@
-import type { Student, TestSubmitStatusDetail, SubmissionStatus } from "@/types/test";
+import type {
+  Student,
+  ExamSubmitStatusDetail,
+  SubmissionStatus,
+} from "@/types/exam";
 
 /**
  * 학생 가데이터
@@ -144,14 +148,14 @@ export const studentMockData: Student[] = [
 
 /**
  * 시험 제출 현황 가데이터 생성 함수
- * @param testName 시험명
+ * @param examName 시험명
  * @param studentCount 생성할 학생 수 (기본값: 15)
  * @returns 시험 제출 현황 데이터 배열
  */
-export function generateTestSubmissionData(
-  testName: string,
-  studentCount: number = 15
-): TestSubmitStatusDetail[] {
+export function generateExamSubmissionData(
+  examName: string,
+  studentCount: number = 15,
+): ExamSubmitStatusDetail[] {
   const statuses: SubmissionStatus[] = ["미제출", "제출완료"];
   const submissionDates = [
     "2025-01-15",
@@ -163,18 +167,25 @@ export function generateTestSubmissionData(
 
   return studentMockData.slice(0, studentCount).map((student, index) => {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const submissionDate = submissionDates[Math.floor(Math.random() * submissionDates.length)];
-    
+    const submissionDate =
+      submissionDates[Math.floor(Math.random() * submissionDates.length)];
+
     // 제출 완료된 경우에만 점수 정보 추가
     const hasScore = status === "제출완료";
     const totalScore = hasScore ? 100 : undefined;
-    const earnedScore = hasScore ? Math.floor(Math.random() * 100) + 1 : undefined;
-    const submissionTime = hasScore ? Math.floor(Math.random() * 60) + 10 : undefined;
-    const wrongAnswerCount = hasScore ? Math.floor(Math.random() * 20) : undefined;
+    const earnedScore = hasScore
+      ? Math.floor(Math.random() * 100) + 1
+      : undefined;
+    const submissionTime = hasScore
+      ? Math.floor(Math.random() * 60) + 10
+      : undefined;
+    const wrongAnswerCount = hasScore
+      ? Math.floor(Math.random() * 20)
+      : undefined;
 
     return {
       student,
-      testName,
+      examName,
       submissionDate,
       submissionStatus: status,
       totalScore,
@@ -188,15 +199,15 @@ export function generateTestSubmissionData(
 /**
  * 특정 시험의 제출 현황 가데이터
  */
-export const testSubmissionMockData: TestSubmitStatusDetail[] = [
+export const examSubmissionMockData: ExamSubmitStatusDetail[] = [
   // 중간고사 대비 시험 제출 현황
-  ...generateTestSubmissionData("2025-1학기 중간고사 대비", 10),
-  
+  ...generateExamSubmissionData("2025-1학기 중간고사 대비", 10),
+
   // 기말고사 대비 시험 제출 현황
-  ...generateTestSubmissionData("2025-1학기 기말고사 대비", 8),
-  
+  ...generateExamSubmissionData("2025-1학기 기말고사 대비", 8),
+
   // 단원 평가 제출 현황
-  ...generateTestSubmissionData("단원 평가 (A)", 12),
+  ...generateExamSubmissionData("단원 평가 (A)", 12),
 ];
 
 /**
@@ -206,14 +217,14 @@ export const testSubmissionMockData: TestSubmitStatusDetail[] = [
  */
 export function searchStudents(keyword: string): Student[] {
   if (!keyword.trim()) return studentMockData;
-  
+
   const lowerKeyword = keyword.toLowerCase();
   return studentMockData.filter(
     (student) =>
       student.name.toLowerCase().includes(lowerKeyword) ||
       student.phoneNumber.includes(keyword) ||
       student.grade.toLowerCase().includes(lowerKeyword) ||
-      student.class.includes(keyword)
+      student.class.includes(keyword),
   );
 }
 
@@ -233,9 +244,12 @@ export function filterStudentsByGrade(grade: string): Student[] {
  * @param className 반
  * @returns 해당 반 학생 배열
  */
-export function filterStudentsByClass(grade: string, className: string): Student[] {
+export function filterStudentsByClass(
+  grade: string,
+  className: string,
+): Student[] {
   if (!grade || !className) return studentMockData;
   return studentMockData.filter(
-    (student) => student.grade === grade && student.class === className
+    (student) => student.grade === grade && student.class === className,
   );
 }

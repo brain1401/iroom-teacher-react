@@ -1,17 +1,25 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { ChartColumn, House, FileCog, FolderCog } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+
 // 1. framer-motion에서 필요한 것들을 import
 import { motion } from "framer-motion";
 
-const menuItems: { path: string; icon: LucideIcon; label: string }[] = [
-  { path: "/main", icon: House, label: "홈" },
-  { path: "/main/test-paper", icon: FolderCog, label: "문제지 관리" },
-  { path: "/main/test-management", icon: FileCog, label: "시험 관리" },
-  { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" },
+const menuItems = [
+  { path: "/main", icon: House, label: "홈" } as const,
+  {
+    path: "/main/exam/sheet/manage",
+    icon: FolderCog,
+    label: "문제지 관리",
+  } as const,
+  {
+    path: "/main/exam/manage",
+    icon: FileCog,
+    label: "시험 관리",
+  } as const,
+  { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" } as const,
 ];
 
-export function SideMenu() {
+export function SideNavigationBar() {
   const location = useLocation({ select: (loc) => loc.pathname });
 
   // isActive 함수 수정 - 정확한 경로 매칭만

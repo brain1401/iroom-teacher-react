@@ -1,5 +1,5 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { ExamSubmissionStatus } from "@/components/test";
+import { ExamSubmissionStatus } from "@/components/exam";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   HoverCard,
@@ -9,16 +9,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSetAtom, useAtomValue } from "jotai";
-import { useLayoutEffect, useEffect, useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { GradeDistributionChart } from "@/components/charts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { CircleQuestionMarkIcon, ChevronRight } from "lucide-react";
-import {
-  dashboardTestSubmissions,
-  calculateDashboardStats,
-} from "@/data/test-submission-dashboard";
-import type { DashboardTestSubmission } from "@/data/test-submission-dashboard";
 import { isAuthenticatedAtom } from "@/atoms/auth";
+import {
+  calculateDashboardStats,
+  dashboardExamSubmissions,
+} from "@/data/exam-submission-dashboard";
+import type { DashboardExamSubmission } from "@/data/exam-submission-dashboard";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
@@ -106,12 +106,12 @@ function RouteComponent() {
   /**
    * 시험 제출 현황 카드 클릭 핸들러
    */
-  const handleTestSubmissionClick = (test: DashboardTestSubmission) => {
+  const handleExamSubmissionClick = (exam: DashboardExamSubmission) => {
     // 해당 시험의 제출 현황 상세 페이지로 이동
     navigate({
-      to: "/main/test-management/$testId",
-      params: { testId: test.id },
-      search: { testName: test.testName },
+      to: "/main/exam/manage/$examId",
+      params: { examId: exam.id },
+      search: { examName: exam.examName },
     });
   };
 
@@ -120,7 +120,7 @@ function RouteComponent() {
    */
   const handleViewMoreClick = () => {
     navigate({
-      to: "/main/test-management",
+      to: "/main/exam/manage",
     });
   };
 
@@ -142,7 +142,7 @@ function RouteComponent() {
   /**
    * 최근 4개의 시험 제출 현황만 표시
    */
-  const recentTestSubmissions = dashboardTestSubmissions.slice(0, 4);
+  const recentExamSubmissions = dashboardExamSubmissions.slice(0, 4);
 
   return (
     <div className="flex flex-1 gap-8 ">
@@ -153,7 +153,7 @@ function RouteComponent() {
           </CardTitle>
           {/* 대시보드 통계 요약 */}
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-            <span>총 {dashboardStats.totalTests}개 시험</span>
+            <span>총 {dashboardStats.totalExams}개 시험</span>
             <span>•</span>
             <span>평균 제출률 {dashboardStats.averageSubmissionRate}%</span>
             <span>•</span>
@@ -165,20 +165,20 @@ function RouteComponent() {
           <hr className="my-7 text-gray-200" />
         </CardHeader>
         <div className="-mt-10 p-4 gap-4 flex flex-col">
-          {recentTestSubmissions.map((test) => (
+          {recentExamSubmissions.map((exam) => (
             <ExamSubmissionStatus
-              key={test.id}
-              unitName={`${test.unitName} : ${test.testName}`}
-              submittedCount={test.submittedCount}
-              totalStudents={test.totalStudents}
-              submissionRate={test.submissionRate}
-              onClick={() => handleTestSubmissionClick(test)}
+              key={exam.id}
+              unitName={`${exam.unitName} : ${exam.examName}`}
+              submittedCount={exam.submittedCount}
+              totalStudents={exam.totalStudents}
+              submissionRate={exam.submissionRate}
+              onClick={() => handleExamSubmissionClick(exam)}
               className="cursor-pointer hover:shadow-lg transition-shadow"
             />
           ))}
 
           {/* 더보기 버튼 */}
-          {dashboardTestSubmissions.length > 4 && (
+          {dashboardExamSubmissions.length > 4 && (
             <div className="flex justify-center mt-4">
               <Button
                 variant="outline"

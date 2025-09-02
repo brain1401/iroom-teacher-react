@@ -2,6 +2,6 @@
  * 데이터 관련 파일들
  */
 
-export * from "./test-paper-mock-data";
+export * from "./exam-sheet-mock-data";
 export * from "./student-mock-data";
-export * from "./test-submission-dashboard";
+export * from "./exam-submission-dashboard";

@@ -35,7 +35,7 @@ import type { Grade } from "@/types/grade";
  * 기존 useState와 비교:
  * ```typescript
  * // ❌ 기존 방식 (각 컴포넌트마다 따로 관리)
- * function TestPaperListPage() {
+ * function ExamSheetListPage() {
  *   const [selectedGrade, setSelectedGrade] = useState<Grade>("중1");
  *   // 다른 페이지로 이동하면 상태 소실됨
  * }
@@ -46,7 +46,7 @@ import type { Grade } from "@/types/grade";
  * }
  *
  * // ✅ Jotai 방식 (전역에서 공유)
- * function TestPaperListPage() {
+ * function ExamSheetListPage() {
  *   // 📌 값과 설정 함수 모두 필요 - useAtom 사용
  *   const [selectedGrade, setSelectedGrade] = useAtom(selectedGradeAtom);
  * }
@@ -81,18 +81,18 @@ import type { Grade } from "@/types/grade";
  * }
  *
  * // 다른 컴포넌트에서 선택된 학년 사용
- * function TestPaperList() {
+ * function ExamSheetList() {
  *   const selectedGrade = useAtomValue(selectedGradeAtom);
  *
- *   const { data: testPapers } = useQuery({
- *     queryKey: ['testPapers', selectedGrade],
- *     queryFn: () => fetchTestPapersByGrade(selectedGrade),
+ *   const { data: examSheets } = useQuery({
+ *     queryKey: ['examSheets', selectedGrade],
+ *     queryFn: () => fetchExamSheetsByGrade(selectedGrade),
  *   });
  *
  *   return (
  *     <div>
  *       <h2>{selectedGrade} 시험지 목록</h2>
- *       {testPapers?.map(paper => <TestPaperCard key={paper.id} {...paper} />)}
+ *       {examSheets?.map(sheet => <ExamSheetCard key={sheet.id} {...sheet} />)}
  *     </div>
  *   );
  * }
@@ -205,7 +205,7 @@ export const gradeDisplayNameAtom = atom((get) => {
  *   return (
  *     <div className="stats-grid">
  *       <StatCard title="총 학생 수" value={stats.totalStudents} />
- *       <StatCard title="시험지 개수" value={stats.totalTestPapers} />
+ *       <StatCard title="시험지 개수" value={stats.totalExamSheets} />
  *       <StatCard title="평균 점수" value={`${stats.averageScore}점`} />
  *     </div>
  *   );
@@ -220,7 +220,7 @@ export const gradeStatsSummaryAtom = atom((get) => {
   return {
     grade: selectedGrade,
     totalStudents: 0,
-    totalTestPapers: 0,
+    totalExamSheets: 0,
     averageScore: 0,
     lastUpdated: new Date().toISOString(),
   };
@@ -268,6 +268,6 @@ export const changeGradeActionAtom = atom(
     }
 
     // 4. 실제 구현에서는 관련 쿼리 무효화 등 추가 처리
-    // queryClient.invalidateQueries(['testPapers', newGrade]);
+    // queryClient.invalidateQueries(['examSheets', newGrade]);
   },
 );
