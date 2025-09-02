@@ -13,13 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  tableStyles,
-  buttonStyles,
-  badgeStyles,
-  getDifficultyBadgeVariant,
-  getStatusBadgeVariant,
-} from "@/utils/commonStyles";
+import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
 import { ParticipationBadge } from "./ParticipationBadge";
 import type { Exam } from "@/types/exam";
 import { Link } from "@tanstack/react-router";
@@ -219,9 +213,6 @@ export function ExamTable({
             <TableHead className={tableStyles.headerCellCenter}>
               문항수
             </TableHead>
-            <TableHead className={tableStyles.headerCell}>
-              시험 난이도
-            </TableHead>
             <TableHead className={tableStyles.headerCellCenter}>
               참여 현황
             </TableHead>
@@ -257,16 +248,6 @@ export function ExamTable({
               <TableCell className={tableStyles.cellCenter}>
                 <Badge variant="outline" className={badgeStyles.outline}>
                   {sheet.questionCount}문항
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant={getDifficultyBadgeVariant(sheet.questionLevel)}
-                  className={
-                    badgeStyles[getDifficultyBadgeVariant(sheet.questionLevel)]
-                  }
-                >
-                  {sheet.questionLevel}
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>

@@ -1,24 +1,13 @@
-// src/components/exam/ExamDetail.tsx
-
 import { useState, useMemo } from "react";
 import { ExamDetailTable } from "./ExamDetailTable";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { examSubmissionMockData } from "@/data/student-mock-data";
 import {
   getExamSubmissionData,
   dashboardExamSubmissions,
 } from "@/data/exam-submission-dashboard";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
-import { AnswerSheetResult } from "./AnswerSheetResult";
+import { AnswerSheetCheckModal } from "./AnswerSheetResult";
 
 /**
  * 시험 문항 답안 정보 타입
@@ -237,18 +226,12 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
   return (
     <div className="space-y-4 w-full">
       {/* 헤더 영역 */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-          className="flex items-center gap-2 hover:bg-gray-100"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          뒤로가기
-        </Button>
+      <div className=" flex items-center gap-4">
         <div className="flex-1">
-          <div className="text-[2.5rem] font-bold">시험 제출 현황</div>
+          <div className="text-[2.5rem] leading-none font-bold">
+            시험 제출 현황
+          </div>
+
           {examName && <p className="text-lg text-gray-600 mt-1">{examName}</p>}
           {examInfo && (
             <div className="flex items-center gap-4 mt-2">
@@ -270,7 +253,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Badge className="bg-gray-800 text-white">전체</Badge>
+            <Badge className="bg-gray-900 text-white">전체</Badge>
             <p className="text-sm font-medium">{submissionStats.total}명</p>
           </div>
           <div className="flex items-center gap-2">
@@ -278,7 +261,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
             <p className="text-sm font-medium">{submissionStats.submitted}명</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="bg-red-500 text-white">미제출</Badge>
+            <Badge className="bg-red-600 text-white">미제출</Badge>
             <p className="text-sm font-medium">
               {submissionStats.notSubmitted}명
             </p>
@@ -318,7 +301,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
       />
 
       {/* 답안 확인 모달 */}
-      <AnswerSheetResult
+      <AnswerSheetCheckModal
         selectedSubmission={selectedSubmission}
         selectedAnswers={selectedAnswers}
         onClose={handleClose}

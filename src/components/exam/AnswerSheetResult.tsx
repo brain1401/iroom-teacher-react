@@ -12,7 +12,7 @@ import type { QuestionAnswer } from "./ExamDetail";
  * 답안지 결과 모달 컴포넌트 Props
  * @interface AnswerSheetResultProps
  */
-type AnswerSheetResultProps = {
+type Props = {
   /** 선택된 학생의 시험 제출 상세 정보 - null이면 모달 비활성화 */
   selectedSubmission: ExamSubmitStatusDetail | null;
   /** 학생의 문항별 답안 정보 배열 - 빈 배열이면 모달 비활성화 */
@@ -196,11 +196,11 @@ type AnswerSheetResultProps = {
  * - 답안 이력 및 수정 내역 추적
  * - 실시간 채점 및 피드백 시스템 연동
  */
-function AnswerSheetResult({
+export function AnswerSheetCheckModal({
   selectedSubmission,
   selectedAnswers,
   onClose,
-}: AnswerSheetResultProps) {
+}: Props) {
   return (
     <Dialog
       open={!!selectedSubmission && selectedAnswers.length > 0}
@@ -326,5 +326,3 @@ function AnswerSheetResult({
     </Dialog>
   );
 }
-
-export { AnswerSheetResult };

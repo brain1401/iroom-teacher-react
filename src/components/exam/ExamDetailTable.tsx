@@ -206,7 +206,6 @@ export function ExamDetailTable({
             </TableHead>
             <TableHead className={tableStyles.headerCell}>이름</TableHead>
             <TableHead className={tableStyles.headerCell}>전화번호</TableHead>
-            <TableHead className={tableStyles.headerCell}>시험명</TableHead>
             <TableHead className={tableStyles.headerCell}>제출일자</TableHead>
             <TableHead className={tableStyles.headerCellCenter}>
               제출 상태
@@ -249,11 +248,6 @@ export function ExamDetailTable({
                 {/* 전화번호 */}
                 <TableCell className={tableStyles.cell}>
                   {submission.student.phoneNumber}
-                </TableCell>
-
-                {/* 시험명 */}
-                <TableCell className={tableStyles.cell}>
-                  {submission.examName}
                 </TableCell>
 
                 {/* 제출일자 */}

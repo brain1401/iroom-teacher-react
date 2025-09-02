@@ -40,7 +40,7 @@ function ExamDetailPage() {
   );
 
   return (
-    <div className="w-full h-full p-8">
+    <div className="w-full h-full py-5">
       <ExamDetail
         onBack={handleBack}
         examName={examName || selectedExam?.examName}

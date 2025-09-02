@@ -70,7 +70,7 @@ import type { Exam, ExamLevel, ExamStatus } from "@/types/exam";
  * }
  * ```
  */
-export function ExamRegistrationTab() {
+export function ExamSheetRegistrationTab() {
   const { addNewExam } = useExamList();
 
   // 상태 관리

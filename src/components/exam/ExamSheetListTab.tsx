@@ -228,7 +228,7 @@ type ExamListTabProps = {
  * - 드래그 앤 드롭을 통한 시험 순서 변경
  * - 고급 검색 필터 (날짜 범위, 난이도, 참여율 등)
  */
-export function ExamListTab({
+export function ExamSheetListTab({
   selectedExamId,
   selectedExamName,
 }: ExamListTabProps) {

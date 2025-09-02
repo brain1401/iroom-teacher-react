@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { Route as ParentRoute } from "./route";
 import type { ExamLevel, ExamStatus } from "@/types/exam";
 import { useExamList } from "@/hooks/exam";
-import { ExamListTab, ExamRegistrationTab } from "@/components/exam";
+import { ExamSheetListTab, ExamSheetRegistrationTab } from "@/components/exam";
 
 export const Route = createFileRoute("/main/exam/manage/")({
   component: RouteComponent,
@@ -69,14 +69,14 @@ function RouteComponent() {
   return (
     <>
       <TabsContent value="list" className="mt-10">
-        <ExamListTab
+        <ExamSheetListTab
           selectedExamId={selectedExam}
           selectedExamName={examName}
         />
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">
-        <ExamRegistrationTab />
+        <ExamSheetRegistrationTab />
       </TabsContent>
     </>
   );
