@@ -64,7 +64,7 @@ export function useExamList() {
       examName: "2025-1학기 기말고사 대비",
       questionCount: 25,
       questionLevel: "보통",
-      status: "승인대기",
+      status: "승인완료",
       createdAt: "2025-01-16",
       updatedAt: "2025-01-16",
       totalParticipants: 30,

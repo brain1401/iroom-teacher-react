@@ -112,7 +112,7 @@ export function ExamSheetRegistrationTab() {
    *
    * 데이터 변환:
    * - 폼 입력값들을 Exam 타입 스키마에 맞게 변환
-   * - 기본값 자동 설정 (문항수 20개, 난이도 "기초", 상태 "승인대기")
+   * - 기본값 자동 설정 (문항수 20개, 난이도 "기초", 상태 "승인완료")
    * - unitName 자동 생성 (학년 + 과목 + 시험명 조합)
    *
    * 에러 처리:
@@ -153,7 +153,7 @@ export function ExamSheetRegistrationTab() {
       examName: selectedExamName,
       questionCount: 20, // 기본값
       questionLevel: "기초" as ExamLevel,
-      status: "승인대기" as ExamStatus,
+      status: "승인완료" as ExamStatus,
     };
 
     console.log("시험 출제 데이터:", {

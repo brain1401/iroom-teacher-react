@@ -11,7 +11,7 @@ export type ExamLevel = "기초" | "보통" | "심화";
 /**
  * 시험 상태 타입
  */
-export type ExamStatus = "승인완료" | "승인대기" | "승인거부";
+export type ExamStatus = "승인완료" | "승인거부";
 
 /**
  * 학생 정보 타입

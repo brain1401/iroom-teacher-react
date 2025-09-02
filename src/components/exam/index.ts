@@ -10,3 +10,5 @@ export * from "./ExamDetailTable";
 export * from "./ParticipationBadge";
 export * from "./ExamDetail";
 export * from "./ExamSubmissionStatus";
+export * from "./ExamFilterSidebar";
+export * from "./EnhancedExamSheetListTab";

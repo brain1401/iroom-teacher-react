@@ -47,6 +47,8 @@ type ExamTableProps = {
   onOpenPrint: (sheet: Exam) => void;
   /** 시험 상세 정보 모달 열기 핸들러 (현재 라우팅으로 대체) */
   onOpenDetail: (sheet: Exam) => void;
+  /** 대시보드에서 선택된 시험 ID (하이라이트 표시용) */
+  selectedExamId?: string;
 };
 
 /**
@@ -191,6 +193,7 @@ export function ExamTable({
   onSelectAll,
   onSelect,
   onOpenDetail,
+  selectedExamId,
 }: ExamTableProps) {
   // "전체 선택" 체크박스의 상태를 결정하는 변수
   const isAllSelected = sheets.length > 0 && selectedIds.size === sheets.length;
@@ -228,6 +231,7 @@ export function ExamTable({
               className={cn(
                 tableStyles.row,
                 index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
+                selectedExamId === sheet.id && "ring-2 ring-blue-500 bg-blue-50/50 hover:bg-blue-100/50",
               )}
             >
               <TableCell className={tableStyles.cellCenter}>

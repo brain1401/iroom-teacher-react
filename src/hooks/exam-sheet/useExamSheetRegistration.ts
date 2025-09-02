@@ -311,7 +311,7 @@ export function useExamSheetRegistration() {
           : totalQuestionCount > 20
             ? "보통"
             : "기초",
-      status: "승인대기",
+      status: "승인완료",
     };
 
     console.log("문제지 생성 완료:", {

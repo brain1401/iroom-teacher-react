@@ -55,7 +55,7 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
     submittedCount: 10,
     totalStudents: 30,
     submissionRate: 33.3,
-    status: "승인대기",
+    status: "승인완료",
     createdAt: "2025-01-16",
   },
   {
@@ -162,9 +162,7 @@ export function calculateDashboardStats() {
     completedExams: dashboardExamSubmissions.filter(
       (exam) => exam.status === "승인완료",
     ).length,
-    pendingExams: dashboardExamSubmissions.filter(
-      (exam) => exam.status === "승인대기",
-    ).length,
+    pendingExams: 0, // 승인대기 상태 제거로 항상 0
   };
 }
 

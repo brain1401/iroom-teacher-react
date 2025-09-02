@@ -1,12 +1,13 @@
-import { isShowHeaderAtom } from "@/atoms/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSetAtom } from "jotai";
 import { useLayoutEffect, useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Route as ParentRoute } from "./route";
-import type { ExamLevel, ExamStatus } from "@/types/exam";
-import { useExamList } from "@/hooks/exam";
-import { ExamSheetListTab, ExamSheetRegistrationTab } from "@/components/exam";
+import {
+  EnhancedExamSheetListTab,
+  ExamSheetRegistrationTab,
+} from "@/components/exam";
+import { isShowHeaderAtom } from "@/atoms/ui";
 
 export const Route = createFileRoute("/main/exam/manage/")({
   component: RouteComponent,
@@ -15,7 +16,6 @@ export const Route = createFileRoute("/main/exam/manage/")({
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
   const { selectedExam, examName } = ParentRoute.useSearch();
-  const { addNewExam } = useExamList();
 
   // 현재 활성 탭 상태
   const [activeTab, setActiveTab] = useState<string>("list");
@@ -23,23 +23,6 @@ function RouteComponent() {
   useLayoutEffect(() => {
     setIsShowHeader(false);
   }, [setIsShowHeader]);
-
-  /**
-   * 시험 출제 완료 후 목록 탭으로 이동하고 새로운 시험 추가
-   */
-  const handleExamCreated = (newExam: {
-    unitName: string;
-    examName: string;
-    questionCount: number;
-    questionLevel: ExamLevel;
-    status: ExamStatus;
-  }) => {
-    // 새로운 시험을 목록에 추가
-    addNewExam(newExam);
-
-    // 시험 목록 탭으로 이동
-    setActiveTab("list");
-  };
 
   /**
    * 시험 출제 완료 후 목록 탭으로 이동하고 새로운 시험 추가
@@ -69,7 +52,7 @@ function RouteComponent() {
   return (
     <>
       <TabsContent value="list" className="mt-10">
-        <ExamSheetListTab
+        <EnhancedExamSheetListTab
           selectedExamId={selectedExam}
           selectedExamName={examName}
         />
