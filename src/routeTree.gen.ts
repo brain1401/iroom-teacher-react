@@ -22,7 +22,6 @@ import { Route as MainExamManageIndexRouteImport } from './routes/main/exam/mana
 import { Route as ExamplesPokemonIdIndexRouteImport } from './routes/examples/pokemon/$id/index'
 import { Route as MainExamSheetManageRouteRouteImport } from './routes/main/exam/sheet/manage/route'
 import { Route as MainExamSheetManageIndexRouteImport } from './routes/main/exam/sheet/manage/index'
-import { Route as MainExamManageTestIdIndexRouteImport } from './routes/main/exam/manage/$testId/index'
 import { Route as MainExamManageExamIdIndexRouteImport } from './routes/main/exam/manage/$examId/index'
 import { Route as MainExamSheetManageExamIdIndexRouteImport } from './routes/main/exam/sheet/manage/$examId/index'
 
@@ -93,12 +92,6 @@ const MainExamSheetManageIndexRoute =
     path: '/',
     getParentRoute: () => MainExamSheetManageRouteRoute,
   } as any)
-const MainExamManageTestIdIndexRoute =
-  MainExamManageTestIdIndexRouteImport.update({
-    id: '/$testId/',
-    path: '/$testId/',
-    getParentRoute: () => MainExamManageRouteRoute,
-  } as any)
 const MainExamManageExamIdIndexRoute =
   MainExamManageExamIdIndexRouteImport.update({
     id: '/$examId/',
@@ -126,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
   '/main/exam/manage/': typeof MainExamManageIndexRoute
   '/main/exam/manage/$examId': typeof MainExamManageExamIdIndexRoute
-  '/main/exam/manage/$testId': typeof MainExamManageTestIdIndexRoute
   '/main/exam/sheet/manage/': typeof MainExamSheetManageIndexRoute
   '/main/exam/sheet/manage/$examId': typeof MainExamSheetManageExamIdIndexRoute
 }
@@ -140,7 +132,6 @@ export interface FileRoutesByTo {
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
   '/main/exam/manage': typeof MainExamManageIndexRoute
   '/main/exam/manage/$examId': typeof MainExamManageExamIdIndexRoute
-  '/main/exam/manage/$testId': typeof MainExamManageTestIdIndexRoute
   '/main/exam/sheet/manage': typeof MainExamSheetManageIndexRoute
   '/main/exam/sheet/manage/$examId': typeof MainExamSheetManageExamIdIndexRoute
 }
@@ -159,7 +150,6 @@ export interface FileRoutesById {
   '/examples/pokemon/$id/': typeof ExamplesPokemonIdIndexRoute
   '/main/exam/manage/': typeof MainExamManageIndexRoute
   '/main/exam/manage/$examId/': typeof MainExamManageExamIdIndexRoute
-  '/main/exam/manage/$testId/': typeof MainExamManageTestIdIndexRoute
   '/main/exam/sheet/manage/': typeof MainExamSheetManageIndexRoute
   '/main/exam/sheet/manage/$examId/': typeof MainExamSheetManageExamIdIndexRoute
 }
@@ -179,7 +169,6 @@ export interface FileRouteTypes {
     | '/examples/pokemon/$id'
     | '/main/exam/manage/'
     | '/main/exam/manage/$examId'
-    | '/main/exam/manage/$testId'
     | '/main/exam/sheet/manage/'
     | '/main/exam/sheet/manage/$examId'
   fileRoutesByTo: FileRoutesByTo
@@ -193,7 +182,6 @@ export interface FileRouteTypes {
     | '/examples/pokemon/$id'
     | '/main/exam/manage'
     | '/main/exam/manage/$examId'
-    | '/main/exam/manage/$testId'
     | '/main/exam/sheet/manage'
     | '/main/exam/sheet/manage/$examId'
   id:
@@ -211,7 +199,6 @@ export interface FileRouteTypes {
     | '/examples/pokemon/$id/'
     | '/main/exam/manage/'
     | '/main/exam/manage/$examId/'
-    | '/main/exam/manage/$testId/'
     | '/main/exam/sheet/manage/'
     | '/main/exam/sheet/manage/$examId/'
   fileRoutesById: FileRoutesById
@@ -315,13 +302,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainExamSheetManageIndexRouteImport
       parentRoute: typeof MainExamSheetManageRouteRoute
     }
-    '/main/exam/manage/$testId/': {
-      id: '/main/exam/manage/$testId/'
-      path: '/$testId'
-      fullPath: '/main/exam/manage/$testId'
-      preLoaderRoute: typeof MainExamManageTestIdIndexRouteImport
-      parentRoute: typeof MainExamManageRouteRoute
-    }
     '/main/exam/manage/$examId/': {
       id: '/main/exam/manage/$examId/'
       path: '/$examId'
@@ -342,13 +322,11 @@ declare module '@tanstack/react-router' {
 interface MainExamManageRouteRouteChildren {
   MainExamManageIndexRoute: typeof MainExamManageIndexRoute
   MainExamManageExamIdIndexRoute: typeof MainExamManageExamIdIndexRoute
-  MainExamManageTestIdIndexRoute: typeof MainExamManageTestIdIndexRoute
 }
 
 const MainExamManageRouteRouteChildren: MainExamManageRouteRouteChildren = {
   MainExamManageIndexRoute: MainExamManageIndexRoute,
   MainExamManageExamIdIndexRoute: MainExamManageExamIdIndexRoute,
-  MainExamManageTestIdIndexRoute: MainExamManageTestIdIndexRoute,
 }
 
 const MainExamManageRouteRouteWithChildren =
