@@ -1,46 +1,3 @@
-// src/components/test/TestDetailTable.tsx
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import {
-  tableStyles,
-  buttonStyles,
-  badgeStyles,
-  getStatusBadgeVariant,
-} from "@/utils/commonStyles";
-import type { TestSubmitStatusDetail } from "@/types/test";
-
-/**
- * 시험 제출 현황 테이블 컴포넌트 props 타입
- * @description 학생별 제출 현황 목록 렌더링, 선택 제어, 모달 오픈 콜백 전달
- *
- * 주요 속성:
- * - submissions: 시험 제출 현황 목록 데이터
- * - selectedIds: 체크된 행의 ID 집합
- * - onSelectAll: 전체 선택 토글 핸들러
- * - onSelect: 개별 선택 토글 핸들러
- * - onOpenDetail: 시험 제출 상세 모달 오픈 콜백
- */
-type TestDetailTableProps = {
-  submissions: TestSubmitStatusDetail[];
-  selectedIds: Set<string>;
-  onSelectAll: (checked: boolean) => void;
-  onSelect: (id: string, checked: boolean) => void;
-  onOpenDetail: (submission: TestSubmitStatusDetail) => void;
-};
-
-// src/components/test/TestDetailTable.tsx
-
 import {
   Table,
   TableBody,
@@ -135,7 +92,7 @@ type TestDetailTableProps = {
  * function TestDetailPage() {
  *   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
  *   const [selectedSubmission, setSelectedSubmission] = useState<TestSubmitStatusDetail | null>(null);
- *   
+ *
  *   const handleSelectAll = (checked: boolean) => {
  *     if (checked) {
  *       setSelectedIds(new Set(submissions.map(s => s.student.id)));
@@ -143,7 +100,7 @@ type TestDetailTableProps = {
  *       setSelectedIds(new Set());
  *     }
  *   };
- *   
+ *
  *   const handleSelect = (id: string, checked: boolean) => {
  *     setSelectedIds(prev => {
  *       const next = new Set(prev);
@@ -152,11 +109,11 @@ type TestDetailTableProps = {
  *       return next;
  *     });
  *   };
- *   
+ *
  *   const handleOpenDetail = (submission: TestSubmitStatusDetail) => {
  *     setSelectedSubmission(submission);
  *   };
- *   
+ *
  *   return (
  *     <TestDetailTable
  *       submissions={submissions}
@@ -170,19 +127,19 @@ type TestDetailTableProps = {
  *
  * // 선택된 학생들에 대한 일괄 작업
  * const handleBulkAction = () => {
- *   const selectedSubmissions = submissions.filter(s => 
+ *   const selectedSubmissions = submissions.filter(s =>
  *     selectedIds.has(s.student.id)
  *   );
- *   
+ *
  *   // 일괄 처리 로직 (예: 점수 일괄 입력, 재시험 대상 지정 등)
  *   processBulkAction(selectedSubmissions);
  * };
  *
  * // 특정 상태의 학생들만 필터링하여 표시
- * const filteredSubmissions = submissions.filter(s => 
+ * const filteredSubmissions = submissions.filter(s =>
  *   s.submissionStatus === "제출완료"
  * );
- * 
+ *
  * <TestDetailTable
  *   submissions={filteredSubmissions}
  *   selectedIds={selectedIds}
@@ -221,16 +178,17 @@ export function TestDetailTable({
   /**
    * 전체 선택 체크박스의 상태를 결정하는 계산
    * @description submissions 배열과 selectedIds Set을 비교하여 전체 선택 여부를 판단
-   * 
+   *
    * 계산 로직:
    * - submissions.length > 0: 데이터가 존재해야 함
    * - selectedIds.size === submissions.length: 모든 항목이 선택된 상태
-   * 
+   *
    * 성능 최적화:
    * - Set.size와 Array.length 비교는 O(1) 연산
    * - 매 렌더링마다 다시 계산되지만 연산이 매우 가벼움
    */
-  const isAllSelected = submissions.length > 0 && selectedIds.size === submissions.length;
+  const isAllSelected =
+    submissions.length > 0 && selectedIds.size === submissions.length;
 
   return (
     <div className={tableStyles.container}>
@@ -250,8 +208,12 @@ export function TestDetailTable({
             <TableHead className={tableStyles.headerCell}>전화번호</TableHead>
             <TableHead className={tableStyles.headerCell}>시험명</TableHead>
             <TableHead className={tableStyles.headerCell}>제출일자</TableHead>
-            <TableHead className={tableStyles.headerCellCenter}>제출 상태</TableHead>
-            <TableHead className={tableStyles.headerCellCenter}>답안확인</TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              제출 상태
+            </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>
+              답안확인
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -304,7 +266,9 @@ export function TestDetailTable({
                   <Badge
                     variant={getStatusBadgeVariant(submission.submissionStatus)}
                     className={
-                      badgeStyles[getStatusBadgeVariant(submission.submissionStatus)]
+                      badgeStyles[
+                        getStatusBadgeVariant(submission.submissionStatus)
+                      ]
                     }
                   >
                     {submission.submissionStatus}
@@ -320,8 +284,8 @@ export function TestDetailTable({
                     onClick={() => onOpenDetail(submission)}
                     disabled={!canViewAnswer}
                     aria-label={
-                      canViewAnswer 
-                        ? `${submission.student.name} 답안 상세보기` 
+                      canViewAnswer
+                        ? `${submission.student.name} 답안 상세보기`
                         : `${submission.student.name} 답안 확인 불가 (미제출)`
                     }
                   >
@@ -331,51 +295,6 @@ export function TestDetailTable({
               </TableRow>
             );
           })}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-                  className={tableStyles.checkbox}
-                />
-              </TableCell>
-              <TableCell className={tableStyles.cellMedium}>
-                {submission.student.name}
-              </TableCell>
-              <TableCell className={tableStyles.cell}>
-                {submission.student.phoneNumber}
-              </TableCell>
-              <TableCell className={tableStyles.cell}>
-                {submission.testName}
-              </TableCell>
-              <TableCell className={tableStyles.cell}>
-                {submission.submissionDate}
-              </TableCell>
-              <TableCell className={tableStyles.cellCenter}>
-                <Badge
-                  variant={getStatusBadgeVariant(submission.submissionStatus)}
-                  className={
-                    badgeStyles[
-                      getStatusBadgeVariant(submission.submissionStatus)
-                    ]
-                  }
-                >
-                  {submission.submissionStatus}
-                </Badge>
-              </TableCell>
-              <TableCell className={tableStyles.cellCenter}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={buttonStyles.primary}
-                  onClick={() => onOpenDetail(submission)}
-                  disabled={submission.submissionStatus === "미제출"}
-                >
-                  답안확인
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
         </TableBody>
       </Table>
     </div>

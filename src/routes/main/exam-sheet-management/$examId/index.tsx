@@ -3,7 +3,7 @@ import { TestPaperListTab } from "@/components/testpaper/TestPaperListTab";
 import { TabsContent } from "@/components/ui/tabs";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/main/test-paper/$examId/")({
+export const Route = createFileRoute("/main/exam-sheet-management/$examId/")({
   component: RouteComponent,
 });
 

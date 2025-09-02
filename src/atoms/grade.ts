@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import type { Grade } from "@/types/grade";
 
 /**
@@ -8,18 +9,13 @@ import type { Grade } from "@/types/grade";
  * 주요 기능:
  * - 기본값: "중1"
  * - Select 컴포넌트와 양방향 바인딩
- */
-export const /**
+ *
  * Jotai 학년 상태 관리란?
  * - 전역 상태 관리 라이브러리로 Redux, Zustand와 비슷한 역할
  * - useState와 비슷하지만 여러 컴포넌트에서 공유 가능
  * - atom이라는 작은 상태 단위로 관리
  * - 학년별 데이터 필터링, 통계, 시험지 관리 등에서 공통 사용
  */
-
-import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
-import type { Grade } from "@/types/grade";
 
 /**
  * 현재 선택된 학년을 관리하는 전역 상태 atom
@@ -87,7 +83,7 @@ import type { Grade } from "@/types/grade";
  * // 다른 컴포넌트에서 선택된 학년 사용
  * function TestPaperList() {
  *   const selectedGrade = useAtomValue(selectedGradeAtom);
- *   
+ *
  *   const { data: testPapers } = useQuery({
  *     queryKey: ['testPapers', selectedGrade],
  *     queryFn: () => fetchTestPapersByGrade(selectedGrade),
@@ -138,7 +134,10 @@ export const selectedGradeAtom = atom<Grade>("중1");
  * }
  * ```
  */
-export const preferredGradeAtom = atomWithStorage<Grade>("preferred-grade", "중1");
+export const preferredGradeAtom = atomWithStorage<Grade>(
+  "preferred-grade",
+  "중1",
+);
 
 /**
  * 학년별 표시 이름을 반환하는 derived atom
@@ -159,7 +158,7 @@ export const preferredGradeAtom = atomWithStorage<Grade>("preferred-grade", "중
  * function GradeDisplay() {
  *   // 📌 derived atom은 값만 읽으므로 useAtomValue 사용
  *   const gradeDisplayName = useAtomValue(gradeDisplayNameAtom);
- *   
+ *
  *   return (
  *     <h1>현재 선택: {gradeDisplayName}</h1>
  *     // 출력 예시: "현재 선택: 중학교 1학년"
@@ -169,13 +168,13 @@ export const preferredGradeAtom = atomWithStorage<Grade>("preferred-grade", "중
  */
 export const gradeDisplayNameAtom = atom((get) => {
   const grade = get(selectedGradeAtom);
-  
+
   const gradeNames: Record<Grade, string> = {
-    "중1": "중학교 1학년",
-    "중2": "중학교 2학년", 
-    "중3": "중학교 3학년",
+    중1: "중학교 1학년",
+    중2: "중학교 2학년",
+    중3: "중학교 3학년",
   };
-  
+
   return gradeNames[grade];
 });
 
@@ -198,11 +197,11 @@ export const gradeDisplayNameAtom = atom((get) => {
  * ```typescript
  * function GradeStatistics() {
  *   const stats = useAtomValue(gradeStatsSummaryAtom);
- *   
+ *
  *   if (!stats) {
  *     return <div>통계 정보를 불러오는 중...</div>;
  *   }
- *   
+ *
  *   return (
  *     <div className="stats-grid">
  *       <StatCard title="총 학생 수" value={stats.totalStudents} />
@@ -215,7 +214,7 @@ export const gradeDisplayNameAtom = atom((get) => {
  */
 export const gradeStatsSummaryAtom = atom((get) => {
   const selectedGrade = get(selectedGradeAtom);
-  
+
   // 실제 구현에서는 API 호출이나 다른 atom들의 데이터를 조합
   // 여기서는 예시를 위한 기본 구조만 제공
   return {
@@ -241,14 +240,14 @@ export const gradeStatsSummaryAtom = atom((get) => {
  * ```typescript
  * function GradeSelector() {
  *   const changeGrade = useSetAtom(changeGradeActionAtom);
- *   
+ *
  *   const handleGradeChange = (newGrade: Grade) => {
  *     changeGrade(newGrade);
  *   };
- *   
+ *
  *   return (
  *     <Select onValueChange={handleGradeChange}>
- *       {/* 옵션들 */}
+ *       { 옵션들 }
  *     </Select>
  *   );
  * }
@@ -259,16 +258,16 @@ export const changeGradeActionAtom = atom(
   (get, set, newGrade: Grade) => {
     // 1. 현재 선택 학년 업데이트
     set(selectedGradeAtom, newGrade);
-    
+
     // 2. 영구 저장 설정 업데이트
     set(preferredGradeAtom, newGrade);
-    
+
     // 3. 개발 환경에서 로깅
     if (import.meta.env.DEV) {
       console.log(`[Grade] 학년 변경: ${newGrade}`);
     }
-    
+
     // 4. 실제 구현에서는 관련 쿼리 무효화 등 추가 처리
     // queryClient.invalidateQueries(['testPapers', newGrade]);
-  }
-);;
+  },
+);

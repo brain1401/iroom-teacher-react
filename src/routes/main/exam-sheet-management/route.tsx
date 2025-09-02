@@ -4,7 +4,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export const Route = createFileRoute("/main/test-paper")({
+export const Route = createFileRoute("/main/exam-sheet-management")({
   component: RouteComponent,
 });
 

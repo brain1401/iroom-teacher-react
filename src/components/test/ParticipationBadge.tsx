@@ -1,41 +1,3 @@
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-/**
- * 참여율 뱃지 Props
- */
-type ParticipationBadgeProps = {
-  /** 실제 참여자 수 */
-  actualParticipants: number;
-  /** 총 참여 대상자 수 */
-  totalParticipants: number;
-  /** 추가 CSS 클래스 */
-  className?: string;
-};
-
-/**
- * 참여율에 따른 뱃지 색상 반환
- */
-function getParticipationBadgeVariant(actual: number, total: number) {
-  if (total === 0) return "secondary";
-
-  const participationRate = actual / total;
-
-  if (participationRate === 1) {
-    // 100% 참여 - 파란색 계열
-    return "default";
-  } else if (participationRate >= 0.8) {
-    // 80% 이상 참여 - 초록색 계열
-    return "default";
-  } else if (participationRate >= 0.5) {
-    // 50% 이상 참여 - 노란색 계열
-    return "secondary";
-  } else {
-    // 50% 미만 참여 - 빨간색 계열
-    return "destructive";
-  }
-}
-
 /**
  * 참여율 뱃지 컴포넌트
  * @description 시험 참여율을 표시하는 뱃지
@@ -47,6 +9,10 @@ function getParticipationBadgeVariant(actual: number, total: number) {
  */
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+  calculateParticipationRate,
+  getParticipationBadgeVariant,
+} from "@/utils/badge";
 
 /**
  * 참여율 뱃지 컴포넌트 Props
@@ -62,52 +28,8 @@ type ParticipationBadgeProps = {
   /** 뱃지 크기 (기본값: default) */
   size?: "sm" | "default" | "lg";
   /** 퍼센티지 표시 여부 (기본값: false) */
-  showPercentage?: boolean;
+  shouldShowPercentage?: boolean;
 };
-
-/**
- * 참여율에 따른 뱃지 색상 variant 반환 함수
- * @description 참여율 구간에 따라 적절한 shadcn/ui Badge variant를 결정
- *
- * 색상 구분 기준:
- * - 100%: default (파란색) - 완벽한 참여
- * - 80-99%: secondary (회색) - 높은 참여도  
- * - 50-79%: outline (테두리) - 보통 참여도
- * - 0-49%: destructive (빨간색) - 낮은 참여도
- *
- * @param actual 실제 참여자 수
- * @param total 총 대상자 수
- * @returns shadcn/ui Badge variant
- */
-function getParticipationBadgeVariant(actual: number, total: number) {
-  if (total === 0) return "secondary";
-
-  const participationRate = actual / total;
-
-  if (participationRate === 1) {
-    return "default"; // 100% 참여 - 파란색
-  } else if (participationRate >= 0.8) {
-    return "secondary"; // 80% 이상 - 회색  
-  } else if (participationRate >= 0.5) {
-    return "outline"; // 50% 이상 - 테두리
-  } else {
-    return "destructive"; // 50% 미만 - 빨간색
-  }
-}
-
-/**
- * 참여율 퍼센티지 계산 및 포맷팅 함수
- * @description 참여율을 백분율로 계산하고 소수점 첫째 자리까지 반환
- *
- * @param actual 실제 참여자 수
- * @param total 총 대상자 수
- * @returns 포맷팅된 퍼센티지 문자열 (예: "85.0%")
- */
-function calculateParticipationRate(actual: number, total: number): string {
-  if (total === 0) return "0.0%";
-  const rate = (actual / total) * 100;
-  return `${rate.toFixed(1)}%`;
-}
 
 /**
  * 시험 참여율 표시 뱃지 컴포넌트
@@ -128,21 +50,21 @@ function calculateParticipationRate(actual: number, total: number): string {
  *
  * 사용 사례:
  * - 시험 제출 현황 테이블
- * - 과제 참여율 대시보드  
+ * - 과제 참여율 대시보드
  * - 수업 출석률 표시
  * - 설문조사 응답률 표시
  *
  * @example
  * ```tsx
  * // 기본 사용 (숫자만 표시)
- * <ParticipationBadge 
- *   actualParticipants={18} 
- *   totalParticipants={20} 
+ * <ParticipationBadge
+ *   actualParticipants={18}
+ *   totalParticipants={20}
  * />
  * // 출력: "18명 / 20명" (초록색 뱃지)
  *
  * // 퍼센티지 포함 표시
- * <ParticipationBadge 
+ * <ParticipationBadge
  *   actualParticipants={15}
  *   totalParticipants={20}
  *   showPercentage={true}
@@ -150,7 +72,7 @@ function calculateParticipationRate(actual: number, total: number): string {
  * // 출력: "15명 / 20명 (75.0%)" (노란색 뱃지)
  *
  * // 작은 크기로 표시
- * <ParticipationBadge 
+ * <ParticipationBadge
  *   actualParticipants={20}
  *   totalParticipants={20}
  *   size="sm"
@@ -159,7 +81,7 @@ function calculateParticipationRate(actual: number, total: number): string {
  *
  * // 테이블 셀에서 사용
  * <TableCell className="text-center">
- *   <ParticipationBadge 
+ *   <ParticipationBadge
  *     actualParticipants={exam.submittedCount}
  *     totalParticipants={exam.totalStudents}
  *     showPercentage={true}
@@ -173,7 +95,7 @@ export function ParticipationBadge({
   totalParticipants,
   className,
   size = "default",
-  showPercentage = false,
+  shouldShowPercentage = false,
 }: ParticipationBadgeProps) {
   // 입력값 검증 및 방어적 프로그래밍
   const safeActual = Math.max(0, Math.floor(actualParticipants));
@@ -185,7 +107,7 @@ export function ParticipationBadge({
   const isFullParticipation = safeTotal > 0 && safeCapped === safeTotal;
 
   // 표시 텍스트 구성
-  const displayText = showPercentage 
+  const displayText = shouldShowPercentage
     ? `${safeCapped}명 / ${safeTotal}명 (${participationRate})`
     : `${safeCapped}명 / ${safeTotal}명`;
 
@@ -195,8 +117,8 @@ export function ParticipationBadge({
   // 크기에 따른 텍스트 스타일
   const sizeStyles = {
     sm: "text-xs",
-    default: "text-sm", 
-    lg: "text-base"
+    default: "text-sm",
+    lg: "text-base",
   };
 
   return (
@@ -208,13 +130,16 @@ export function ParticipationBadge({
         // 100% 참여 시 특별 강조
         isFullParticipation && [
           "bg-blue-500 hover:bg-blue-600 text-white border-blue-600",
-          "shadow-sm ring-1 ring-blue-200"
+          "shadow-sm ring-1 ring-blue-200",
         ],
         // 참여율별 커스텀 스타일
-        variant === "destructive" && "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
-        variant === "outline" && "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100",
-        variant === "secondary" && "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
-        className
+        variant === "destructive" &&
+          "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
+        variant === "outline" &&
+          "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100",
+        variant === "secondary" &&
+          "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
+        className,
       )}
       title={`참여율: ${participationRate} (${safeCapped}/${safeTotal}명)`}
     >

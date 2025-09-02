@@ -1,5 +1,5 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { ExamSubmissionStatus } from "@/components/ExamSubmissionStatus";
+import { ExamSubmissionStatus } from "@/components/test";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   HoverCard,
@@ -9,16 +9,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSetAtom, useAtomValue } from "jotai";
-import { useLayoutEffect, useEffect } from "react";
-import { GradeDistributionChart } from "@/components/Gradedistributionchart";
+import { useLayoutEffect, useEffect, useMemo } from "react";
+import { GradeDistributionChart } from "@/components/charts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { CircleQuestionMarkIcon, ChevronRight } from "lucide-react";
 import {
   dashboardTestSubmissions,
-  calculateDashboardStats
-  
+  calculateDashboardStats,
 } from "@/data/test-submission-dashboard";
-import type {DashboardTestSubmission} from "@/data/test-submission-dashboard";
+import type { DashboardTestSubmission } from "@/data/test-submission-dashboard";
 import { isAuthenticatedAtom } from "@/atoms/auth";
 
 export const Route = createFileRoute("/main/")({
@@ -61,39 +60,48 @@ function RouteComponent() {
   }, [setIsShowHeader]);
 
   // 인증 상태 확인
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate({ to: "/" });
-    }
-  }, [isAuthenticated, navigate]);
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     navigate({ to: "/" });
+  //   }
+  // }, [isAuthenticated, navigate]);
 
-  // 인증되지 않은 경우 로딩 표시
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">인증 확인 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // // 인증되지 않은 경우 로딩 표시
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+  //         <p className="text-gray-600">인증 확인 중...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   //  퍼센트 계산 로직
   const totalStudents = chartData.reduce((sum, item) => sum + item.count, 0);
 
-  const levelInfo = Object.keys(chartConfig)
-    .map((level) => {
-      const count = chartData
-        .filter((d) => d.level === level)
-        .reduce((sum, item) => sum + item.count, 0);
-      const percentage = totalStudents > 0 ? (count / totalStudents) * 100 : 0;
-      return { level, percentage };
-    })
-    .sort((a, b) => {
-      const order: Record<string, number> = { 상위권: 1, 중위권: 2, 하위권: 3 };
-      return (order[a.level] || 0) - (order[b.level] || 0);
-    });
+  const levelInfo = useMemo(
+    () =>
+      Object.keys(chartConfig)
+        .map((level) => {
+          const count = chartData
+            .filter((d) => d.level === level)
+            .reduce((sum, item) => sum + item.count, 0);
+          const percentage =
+            totalStudents > 0 ? (count / totalStudents) * 100 : 0;
+          return { level, percentage };
+        })
+        .sort((a, b) => {
+          const order: Record<string, number> = {
+            상위권: 1,
+            중위권: 2,
+            하위권: 3,
+          };
+          return (order[a.level] || 0) - (order[b.level] || 0);
+        }),
+    [chartData, totalStudents],
+  );
 
   /**
    * 시험 제출 현황 카드 클릭 핸들러

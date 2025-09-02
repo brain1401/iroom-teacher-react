@@ -7,5 +7,5 @@ export { CustomBarChart } from "./CustomBarChart";
 export { GradeDistributionChart } from "./GradeDistributionChart";
 
 // 타입들도 함께 export
-export type { default as CustomBarChartProps } from "./CustomBarChart";
-export type { default as GradeDistributionChartProps } from "./GradeDistributionChart";
+export type * from "./CustomBarChart";
+export type * from "./GradeDistributionChart";

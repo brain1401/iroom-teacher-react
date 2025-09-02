@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { TestPaperListTab } from "@/components/testpaper/TestPaperListTab";
 import { TestPaperRegistrationTab } from "@/components/testpaper/TestPaperRegistrationTab";
 
-export const Route = createFileRoute("/main/test-paper/")({
+export const Route = createFileRoute("/main/exam-sheet-management/")({
   component: RouteComponent,
 });
 
