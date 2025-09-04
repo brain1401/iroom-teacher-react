@@ -1,44 +1,21 @@
-import { createFileRoute, useRouter, stripSearchParams } from "@tanstack/react-router";
-import { z } from "zod";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ExamDetail } from "@/components/exam/ExamDetail";
 import { examDetailQueryOptions, submissionStatusQueryOptions } from "@/api/exam/query";
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { useSetAtom } from "jotai";
-import { useLayoutEffect } from "react";
-
-// 기본값 정의
-const defaultSearchParams = {
-  page: 0,
-  size: 20,
-  sort: "createdAt,desc",
-  showSidebar: true,
-  collapsedSidebar: false,
-} as const;
-
-// 쿼리 파라미터 스키마 (fallback과 기본값 사용)
-const examDetailSearchSchema = z.object({
-  /** 시험명 (선택적) */
-  examName: z.string().optional(),
-  /** 페이지 번호 */
-  page: fallback(z.number(), defaultSearchParams.page).default(defaultSearchParams.page),
-  /** 페이지 크기 */
-  size: fallback(z.number(), defaultSearchParams.size).default(defaultSearchParams.size),
-  /** 정렬 기준 */
-  sort: fallback(z.string(), defaultSearchParams.sort).default(defaultSearchParams.sort),
-  /** 사이드바 표시 여부 */
-  showSidebar: fallback(z.boolean(), defaultSearchParams.showSidebar).default(defaultSearchParams.showSidebar),
-  /** 사이드바 접힘 여부 */
-  collapsedSidebar: fallback(z.boolean(), defaultSearchParams.collapsedSidebar).default(defaultSearchParams.collapsedSidebar),
-});
+import { 
+  examDetailIdAtom, 
+  examDetailPageDataAtom,
+  setExamNameFilterAtom,
+  setExamDetailPageAtom,
+  setExamDetailPageSizeAtom,
+  setExamDetailSortAtom,
+  examDetailShowSidebarAtom,
+  examDetailCollapsedSidebarAtom
+} from "@/atoms/examDetail";
+import { useSetAtom, useAtomValue } from "jotai";
+import { useLayoutEffect, useEffect } from "react";
 
 export const Route = createFileRoute("/main/exam/manage/$examId/")({
-  // zodValidator를 사용한 검색 파라미터 유효성 검사
-  validateSearch: zodValidator(examDetailSearchSchema),
-  // 기본값과 일치하는 파라미터를 URL에서 제거
-  search: {
-    middlewares: [stripSearchParams(defaultSearchParams)],
-  },
   // SSR loader with QueryClient hydration
   loader: async ({ context, params }) => {
     const { examId } = params;
@@ -75,16 +52,88 @@ export const Route = createFileRoute("/main/exam/manage/$examId/")({
 
 function ExamDetailPage() {
   const { examId } = Route.useParams();
-  const searchParams = Route.useSearch();
-  
-  // Zod 스키마에서 기본값이 자동으로 적용됨
-  const examName = searchParams.examName || "";
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
+  const setExamDetailId = useSetAtom(examDetailIdAtom);
+  
+  // atom 기반 데이터 사용
+  const pageData = useAtomValue(examDetailPageDataAtom);
 
   // Get preloaded data from SSR loader
   const { success: _success, examId: _loaderExamId, error: _error } = Route.useLoaderData();
 
   const router = useRouter();
+
+  // Atom 설정 함수들
+  const setExamNameFilter = useSetAtom(setExamNameFilterAtom);
+  const setPage = useSetAtom(setExamDetailPageAtom);
+  const setPageSize = useSetAtom(setExamDetailPageSizeAtom);
+  const setSort = useSetAtom(setExamDetailSortAtom);
+  const setShowSidebar = useSetAtom(examDetailShowSidebarAtom);
+  const setCollapsedSidebar = useSetAtom(examDetailCollapsedSidebarAtom);
+
+  // examId를 atom에 설정 (atom 기반 쿼리 활성화)
+  useEffect(() => {
+    if (examId) {
+      setExamDetailId(examId);
+    }
+  }, [examId, setExamDetailId]);
+
+  // URL 파라미터 선택적 처리 로직 (Step 6)
+  useEffect(() => {
+    // URL에서 search parameter를 직접 파싱
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    
+    // examName (또는 search) 파라미터 처리
+    const examNameParam = urlSearchParams.get('examName') || urlSearchParams.get('search');
+    if (examNameParam !== null) {
+      setExamNameFilter(examNameParam);
+    }
+
+    // page 파라미터 처리
+    const pageParam = urlSearchParams.get('page');
+    if (pageParam !== null) {
+      const pageValue = parseInt(pageParam, 10);
+      if (!isNaN(pageValue)) {
+        setPage(pageValue);
+      }
+    }
+
+    // size 파라미터 처리
+    const sizeParam = urlSearchParams.get('size');
+    if (sizeParam !== null) {
+      const sizeValue = parseInt(sizeParam, 10);
+      if (!isNaN(sizeValue) && sizeValue > 0) {
+        setPageSize(sizeValue);
+      }
+    }
+
+    // sort 파라미터 처리
+    const sortParam = urlSearchParams.get('sort');
+    if (sortParam !== null) {
+      setSort(sortParam);
+    }
+
+    // showSidebar 파라미터 처리
+    const showSidebarParam = urlSearchParams.get('showSidebar');
+    if (showSidebarParam !== null) {
+      setShowSidebar(showSidebarParam === 'true');
+    }
+
+    // collapsedSidebar 파라미터 처리
+    const collapsedSidebarParam = urlSearchParams.get('collapsedSidebar');
+    if (collapsedSidebarParam !== null) {
+      setCollapsedSidebar(collapsedSidebarParam === 'true');
+    }
+
+    console.log('[URL Parameters] Selective atom updates completed:', {
+      examName: examNameParam,
+      page: pageParam,
+      size: sizeParam,
+      sort: sortParam,
+      showSidebar: showSidebarParam,
+      collapsedSidebar: collapsedSidebarParam
+    });
+  }, [router.state.location.search, setExamNameFilter, setPage, setPageSize, setSort, setShowSidebar, setCollapsedSidebar]);
 
   useLayoutEffect(() => {
     setIsShowHeader(true);
@@ -97,11 +146,40 @@ function ExamDetailPage() {
     router.history.back();
   };
 
+  // 로딩 상태 처리
+  if (pageData.isLoading) {
+    return (
+      <div className="w-full h-full py-5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p>시험 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태 처리
+  if (pageData.hasError) {
+    return (
+      <div className="w-full h-full py-5 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-2">시험 정보를 불러올 수 없습니다.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full py-5">
       <ExamDetail
         onBack={handleBack}
-        examName={examName || "시험 상세"}
+        examName={(pageData.examDetail.data as any)?.examName || "시험 상세"}
         examId={examId}
       />
     </div>

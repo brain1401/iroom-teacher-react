@@ -11,6 +11,8 @@
 
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { atomWithQuery } from "jotai-tanstack-query";
+import { examDetailQueryOptions, submissionStatusQueryOptions } from "@/api/exam/query";
 
 /**
  * 시험 상세 페이지 기본값 상수
@@ -67,10 +69,17 @@ export const examDetailCollapsedSidebarAtom = atomWithStorage<boolean>(
 );
 
 /**
+ * 시험 ID 원자
+ * @description 현재 조회중인 시험의 ID
+ */
+export const examDetailIdAtom = atom<string>("");
+
+/**
  * 통합 상태 원자
  * @description 모든 시험 상세 페이지 상태를 통합한 읽기 전용 원자
  */
 export const examDetailStateAtom = atom((get) => ({
+  examId: get(examDetailIdAtom),
   examName: get(examNameFilterAtom),
   page: get(examDetailPageAtom),
   size: get(examDetailPageSizeAtom),
@@ -78,6 +87,122 @@ export const examDetailStateAtom = atom((get) => ({
   showSidebar: get(examDetailShowSidebarAtom),
   collapsedSidebar: get(examDetailCollapsedSidebarAtom),
 }));
+
+/**
+ * 시험 상세 데이터 쿼리 원자
+ * @description examId atom을 기반으로 시험 상세 정보를 가져오는 atomWithQuery
+ * 
+ * 주요 기능:
+ * - examId가 없으면 쿼리 비활성화
+ * - atom 기반 쿼리 키 관리로 상태 동기화
+ * - 에러 상태 및 로딩 상태 자동 관리
+ */
+export const examDetailQueryAtom = atomWithQuery((get) => {
+  const examId = get(examDetailIdAtom);
+  
+  // examId가 없거나 빈 문자열이면 쿼리 비활성화
+  if (!examId || examId.trim() === "") {
+    return {
+      queryKey: ["exam", "detail", "disabled"] as const,
+      queryFn: () => Promise.resolve(null),
+      enabled: false,
+    };
+  }
+  
+  return examDetailQueryOptions(examId);
+});
+
+/**
+ * 시험 제출 현황 쿼리 원자
+ * @description examId atom을 기반으로 제출 현황을 가져오는 atomWithQuery
+ * 
+ * 주요 기능:
+ * - examId가 없으면 쿼리 비활성화
+ * - atom 기반 쿼리 키 관리로 상태 동기화
+ * - 실시간 제출 현황 업데이트 지원
+ */
+export const submissionStatusQueryAtom = atomWithQuery((get) => {
+  const examId = get(examDetailIdAtom);
+  
+  // examId가 없거나 빈 문자열이면 쿼리 비활성화
+  if (!examId || examId.trim() === "") {
+    return {
+      queryKey: ["exam", "submission", "disabled"] as const,
+      queryFn: () => Promise.resolve(null),
+      enabled: false,
+    };
+  }
+  
+  return submissionStatusQueryOptions(examId);
+});
+
+/**
+ * 미래 확장용: 학생 제출 목록 쿼리 원자
+ * @description examId와 필터링 atoms을 결합한 atomWithQuery 패턴 예시
+ * 
+ * 이 atom은 향후 학생 제출 목록 API가 추가될 때 사용할 수 있는 패턴을 보여줍니다.
+ * 현재는 비활성화 상태로 두고, API가 준비되면 활성화하여 사용할 수 있습니다.
+ * 
+ * 예상 API: GET /exams/{examId}/submissions?page=0&size=20&sort=createdAt,desc&search=studentName
+ */
+export const studentSubmissionsQueryAtom = atomWithQuery((get) => {
+  const examId = get(examDetailIdAtom);
+  const page = get(examDetailPageAtom);
+  const size = get(examDetailPageSizeAtom);
+  const sort = get(examDetailSortAtom);
+  const examName = get(examNameFilterAtom);
+  
+  // examId가 없으면 쿼리 비활성화
+  if (!examId || examId.trim() === "") {
+    return {
+      queryKey: ["exam", "submissions", "disabled"] as const,
+      queryFn: () => Promise.resolve(null),
+      enabled: false,
+    };
+  }
+  
+  // 모든 필터링 상태를 포함한 쿼리 키 생성
+  const filters = {
+    examId,
+    page,
+    size,
+    sort,
+    search: examName.trim() || undefined,
+  };
+  
+  return {
+    queryKey: ["exam", "submissions", filters] as const,
+    queryFn: () => {
+      // 향후 API가 준비되면 이곳에 실제 API 호출 구현
+      console.log("Student submissions query called with filters:", filters);
+      return Promise.resolve({ results: [], total: 0, page, size });
+    },
+    enabled: false, // 현재는 API가 없으므로 비활성화
+    staleTime: 2 * 60 * 1000, // 2분
+    gcTime: 5 * 60 * 1000, // 5분
+  };
+});
+
+/**
+ * 시험 상세 페이지 전체 데이터 원자
+ * @description 시험 상세와 제출 현황을 통합한 파생 원자
+ */
+export const examDetailPageDataAtom = atom((get) => {
+  const examDetail = get(examDetailQueryAtom);
+  const submissionStatus = get(submissionStatusQueryAtom);
+  const filterState = get(examDetailStateAtom);
+  
+  return {
+    examDetail,
+    submissionStatus,
+    filterState,
+    // 로딩 상태 통합
+    isLoading: examDetail.isPending || submissionStatus.isPending,
+    // 에러 상태 통합  
+    hasError: examDetail.isError || submissionStatus.isError,
+    error: examDetail.error || submissionStatus.error,
+  };
+});
 
 /**
  * URL에 반영할 쿼리 파라미터 원자
