@@ -9,11 +9,11 @@ export type DashboardExamSubmission = {
   id: string;
   /** 단원명 */
   unitName: string;
-  /** 시험명 */
-  examName: string;
-  /** 제출 완료 인원 */
-  submittedCount: number;
-  /** 전체 대상 인원 */
+  /** 시험명 (서버에서 examName으로 반환) */
+  examTitle: string;
+  /** 제출 완료 인원 (서버에서 actualSubmissions로 반환) */
+  submissionCount: number;
+  /** 전체 대상 인원 (서버에서 totalExpected로 반환) */
   totalStudents: number;
   /** 제출률 (0-100) */
   submissionRate: number;
@@ -31,8 +31,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-001",
     unitName: "1단원: 다항식의 연산",
-    examName: "2025-1학기 중간고사 대비",
-    submittedCount: 14,
+    examTitle: "2025-1학기 중간고사 대비",
+    submissionCount: 14,
     totalStudents: 30,
     submissionRate: 46.7,
     status: "승인완료",
@@ -41,8 +41,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-002",
     unitName: "2단원: 나머지정리와 인수분해",
-    examName: "2025-1학기 중간고사 대비",
-    submittedCount: 20,
+    examTitle: "2025-1학기 중간고사 대비",
+    submissionCount: 20,
     totalStudents: 30,
     submissionRate: 66.7,
     status: "승인완료",
@@ -51,8 +51,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-003",
     unitName: "3단원: 유리식과 무리식",
-    examName: "2025-1학기 기말고사 대비",
-    submittedCount: 10,
+    examTitle: "2025-1학기 기말고사 대비",
+    submissionCount: 10,
     totalStudents: 30,
     submissionRate: 33.3,
     status: "승인완료",
@@ -61,8 +61,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-004",
     unitName: "4단원: 이차방정식과 이차함수",
-    examName: "단원 평가 (A)",
-    submittedCount: 15,
+    examTitle: "단원 평가 (A)",
+    submissionCount: 15,
     totalStudents: 30,
     submissionRate: 50.0,
     status: "승인완료",
@@ -71,8 +71,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-005",
     unitName: "5단원: 여러 가지 방정식",
-    examName: "단원 평가 (B)",
-    submittedCount: 8,
+    examTitle: "단원 평가 (B)",
+    submissionCount: 8,
     totalStudents: 25,
     submissionRate: 32.0,
     status: "승인완료",
@@ -81,8 +81,8 @@ export const dashboardExamSubmissions: DashboardExamSubmission[] = [
   {
     id: "exam-006",
     unitName: "6단원: 도형의 방정식",
-    examName: "기말 대비 모의고사",
-    submittedCount: 42,
+    examTitle: "기말 대비 모의고사",
+    submissionCount: 42,
     totalStudents: 45,
     submissionRate: 93.3,
     status: "승인완료",
@@ -118,7 +118,7 @@ export function getExamSubmissionData(examId: string) {
     (exam) => exam.id === examId,
   );
   if (dashboardExam) {
-    const submittedCount = dashboardExam.submittedCount;
+    const submittedCount = dashboardExam.submissionCount;
     const totalCount = dashboardExam.totalStudents;
 
     return data.slice(0, totalCount).map((submission, index) => ({
@@ -148,7 +148,7 @@ export function calculateDashboardStats() {
     0,
   );
   const totalSubmitted = dashboardExamSubmissions.reduce(
-    (sum, exam) => sum + exam.submittedCount,
+    (sum, exam) => sum + exam.submissionCount,
     0,
   );
   const averageSubmissionRate =

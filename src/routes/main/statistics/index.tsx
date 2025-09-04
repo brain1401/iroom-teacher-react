@@ -1,6 +1,11 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { selectedGradeAtom } from "@/atoms/grade";
-import { SelectGrade } from "@/components/layout/SelectGrade";
+import {
+  selectedGradeAtom,
+  selectedGradeStatsAtom,
+  dashboardLoadingAtom,
+  dashboardErrorAtom,
+} from "@/atoms/dashboard";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -9,7 +14,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { createFileRoute } from "@tanstack/react-router";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
 import { useLayoutEffect, useMemo } from "react";
 import type { Grade } from "@/types/grade";
 import {
@@ -76,9 +81,22 @@ export const Route = createFileRoute("/main/statistics/")({
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
-  const grade = useAtomValue(selectedGradeAtom);
+  const [selectedGrade, setSelectedGrade] = useAtom(selectedGradeAtom);
+  const gradeStats = useAtomValue(selectedGradeStatsAtom);
+  const isLoading = useAtomValue(dashboardLoadingAtom);
+  const { hasError } = useAtomValue(dashboardErrorAtom);
 
-  // 가데이터 (학년별 시험 평균)
+  // Grade 타입을 숫자 타입으로 매핑
+  const gradeMapping: Record<1 | 2 | 3, Grade> = {
+    1: "중1",
+    2: "중2", 
+    3: "중3",
+  };
+
+  const currentGrade = gradeMapping[selectedGrade];
+
+  // **임시 Mock 데이터 (서버 API 한계로 인한 Fallback)**
+  // TODO: 향후 서버에서 시험별/단원별 상세 통계 API 추가 시 제거 필요
   const fakeAveragesByGrade: Record<
     Grade,
     { examName: string; average: number; participants: number }[]
@@ -102,10 +120,9 @@ function RouteComponent() {
       { examName: "2학기 기말", average: 79, participants: 11 },
     ],
   };
-  const results = fakeAveragesByGrade[grade];
 
-  // 가데이터 (학년별 단원 오답률 계산용 원천 데이터)
-  // 오답률(%) = wrongCount / (questionCount * participants) * 100
+  // **임시 Mock 데이터 (서버 API 한계로 인한 Fallback)**
+  // TODO: 향후 서버에서 단원별 오답률 API 추가 시 제거 필요
   const fakeUnitWrongSourcesByGrade: Record<
     Grade,
     {
@@ -194,7 +211,9 @@ function RouteComponent() {
       }, // 20%
     ],
   };
-  const wrongSources = fakeUnitWrongSourcesByGrade[grade];
+
+  const results = fakeAveragesByGrade[currentGrade];
+  const wrongSources = fakeUnitWrongSourcesByGrade[currentGrade];
 
   // Map 기반 데이터 변환 (시험명 -> 평균)
   const chartData = useMemo(() => {
@@ -235,6 +254,46 @@ function RouteComponent() {
     setIsShowHeader(false);
   }, [setIsShowHeader]);
 
+  // 학년 선택 핸들러
+  const handleGradeChange = (grade: 1 | 2 | 3) => {
+    setSelectedGrade(grade);
+  };
+
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm">
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-200 rounded w-48 mb-6"></div>
+          <div className="flex gap-4">
+            <div className="flex-1 h-96 bg-gray-200 rounded"></div>
+            <div className="flex-1 h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // 에러 상태 처리
+  if (hasError) {
+    return (
+      <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm items-center justify-center">
+        <h2 className="text-xl font-semibold text-red-600 mb-2">
+          통계 데이터를 불러올 수 없습니다
+        </h2>
+        <p className="text-gray-600 mb-4">
+          서버 연결을 확인하거나 잠시 후 다시 시도해 주세요.
+        </p>
+        <Button 
+          onClick={() => window.location.reload()}
+          variant="outline"
+        >
+          새로고침
+        </Button>
+      </Card>
+    );
+  }
+
   return (
     <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm">
       <div className="mb-6">
@@ -255,7 +314,7 @@ function RouteComponent() {
                 </span>
                 <span className="text-gray-800">
                   {" "}
-                  를 꺽은선 그래로 보여주며,
+                  를 꺽은선 그래프로 보여주며,
                 </span>
                 <span className="text-blue-800">
                   오답률이 높은 상위 4개 단원을 퍼센트로 표시해 취약 영역을 확인
@@ -265,24 +324,59 @@ function RouteComponent() {
                   할 수 있고, 학년 버튼을 선택하면 해당 학년 데이터만 볼 수
                   있습니다.
                 </span>
-                .
               </div>
             </HoverCardContent>
           </HoverCard>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">학년 선택:</span>
-          <SelectGrade />
+        
+        {/* 학년 선택 및 서버 통계 정보 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700">학년 선택:</span>
+            <div className="flex gap-2">
+              {[1, 2, 3].map((grade) => (
+                <Button
+                  key={grade}
+                  variant={selectedGrade === grade ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleGradeChange(grade as 1 | 2 | 3)}
+                  className="text-sm"
+                >
+                  {grade}학년
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* 서버 데이터에서 가져온 현재 학년 통계 */}
+          <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+            <span className="font-medium">현재 {selectedGrade}학년 통계:</span>
+            <span className="ml-2">평균 {gradeStats.averageScore}점</span>
+            <span className="mx-2">•</span>
+            <span>합격률 {Math.round(gradeStats.passRate * 100)}%</span>
+            <span className="mx-2">•</span>
+            <span>총 {gradeStats.totalStudents}명</span>
+          </div>
+        </div>
+
+        {/* API 한계 안내 */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p className="text-sm text-yellow-800">
+            ⚠️ <strong>임시 데이터 표시 중:</strong> 
+            현재 서버 API에서 시험별/단원별 상세 통계를 제공하지 않아 임시 데이터로 표시됩니다. 
+            향후 API 확장 시 실제 데이터로 교체될 예정입니다.
+          </p>
         </div>
       </div>
+      
       <div className="flex flex-1 gap-4">
-        <div className="flex-1 w-1/2  flex flex-col gap-4 ">
+        <div className="flex-1 w-1/2 flex flex-col gap-4">
           <div className="flex w-full h-[15%] bg-blue-200 text-center items-center justify-center font-extrabold text-xl">
-            시험별 평균 점수
+            시험별 평균 점수 ({currentGrade})
           </div>
           <div className="flex-1 w-full h-full">
             {chartData.length === 0 ? (
-              <div className="flex h-full w-full items-center justify-center text-white/80">
+              <div className="flex h-full w-full items-center justify-center text-gray-500">
                 데이터 없음
               </div>
             ) : (
@@ -320,13 +414,13 @@ function RouteComponent() {
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-4 w-1/2 flex-1 ">
+        <div className="flex flex-col gap-4 w-1/2 flex-1">
           <div className="flex w-full h-[15%] bg-red-200 text-center items-center justify-center font-extrabold text-xl">
-            단원별 오답률
+            단원별 오답률 ({currentGrade})
           </div>
-          <div className="flex-1 w-full h-full ">
+          <div className="flex-1 w-full h-full">
             {wrongChartData.length === 0 ? (
-              <div className="flex h-full w-full items-center justify-center text-white/80">
+              <div className="flex h-full w-full items-center justify-center text-gray-500">
                 데이터 없음
               </div>
             ) : (

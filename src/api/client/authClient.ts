@@ -5,6 +5,7 @@ import { applyInterceptors } from "./interceptors";
 // 인증이 필요한 Axios 인스턴스 생성
 const createAuthApiClient = (): AxiosInstance => {
   const client = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3055/api",
     timeout: 10000, // 10초 타임아웃
     withCredentials: true, // httpOnly 쿠키 포함
     headers: {

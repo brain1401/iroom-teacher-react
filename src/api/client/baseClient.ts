@@ -24,6 +24,7 @@ export class ApiError extends Error {
 // 기본 Axios 인스턴스 생성 (인증 불필요)
 const createBaseApiClient = (): AxiosInstance => {
   const client = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3055/api",
     timeout: 10000, // 10초 타임아웃
     headers: {
       "Content-Type": "application/json",

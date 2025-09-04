@@ -182,7 +182,7 @@ export function useExamList() {
         return {
           ...exam,
           totalParticipants: dashboardExam.totalStudents,
-          actualParticipants: dashboardExam.submittedCount,
+          actualParticipants: dashboardExam.submissionCount,
         };
       }
 
