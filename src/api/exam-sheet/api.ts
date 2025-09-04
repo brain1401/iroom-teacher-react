@@ -14,7 +14,7 @@ import type { UnitsByGradeData } from "./types";
  * - AbortController 지원으로 요청 취소 가능
  */
 const examSheetApiClient = authApiClient.create({
-  baseURL: authApiClient.defaults.baseURL + "/exam-sheet",
+  baseURL: `${authApiClient.defaults.baseURL  }/exam-sheet`,
 });
 
 /**

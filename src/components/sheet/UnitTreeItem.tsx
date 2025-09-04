@@ -3,7 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Eye, ChevronRight } from "lucide-react";
-import type { UnitTreeNode } from "@/data/exam-sheet-mock-data";
+// TODO: 서버 API에서 단원 트리 데이터 타입을 가져오도록 수정 필요
+type UnitTreeNode = {
+  id: string;
+  name: string;
+  children?: UnitTreeNode[];
+  type?: "objective" | "subjective";
+  difficulty?: string;
+};
 
 /**
  * 단원 트리 아이템 컴포넌트 Props

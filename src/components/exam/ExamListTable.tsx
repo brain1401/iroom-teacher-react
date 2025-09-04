@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
-import { ParticipationBadge } from "./ParticipationBadge";
 import type { Exam } from "@/types/exam";
 import { Link } from "@tanstack/react-router";
 
@@ -32,7 +31,6 @@ import { Link } from "@tanstack/react-router";
  */
 /**
  * 시험 목록 테이블 컴포넌트 Props
- * @interface ExamTableProps
  */
 type ExamTableProps = {
   /** 시험 목록 데이터 배열 - Exam 타입의 배열로 각 시험 정보를 포함 */
@@ -231,7 +229,8 @@ export function ExamTable({
               className={cn(
                 tableStyles.row,
                 index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
-                selectedExamId === sheet.id && "ring-2 ring-blue-500 bg-blue-50/50 hover:bg-blue-100/50",
+                selectedExamId === sheet.id &&
+                  "ring-2 ring-blue-500 bg-blue-50/50 hover:bg-blue-100/50",
               )}
             >
               <TableCell className={tableStyles.cellCenter}>
@@ -244,21 +243,31 @@ export function ExamTable({
                 />
               </TableCell>
               <TableCell className={tableStyles.cellMedium}>
-                {sheet.unitName}
+                {/* 학년과 내용을 기반으로 단원 정보 표시 */}
+                <span className="text-sm">
+                  {sheet.grade}학년{" "}
+                  {sheet.content
+                    ? `- ${sheet.content.slice(0, 20)}${sheet.content.length > 20 ? "..." : ""}`
+                    : "수학"}
+                </span>
               </TableCell>
               <TableCell className={tableStyles.cell}>
                 {sheet.examName}
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
                 <Badge variant="outline" className={badgeStyles.outline}>
-                  {sheet.questionCount}문항
+                  {sheet.examSheetInfo?.totalQuestions ? (
+                    `${sheet.examSheetInfo.totalQuestions}문항`
+                  ) : (
+                    <span className="text-muted-foreground">미등록</span>
+                  )}
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
-                <ParticipationBadge
-                  actualParticipants={sheet.actualParticipants}
-                  totalParticipants={sheet.totalParticipants}
-                />
+                {/* 참여 현황은 별도 제출 현황 API에서 제공 예정 */}
+                <Badge variant="outline" className={badgeStyles.outline}>
+                  <span className="text-muted-foreground">집계중</span>
+                </Badge>
               </TableCell>
               {/* 3. UI에 있던 버튼들도 추가 */}
               <TableCell className={tableStyles.cellCenter}>

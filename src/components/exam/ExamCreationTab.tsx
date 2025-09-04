@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
 import type { ExamSheet } from "@/types/exam-sheet";
 
 /**
@@ -20,7 +19,6 @@ import type { ExamSheet } from "@/types/exam-sheet";
  * @description 시험명 입력과 문제지 선택을 통해 시험을 출제하는 화면
  */
 export function ExamCreationTab() {
-  const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     examName: "",
@@ -78,7 +76,7 @@ export function ExamCreationTab() {
       setTimeout(() => {
         window.location.href = "/main/exam-management";
       }, 1500);
-    } catch (error) {
+    } catch {
       toast.error("시험 출제에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsCreating(false);

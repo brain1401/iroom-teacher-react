@@ -27,7 +27,6 @@ export {
 
 /**
  * 포켓몬 목록 조회를 위한 필터링 옵션
- * @interface PokemonListFilters
  */
 /**
  * 포켓몬 목록 조회 시 표시할 개수를 관리하는 atom

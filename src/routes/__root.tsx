@@ -14,6 +14,7 @@ import { useAtomValue } from "jotai";
 import { mainBgExtraCombinedClassAtom } from "@/atoms/ui";
 import { isAuthenticatedAtom } from "@/atoms/auth";
 import { cn } from "@/lib/utils";
+import { CacheProvider } from "@/contexts/CacheContext";
 
 /**
  * 라우터 컨텍스트 타입 정의
@@ -132,7 +133,11 @@ function RootComponent() {
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
 
   return (
-    <>
+    <CacheProvider
+      enableCacheWarming={true}
+      enablePerformanceMonitoring={process.env.NODE_ENV === 'development'}
+      userGrade={undefined} // TODO: Get from user auth context when available
+    >
       {/* <NavigationBar /> */}
       <main
         className={cn(
@@ -143,7 +148,7 @@ function RootComponent() {
         {/* 하위 라우트가 렌더링되는 위치 */}
         <Outlet />
       </main>
-    </>
+    </CacheProvider>
   );
 }
 

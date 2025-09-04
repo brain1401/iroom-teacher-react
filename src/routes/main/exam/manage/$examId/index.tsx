@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { ExamDetail } from "@/components/exam/ExamDetail";
-import { dashboardExamSubmissions } from "@/data/exam-submission-dashboard";
+import { fetchSubmissionStatus } from "@/api/exam/api";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import { useSetAtom } from "jotai";
 import { useLayoutEffect } from "react";
@@ -13,13 +13,41 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/main/exam/manage/$examId/")({
   validateSearch: searchSchema,
+  // SSR loader for submission status data
+  loader: async ({ params }) => {
+    const { examId } = params;
+    
+    try {
+      // Pre-fetch submission status data on server-side
+      const submissionData = await fetchSubmissionStatus(examId);
+      return {
+        submissionData,
+        success: true,
+        error: null,
+      };
+    } catch (error) {
+      console.error(`제출 현황 데이터 로딩 실패 (examId: ${examId}):`, error);
+      
+      // Return error state that component can handle
+      return {
+        submissionData: null,
+        success: false,
+        error: error instanceof Error ? error.message : "데이터 로딩 실패",
+      };
+    }
+  },
   component: ExamDetailPage,
-});
+});;
 
 function ExamDetailPage() {
   const { examId } = Route.useParams();
   const { examName } = Route.useSearch();
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
+  
+  // Get preloaded data from SSR loader
+  const { submissionData, success, error } = Route.useLoaderData();
+
+  const router = useRouter();
 
   useLayoutEffect(() => {
     setIsShowHeader(true);
@@ -29,22 +57,18 @@ function ExamDetailPage() {
    * 뒤로가기 핸들러
    */
   const handleBack = () => {
-    window.history.back();
+    router.history.back();
   };
-
-  /**
-   * 선택된 시험 정보 찾기
-   */
-  const selectedExam = dashboardExamSubmissions.find(
-    (exam) => exam.id === examId,
-  );
 
   return (
     <div className="w-full h-full py-5">
       <ExamDetail
         onBack={handleBack}
-        examName={examName || selectedExam?.examTitle}
+        examName={examName || "시험 상세"}
         examId={examId}
+        // Pass preloaded server data to component
+        preloadedData={success ? submissionData : null}
+        preloadedError={error}
       />
     </div>
   );

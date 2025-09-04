@@ -16,7 +16,6 @@ import {
 
 /**
  * 참여율 뱃지 컴포넌트 Props
- * @interface ParticipationBadgeProps
  */
 type ParticipationBadgeProps = {
   /** 실제 참여한 학생 수 */

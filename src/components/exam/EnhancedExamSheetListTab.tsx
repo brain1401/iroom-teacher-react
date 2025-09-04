@@ -1,15 +1,24 @@
 /**
- * 고급 필터링을 지원하는 시험 목록 탭 컴포넌트
- * @description 종합적인 필터 사이드바와 함께 시험 목록을 관리하는 컴포넌트
+ * 서버 API 기반 시험 목록 탭 컴포넌트
+ * @description 실제 서버 데이터와 연동된 종합적인 시험 목록 관리 컴포넌트
+ *
+ * 주요 변경사항:
+ * - 가데이터 완전 제거, 서버 API 직접 연동
+ * - 서버 응답 구조에 맞춘 데이터 처리
+ * - 실시간 필터링 및 페이지네이션 지원
+ * - 로딩, 에러 상태 처리
+ * - 서버 타입 사용으로 타입 안전성 확보
  */
 
 import { useAtom, useAtomValue } from "jotai";
-import { Filter, SidebarClose, SidebarOpen } from "lucide-react";
+import { Filter, SidebarClose, SidebarOpen, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { useEffect, useCallback, useRef, useState } from "react";
 
 // Components
 import { ExamTable } from "./ExamListTable";
 import { ExamSubmissionTable } from "./ExamSubmissionTable";
 import { ExamFilterSidebar } from "./ExamFilterSidebar";
+import { ExamDetail } from "./ExamDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,27 +30,44 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import {
   showFilterSidebarAtom,
   collapsedFilterSidebarAtom,
   activeFiltersCountAtom,
 } from "@/atoms/examFilters";
+import { 
+  selectedExamDetailAtom,
+  selectedExamSubmissionStatusAtom,
+} from "@/atoms/exam";
 import { useExamListWithFilters } from "@/hooks/exam/useExamListWithFilters";
-import type { ExamSubmitStatusDetail } from "@/types/exam";
+import { useExamUrlSync } from "@/hooks/exam/useExamUrlSync";
+import { 
+  ExamListLoadingSkeleton,
+  ExamDetailLoading,
+  SubmissionStatusLoading 
+} from "@/components/loading/ExamLoadingStates";
 import { cn } from "@/lib/utils";
+import { 
+  useExamListPrefetch, 
+  useRealtimeSync, 
+  usePerformanceMetrics 
+} from "@/contexts/CacheContext";
 
 /**
- * 고급 시험 목록 탭 컴포넌트 Props
+ * 시험 목록 탭 컴포넌트 Props
  */
 type Props = {
   /**
    * 선택된 시험 ID (대시보드에서 전달)
+   * @description URL 파라미터나 대시보드에서 전달받은 초기 선택 시험
    */
   selectedExamId?: string;
 
   /**
    * 선택된 시험명 (대시보드에서 전달)
+   * @description 초기 선택 시험의 표시용 이름
    */
   selectedExamName?: string;
 
@@ -52,62 +78,43 @@ type Props = {
 };
 
 /**
- * 고급 필터링을 지원하는 시험 목록 관리 탭 컴포넌트
- * @description 종합적인 필터 사이드바와 향상된 검색 기능을 제공하는 시험 목록 인터페이스
+ * 서버 API 기반 시험 목록 관리 탭 컴포넌트
+ * @description 실제 백엔드 API와 연동된 종합적인 시험 목록 인터페이스
  *
- * 주요 개선사항:
- * - 왼쪽 사이드바를 통한 고급 필터링 시스템
- * - 실시간 필터 적용 및 결과 업데이트
- * - 필터 상태 영구 저장 (localStorage)
- * - 사이드바 축소/확장 기능
- * - 반응형 레이아웃 지원
- * - 활성 필터 개수 표시
- * - 필터 프리셋 시스템
+ * 주요 기능:
+ * - **실시간 서버 데이터 연동**: atomWithQuery를 통한 자동 캐싱 및 업데이트
+ * - **고급 필터링**: 학년별, 검색어별 서버 사이드 필터링
+ * - **페이지네이션**: 서버 사이드 페이지네이션 완전 지원
+ * - **상태 관리**: 로딩, 에러, 빈 상태 완전 처리
+ * - **모달 시스템**: 시험 상세, 제출 현황 모달
+ * - **반응형 디자인**: 모바일부터 데스크톱까지 완전 대응
  *
- * 필터 카테고리:
- * 1. **빠른 필터** - 프리셋 버튼으로 일반적인 필터 조합 제공
- * 2. **검색 필터** - 고급 검색 옵션과 함께 텍스트 검색
- * 3. **상태 필터** - 난이도 다중 선택
- * 4. **날짜 필터** - 생성일/수정일 범위 선택
- * 5. **성과 필터** - 문항 수, 참여율 슬라이더 범위 설정
- * 6. **콘텐츠 필터** - 단원, 시험 유형 다중 선택
+ * 서버 연동 특징:
+ * - Spring Boot Page 구조 완전 지원
+ * - REST API 호출 최적화 (필요시에만 요청)
+ * - 캐시 전략으로 성능 최적화
+ * - 에러 복구 및 재시도 로직
  *
  * 레이아웃 구조:
  * ```
  * ┌─────────────────┬──────────────────────────────┐
- * │                 │ Header (Title + Selected)    │
+ * │                 │ Header + Filter Status       │
  * │   Filter        ├──────────────────────────────┤
- * │   Sidebar       │ Table Content                │
- * │   (Collapsible) │                              │
- * │                 │ Pagination                   │
+ * │   Sidebar       │ [Loading/Error/Empty/Table]  │
+ * │   (Toggle)      │                              │
+ * │                 │ Pagination Controls          │
  * └─────────────────┴──────────────────────────────┘
  * ```
  *
- * 상태 관리:
- * - 필터 상태: Jotai 원자들로 전역 관리
- * - 사이드바 상태: 표시/숨김, 축소/확장 상태 영구 저장
- * - 로컬 상태: 모달, 선택된 항목 등 일시적 상태
- *
- * 성능 최적화:
- * - 메모이제이션된 필터링 로직
- * - 조건부 렌더링으로 불필요한 계산 방지
- * - 가상화 지원 준비 (대용량 데이터)
- *
- * 접근성:
- * - 키보드 네비게이션 완전 지원
- * - 스크린 리더 친화적 구조
- * - 적절한 ARIA 레이블링
- * - 고대비 색상 지원
- *
  * @example
  * ```tsx
- * // 기본 사용법
+ * // 기본 사용법 (전체 목록)
  * <EnhancedExamSheetListTab />
  *
- * // 대시보드 연동
+ * // 대시보드 연동 (특정 시험 초기 선택)
  * <EnhancedExamSheetListTab
- *   selectedExamId="exam-001"
- *   selectedExamName="중간고사 수학"
+ *   selectedExamId="01990dea-12fe-75c5-9edd-e4ed42386748"
+ *   selectedExamName="1학년 1학기 중간고사 - 1차"
  * />
  * ```
  */
@@ -121,35 +128,171 @@ export function EnhancedExamSheetListTab({
   const [isCollapsed, setIsCollapsed] = useAtom(collapsedFilterSidebarAtom);
   const activeFiltersCount = useAtomValue(activeFiltersCountAtom);
 
-  // 시험 목록 데이터 및 액션
+  // 서버 기반 시험 목록 데이터 및 액션
   const {
-    filteredSheets,
+    exams,
+    pagination,
+    searchSummary,
+    filterSummary,
+    dataState,
+    selectionState,
     selectedIds,
     activeModal,
     selectedSheet,
-    fakeExamSubmitStatusDetail,
-    availableFilterOptions,
+    selectedExamId: currentSelectedExamId,
+    searchKeyword,
+    selectedGrade,
+    handleSearchChange,
+    handleGradeChange,
+    handlePageChange,
+    handleNextPage,
+    handlePrevPage,
+    handleResetFilters,
     handleSelectAll,
     handleSelect,
-    handleDeleteSelected,
-    handleOpenPrint,
+    handleClearSelection,
     handleOpenDetail,
-    handleClose,
+    handleOpenSubmissionStatus,
+    handleOpenPrint,
+    handleCloseModal,
+    handleDeleteSelected,
+    handleDelete,
   } = useExamListWithFilters();
+
+  // URL 파라미터 동기화 (SSR 최적화)
+  const { syncUrl, currentState } = useExamUrlSync({
+    debounceMs: 300, // 300ms 디바운스로 불필요한 URL 업데이트 방지
+    enabled: true, // 필터 변경 시 URL 자동 업데이트 활성화
+  });
+
+  // 선택된 시험의 상세 정보 (모달용)
+  const selectedExamDetail = useAtomValue(selectedExamDetailAtom);
+  const selectedExamSubmissionStatus = useAtomValue(selectedExamSubmissionStatusAtom);
+
+  // 스마트 캐싱 및 성능 최적화 훅들
+  const { 
+    prefetchVisibleExams, 
+    prefetchNextPageSmart, 
+    resetPrefetchCache 
+  } = useExamListPrefetch();
+  
+  const { isActive: isRealtimeSyncActive } = useRealtimeSync(
+    currentSelectedExamId || undefined, 
+    activeModal === "submissionStatus"
+  );
+  
+  const { metrics: performanceMetrics } = usePerformanceMetrics();
+
+  // 스크롤 위치 추적 (프리페칭 최적화용)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef(0);
+  const listContainerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 스크롤 위치 추적 핸들러
+   * @description 사용자 스크롤 위치를 추적하여 프리페칭 최적화
+   */
+  const handleScroll = useCallback(() => {
+    if (listContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = listContainerRef.current;
+      const scrollPosition = scrollTop / (scrollHeight - clientHeight);
+      scrollPositionRef.current = Math.max(0, Math.min(1, scrollPosition));
+    }
+  }, []);
+
+  /**
+   * 스마트 프리페칭 실행
+   * @description 현재 화면의 시험들과 다음 페이지를 지능적으로 프리페치
+   */
+  const executeSmartPrefetch = useCallback(async () => {
+    if (dataState.hasData && exams.length > 0) {
+      // 현재 화면의 시험 ID들 추출
+      const visibleExamIds = exams.map(exam => exam.id);
+      
+      // 시험 상세 정보 프리페치 (스크롤 위치 고려)
+      await prefetchVisibleExams(visibleExamIds, scrollPositionRef.current);
+      
+      // 다음 페이지 프리페치 (사용자가 페이지 하단 근처에 있을 때)
+      const currentFilters = {
+        page: pagination.currentPage,
+        size: 20, // 기본 페이지 크기
+        search: searchKeyword,
+        grade: selectedGrade ? parseInt(selectedGrade, 10) : undefined,
+      };
+      
+      await prefetchNextPageSmart(
+        currentFilters, 
+        pagination.currentPage, 
+        scrollPositionRef.current
+      );
+    }
+  }, [
+    dataState.hasData, 
+    exams, 
+    prefetchVisibleExams, 
+    prefetchNextPageSmart, 
+    pagination.currentPage, 
+    searchKeyword, 
+    selectedGrade
+  ]);
+
+  /**
+   * 새로고침 핸들러
+   * @description 현재 필터로 데이터 다시 로드
+   */
+  const handleRefresh = () => {
+    // TanStack Query가 자동으로 리페칭 처리
+    window.location.reload();
+  };
+
+  // 스크롤 이벤트 리스너 등록
+  useEffect(() => {
+    const container = listContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        container.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [handleScroll]);
+
+  // 데이터 변경 시 스마트 프리페칭 실행 (디바운스 적용)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      executeSmartPrefetch();
+    }, 500); // 500ms 후 실행 (데이터 로딩 완료 후)
+
+    return () => clearTimeout(timeoutId);
+  }, [executeSmartPrefetch]);
+
+  // 페이지 변경 시 프리페치 캐시 초기화
+  useEffect(() => {
+    resetPrefetchCache();
+  }, [pagination.currentPage, resetPrefetchCache]);
+
+  // 개발 환경에서 성능 메트릭 로깅
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && performanceMetrics) {
+      console.log('📊 캐시 성능 메트릭:', performanceMetrics);
+    }
+  }, [performanceMetrics]);
 
   return (
     <div className={cn("flex h-full gap-4", className)}>
       {/* 필터 사이드바 */}
       {showSidebar && (
         <ExamFilterSidebar
-          availableUnits={availableFilterOptions.availableUnits}
-          availableExamTypes={availableFilterOptions.availableExamTypes}
+          availableUnits={[]}
+          availableExamTypes={[]}
           className="flex-shrink-0"
         />
       )}
 
       {/* 메인 콘텐츠 영역 */}
-      <div className="flex-1 space-y-4 min-w-0">
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 space-y-4 min-w-0 overflow-auto"
+      >
         {/* 헤더 영역 */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -163,9 +306,7 @@ export function EnhancedExamSheetListTab({
                   size="sm"
                   onClick={() => setShowSidebar(!showSidebar)}
                   className="h-8 px-3"
-                  title={
-                    showSidebar ? "필터 사이드바 숨기기" : "필터 사이드바 보기"
-                  }
+                  title={showSidebar ? "필터 사이드바 숨기기" : "필터 사이드바 보기"}
                 >
                   {showSidebar ? (
                     <SidebarClose className="h-4 w-4 mr-1" />
@@ -179,6 +320,23 @@ export function EnhancedExamSheetListTab({
                       {activeFiltersCount}
                     </Badge>
                   )}
+                </Button>
+
+                {/* 새로고침 버튼 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={dataState.isLoading}
+                  className="h-8 px-2"
+                  title="새로고침"
+                >
+                  <RefreshCw 
+                    className={cn(
+                      "h-4 w-4",
+                      dataState.isFetching && "animate-spin"
+                    )} 
+                  />
                 </Button>
 
                 {/* 필터 축소/확장 버튼 (사이드바가 보일 때만) */}
@@ -196,12 +354,12 @@ export function EnhancedExamSheetListTab({
               </div>
             </div>
 
-            {/* 선택된 시험 정보 표시 */}
+            {/* 초기 선택된 시험 정보 표시 */}
             {selectedExamId && selectedExamName && (
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 max-w-2xl">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-blue-800">
-                    선택된 시험:
+                    대시보드에서 선택된 시험:
                   </span>
                   <span className="text-blue-600 font-medium">
                     {selectedExamName}
@@ -211,38 +369,104 @@ export function EnhancedExamSheetListTab({
             )}
           </div>
 
-          {/* 결과 요약 */}
+          {/* 검색 결과 요약 */}
           <div className="text-right text-sm text-muted-foreground">
-            <div>총 {filteredSheets.length}개의 시험</div>
-            {selectedIds.size > 0 && (
-              <div className="text-blue-600 font-medium">
-                {selectedIds.size}개 선택됨
+            {dataState.isLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>로딩 중...</span>
               </div>
-            )}
-            {activeFiltersCount > 0 && (
-              <div className="text-orange-600">
-                {activeFiltersCount}개 필터 활성
-              </div>
+            ) : (
+              <>
+                <div>
+                  총 {searchSummary.totalResults.toLocaleString()}개의 시험
+                  {searchSummary.isFiltered && " (필터링됨)"}
+                </div>
+                {searchSummary.totalResults > 0 && (
+                  <div className="text-xs">
+                    {searchSummary.resultRange.start} - {searchSummary.resultRange.end} 표시
+                  </div>
+                )}
+                {selectionState.hasSelection && (
+                  <div className="text-blue-600 font-medium">
+                    {selectionState.selectedCount}개 선택됨
+                  </div>
+                )}
+                {activeFiltersCount > 0 && (
+                  <div className="text-orange-600">
+                    {activeFiltersCount}개 필터 활성
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
         <Separator />
 
-        {/* 테이블 영역 */}
-        <div className="flex-1">
-          {filteredSheets.length === 0 ? (
+        {/* 콘텐츠 영역 (로딩, 에러, 빈 상태, 테이블) */}
+        <div 
+          ref={listContainerRef}
+          className="flex-1 overflow-auto"
+        >
+          {/* 로딩 상태 - 개선된 스켈레톤 UI */}
+          {dataState.isLoading && !dataState.hasError && (
+            <ExamListLoadingSkeleton 
+              itemCount={10}
+              showHeader={true}
+
+            />
+          )}
+
+          {/* 에러 상태 */}
+          {dataState.hasError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                시험 목록을 불러오는 중 오류가 발생했습니다.
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRefresh}
+                  className="ml-2"
+                >
+                  다시 시도
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* 빈 상태 */}
+          {dataState.isEmpty && !dataState.hasError && !dataState.isLoading && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="text-muted-foreground text-lg mb-2">
-                조건에 맞는 시험이 없습니다
+                {dataState.isFiltered 
+                  ? "조건에 맞는 시험이 없습니다"
+                  : "등록된 시험이 없습니다"
+                }
               </div>
-              <div className="text-sm text-muted-foreground">
-                다른 필터 조건을 시도해보세요
+              <div className="text-sm text-muted-foreground mb-4">
+                {dataState.isFiltered 
+                  ? "다른 필터 조건을 시도해보세요"
+                  : "새로운 시험을 등록해보세요"
+                }
               </div>
+              {dataState.isFiltered && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleResetFilters}
+                  size="sm"
+                >
+                  필터 초기화
+                </Button>
+              )}
             </div>
-          ) : (
+          )}
+
+          {/* 시험 목록 테이블 */}
+          {dataState.hasData && !dataState.isLoading && (
             <ExamTable
-              sheets={filteredSheets}
+              sheets={exams}
               selectedIds={selectedIds}
               onSelectAll={handleSelectAll}
               onSelect={handleSelect}
@@ -253,18 +477,47 @@ export function EnhancedExamSheetListTab({
           )}
         </div>
 
+        {/* 페이지네이션 */}
+        {searchSummary.totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              페이지 {searchSummary.currentPage} / {searchSummary.totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevPage}
+                disabled={!pagination.hasPrev || dataState.isLoading}
+              >
+                이전
+              </Button>
+              <span className="text-sm px-2">
+                {pagination.currentPage + 1} / {pagination.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={!pagination.hasNext || dataState.isLoading}
+              >
+                다음
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* 선택된 항목 일괄 작업 */}
-        {selectedIds.size > 0 && (
+        {selectionState.hasSelection && (
           <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div className="text-sm text-blue-800">
-              <span className="font-medium">{selectedIds.size}개</span>의 시험이
-              선택되었습니다
+              <span className="font-medium">{selectionState.selectedCount}개</span>의 시험이 선택되었습니다
             </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleSelectAll(false)}
+                onClick={handleClearSelection}
                 className="h-8"
               >
                 선택 해제
@@ -275,81 +528,98 @@ export function EnhancedExamSheetListTab({
                 onClick={handleDeleteSelected}
                 className="h-8"
               >
-                삭제 ({selectedIds.size})
+                삭제 ({selectionState.selectedCount})
               </Button>
             </div>
           </div>
         )}
       </div>
 
-      {/* 상세 정보 모달 */}
+      {/* 시험 상세 정보 모달 */}
       <Dialog
         open={activeModal !== null}
         onOpenChange={(open) => {
-          if (!open) handleClose();
+          if (!open) handleCloseModal();
         }}
       >
         <DialogContent className="max-w-6xl max-h-[85vh] overflow-hidden">
-          {activeModal === "detail" && selectedSheet && (
+          {/* 시험 상세 모달 */}
+          {activeModal === "examDetail" && currentSelectedExamId && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  시험 상세 정보
+                  {selectedExamDetail.exam && (
+                    <Badge variant="outline">
+                      {selectedExamDetail.exam.grade}학년
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <DialogDescription>
+                  시험의 기본 정보와 시험지 상세 내용을 확인할 수 있습니다.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <ScrollArea className="flex-1 max-h-[60vh]">
+                {selectedExamDetail.isLoading ? (
+                  <ExamDetailLoading />
+                ) : selectedExamDetail.hasData ? (
+                  <ExamDetail
+                    onBack={handleCloseModal}
+                    examName={selectedExamDetail.exam?.examName}
+                    examId={selectedExamDetail.exam?.id}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    시험 상세 정보를 불러올 수 없습니다.
+                  </div>
+                )}
+              </ScrollArea>
+            </>
+          )}
+
+          {/* 제출 현황 모달 */}
+          {activeModal === "submissionStatus" && currentSelectedExamId && (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   시험 제출 현황
-                  <Badge variant="outline">{selectedSheet.status}</Badge>
+                  {selectedExamSubmissionStatus.submissionStatus && (
+                    <Badge variant="outline">
+                      제출률 {selectedExamSubmissionStatus.submissionStatus.submissionStats.submissionRate.toFixed(1)}%
+                    </Badge>
+                  )}
                 </DialogTitle>
                 <DialogDescription>
-                  <div className="space-y-1">
-                    <div>
-                      <strong>시험명:</strong> {selectedSheet.examName}
-                    </div>
-                    <div>
-                      <strong>단원명:</strong> {selectedSheet.unitName}
-                    </div>
-                    <div>
-                      <strong>문항 수:</strong> {selectedSheet.questionCount}
-                      문항
-                    </div>
-                    <div>
-                      <strong>난이도:</strong> {selectedSheet.questionLevel}
-                    </div>
-                    <div>
-                      <strong>참여율:</strong>{" "}
-                      {selectedSheet.actualParticipants}/
-                      {selectedSheet.totalParticipants}명 (
-                      {(
-                        (selectedSheet.actualParticipants /
-                          selectedSheet.totalParticipants) *
-                        100
-                      ).toFixed(1)}
-                      %)
-                    </div>
-                  </div>
+                  실시간 제출 현황과 통계를 확인할 수 있습니다.
                 </DialogDescription>
               </DialogHeader>
-
-              {/* 시험 제출 현황 테이블 */}
+              
               <ScrollArea className="flex-1 max-h-[60vh]">
-                <ExamSubmissionTable
-                  submissions={fakeExamSubmitStatusDetail.filter(
-                    (submission: ExamSubmitStatusDetail) =>
-                      submission.examName === selectedSheet.examName,
-                  )}
-                  selectedIds={new Set()}
-                  onSelectAll={() => {}}
-                  onSelect={() => {}}
-                  onOpenDetail={(submission: ExamSubmitStatusDetail) => {
-                    console.log("학생 상세 정보:", submission);
-                    alert(
-                      `${submission.student.name} 학생의 상세 정보를 확인합니다.`,
-                    );
-                  }}
-                  onDownloadAnswer={(submission: ExamSubmitStatusDetail) => {
-                    console.log("답안 다운로드:", submission);
-                    alert(
-                      `${submission.student.name} 학생의 답안을 다운로드합니다.`,
-                    );
-                  }}
-                />
+                {selectedExamSubmissionStatus.isLoading ? (
+                  <SubmissionStatusLoading />
+                ) : selectedExamSubmissionStatus.hasData ? (
+                  <>
+                    {/* TODO: ExamSubmissionTable 컴포넌트 리팩토링 필요
+                        - 현재 ServerRecentSubmission과 ExamSubmitStatusDetail 타입 불일치
+                        - PHASE 3에서 서버 타입에 맞춰 컴포넌트 재설계 예정 */}
+                    <div className="text-center py-8 text-muted-foreground">
+                      <div className="space-y-2">
+                        <p>제출 현황 상세 테이블</p>
+                        <p className="text-sm">서버 연동 중 - 곧 제공될 예정입니다.</p>
+                        {selectedExamSubmissionStatus.submissionStatus && (
+                          <div className="text-xs">
+                            최근 제출: {selectedExamSubmissionStatus.submissionStatus.recentSubmissions.length}개
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    제출 현황 정보를 불러올 수 없습니다.
+                  </div>
+                )}
               </ScrollArea>
             </>
           )}

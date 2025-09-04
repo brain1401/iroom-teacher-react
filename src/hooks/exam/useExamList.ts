@@ -5,8 +5,7 @@ import type {
   SearchScope,
   ExamListFilters,
 } from "@/types/exam";
-import { examSubmissionMockData } from "@/data/student-mock-data";
-import { dashboardExamSubmissions } from "@/data/exam-submission-dashboard";
+// TODO: 서버 API에서 시험 데이터를 가져오도록 수정 필요
 
 /**
  * 시험 목록 관리 커스텀 훅
@@ -33,84 +32,12 @@ export function useExamList() {
   const [selectedSheet, setSelectedSheet] = useState<Exam | null>(null);
 
   // 시험 목록 상태 (가변적)
-  const [examList, setExamList] = useState<Exam[]>([
-    {
-      id: "exam-001",
-      unitName: "1단원: 다항식의 연산",
-      examName: "2025-1학기 중간고사 대비",
-      questionCount: 20,
-      questionLevel: "기초",
-      status: "승인완료",
-      createdAt: "2025-01-15",
-      updatedAt: "2025-01-15",
-      totalParticipants: 30,
-      actualParticipants: 14, // 46.7% 참여
-    },
-    {
-      id: "exam-002",
-      unitName: "2단원: 나머지정리와 인수분해",
-      examName: "2025-1학기 중간고사 대비",
-      questionCount: 20,
-      questionLevel: "기초",
-      status: "승인완료",
-      createdAt: "2025-01-15",
-      updatedAt: "2025-01-15",
-      totalParticipants: 30,
-      actualParticipants: 20, // 66.7% 참여
-    },
-    {
-      id: "exam-003",
-      unitName: "3단원: 유리식과 무리식",
-      examName: "2025-1학기 기말고사 대비",
-      questionCount: 25,
-      questionLevel: "보통",
-      status: "승인완료",
-      createdAt: "2025-01-16",
-      updatedAt: "2025-01-16",
-      totalParticipants: 30,
-      actualParticipants: 10, // 33.3% 참여
-    },
-    {
-      id: "exam-004",
-      unitName: "4단원: 이차방정식과 이차함수",
-      examName: "단원 평가 (A)",
-      questionCount: 20,
-      questionLevel: "기초",
-      status: "승인완료",
-      createdAt: "2025-01-17",
-      updatedAt: "2025-01-17",
-      totalParticipants: 30,
-      actualParticipants: 15, // 50% 참여
-    },
-    {
-      id: "exam-005",
-      unitName: "5단원: 여러 가지 방정식",
-      examName: "단원 평가 (B)",
-      questionCount: 20,
-      questionLevel: "보통",
-      status: "승인완료",
-      createdAt: "2025-01-18",
-      updatedAt: "2025-01-18",
-      totalParticipants: 25,
-      actualParticipants: 8, // 32% 참여
-    },
-    {
-      id: "exam-006",
-      unitName: "6단원: 도형의 방정식",
-      examName: "기말 대비 모의고사",
-      questionCount: 30,
-      questionLevel: "심화",
-      status: "승인완료",
-      createdAt: "2025-01-19",
-      updatedAt: "2025-01-19",
-      totalParticipants: 45,
-      actualParticipants: 42, // 93.3% 참여
-    },
-  ]);
+  // TODO: 서버 API에서 시험 목록을 가져오도록 수정 필요
+  const [examList, setExamList] = useState<Exam[]>([]);
 
-  // 시험 제출 현황 데이터 (새로운 학생 가데이터 사용)
-  const fakeExamSubmitStatusDetail: ExamSubmitStatusDetail[] =
-    examSubmissionMockData;
+  // 시험 제출 현황 데이터
+  // TODO: 서버 API에서 제출 현황 데이터를 가져오도록 수정 필요
+  const fakeExamSubmitStatusDetail: ExamSubmitStatusDetail[] = [];
 
   /**
    * 새로운 시험 추가 함수
@@ -118,14 +45,7 @@ export function useExamList() {
    */
   const addNewExam = useCallback(
     (
-      newExam: Omit<
-        Exam,
-        | "id"
-        | "createdAt"
-        | "updatedAt"
-        | "totalParticipants"
-        | "actualParticipants"
-      >,
+      newExam: Omit<Exam, "id" | "createdAt">,
     ) => {
       const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 형식
       const examId = `exam-${Date.now()}`; // 고유 ID 생성
@@ -134,9 +54,6 @@ export function useExamList() {
         ...newExam,
         id: examId,
         createdAt: now,
-        updatedAt: now,
-        totalParticipants: 0,
-        actualParticipants: 0,
       };
 
       // 목록 상단에 추가 (최신순)
@@ -168,28 +85,13 @@ export function useExamList() {
   }, [addNewExam]);
 
   /**
-   * 실제 가데이터에서 참여 현황 정보를 가져와서 시험 데이터와 연동
-   * @description dashboardExamSubmissions의 데이터를 기반으로 동적 계산
+   * 실제 서버에서 참여 현황 정보를 가져와서 시험 데이터와 연동
+   * @description 서버 API 연동을 위해 추후 수정 필요
    */
   const getExamDataWithRealParticipation = useMemo(() => {
-    return examList.map((exam) => {
-      // 대시보드 데이터에서 해당 시험의 실제 참여 현황 찾기
-      const dashboardExam = dashboardExamSubmissions.find(
-        (dt) => dt.id === exam.id,
-      );
-
-      if (dashboardExam) {
-        return {
-          ...exam,
-          totalParticipants: dashboardExam.totalStudents,
-          actualParticipants: dashboardExam.submissionCount,
-        };
-      }
-
-      // 대시보드 데이터에 없는 경우 기본값 사용
-      return exam;
-    });
-  }, [examList, dashboardExamSubmissions]);
+    // TODO: 서버 API에서 참여 현황 데이터를 가져와서 연동하도록 수정 필요
+    return examList.map((exam) => exam);
+  }, [examList]);
 
   /**
    * 필터링된 시험 목록 계산
@@ -199,12 +101,12 @@ export function useExamList() {
       const matchesKeyword =
         searchKeyword.trim() === "" ||
         (searchScope === "all" &&
-          (sheet.unitName.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-            sheet.examName
+          (sheet.examName
               .toLowerCase()
-              .includes(searchKeyword.toLowerCase()))) ||
-        (searchScope === "unitName" &&
-          sheet.unitName.toLowerCase().includes(searchKeyword.toLowerCase())) ||
+              .includes(searchKeyword.toLowerCase()) ||
+            sheet.content?.toLowerCase().includes(searchKeyword.toLowerCase()))) ||
+        (searchScope === "content" &&
+          sheet.content?.toLowerCase().includes(searchKeyword.toLowerCase())) ||
         (searchScope === "examName" &&
           sheet.examName.toLowerCase().includes(searchKeyword.toLowerCase()));
 

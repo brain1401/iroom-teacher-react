@@ -18,9 +18,6 @@ import {
   selectedGradeAtom,
   recentExamsStatusQueryAtom,
   chartScoreDistributionAtom,
-  dashboardSummaryAtom,
-  dashboardLoadingAtom,
-  dashboardErrorAtom,
   scoreDistributionQueryAtom,
   scoreDistributionQueryOptions,
   recentExamsStatusQueryOptions,
@@ -210,6 +207,14 @@ function RouteComponent() {
   const handleViewMoreClick = () => {
     navigate({
       to: "/main/exam/manage",
+      search: {
+        page: 0,
+        size: 20,
+        sort: "createdAt,desc",
+        search: undefined,
+        grade: undefined,
+        recent: undefined
+      },
     });
   };
 

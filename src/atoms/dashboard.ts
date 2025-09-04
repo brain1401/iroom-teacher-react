@@ -20,9 +20,8 @@ import {
 import {
   transformExamSubmissions,
   transformScoreDistributionForChart,
-  extractScoreStatistics,
 } from "@/utils/dashboardTransform";
-import type { DashboardExamSubmission } from "@/data/exam-submission-dashboard";
+import type { DashboardExamSubmission } from "@/types/exam";
 
 // 편의를 위한 재Export
 export {
@@ -50,7 +49,10 @@ export {
  * setGrade(3); // 3학년 선택
  * ```
  */
-export const selectedGradeAtom = atomWithStorage<1 | 2 | 3>("dashboard-selected-grade", 1);
+export const selectedGradeAtom = atomWithStorage<1 | 2 | 3>(
+  "dashboard-selected-grade",
+  1,
+);
 
 /**
  * 최근 시험 제출 현황 데이터를 관리하는 쿼리 atom
@@ -129,17 +131,19 @@ export const scoreDistributionQueryAtom = atomWithQuery((get) => {
  * // examSubmissions: DashboardExamSubmission[]
  * ```
  */
-export const transformedExamSubmissionsAtom = atom<DashboardExamSubmission[]>((get) => {
-  const { data, isPending, isError } = get(recentExamsStatusQueryAtom);
+export const transformedExamSubmissionsAtom = atom<DashboardExamSubmission[]>(
+  (get) => {
+    const { data, isPending, isError } = get(recentExamsStatusQueryAtom);
 
-  // 로딩 중이거나 에러인 경우 빈 배열 반환
-  if (isPending || isError || !data) {
-    return [];
-  }
+    // 로딩 중이거나 에러인 경우 빈 배열 반환
+    if (isPending || isError || !data) {
+      return [];
+    }
 
-  // 서버 데이터를 UI 형태로 변환
-  return transformExamSubmissions(data.examSubmissions);
-});
+    // 서버 데이터를 UI 형태로 변환
+    return transformExamSubmissions(data.examSubmissions);
+  },
+);
 
 /**
  * 차트용 점수 분포 데이터를 관리하는 derived atom
@@ -172,18 +176,25 @@ export const chartScoreDistributionAtom = atom((get) => {
 
   // 로딩 중이거나 에러인 경우 빈 배열 반환
   if (isPending || isError || !data) {
-    console.log("[chartScoreDistributionAtom] 데이터 없음:", { isPending, isError, data });
+    console.log("[chartScoreDistributionAtom] 데이터 없음:", {
+      isPending,
+      isError,
+      data,
+    });
     return [];
   }
 
   // 디버깅: 서버에서 받은 원본 데이터 확인
   console.log("[chartScoreDistributionAtom] 서버 원본 데이터:", data);
   console.log("[chartScoreDistributionAtom] 선택된 학년:", selectedGrade);
-  
+
   // 선택된 학년 정보와 함께 차트용 형태로 변환
-  const transformedData = transformScoreDistributionForChart(data.distributions, selectedGrade);
+  const transformedData = transformScoreDistributionForChart(
+    data.distributions,
+    selectedGrade,
+  );
   console.log("[chartScoreDistributionAtom] 변환된 데이터:", transformedData);
-  
+
   return transformedData;
 });
 
@@ -285,19 +296,19 @@ export const dashboardErrorAtom = atom((get) => {
  * 사용 예시:
  * ```typescript
  * const refreshDashboard = useSetAtom(refreshDashboardAtom);
- * 
+ *
  * const handleRefresh = () => {
  *   refreshDashboard();
  * };
  * ```
  */
-export const refreshDashboardAtom = atom(null, async (get, set) => {
+export const refreshDashboardAtom = atom(null, (get, set) => {
   // 현재 선택된 학년 확인
   const currentGrade = get(selectedGradeAtom);
-  
+
   // 쿼리 다시 실행을 위해 atom들의 값 재읽기
   // atomWithQuery는 의존성이 변경되지 않으면 캐시된 값을 반환하므로
-  // queryClient를 통한 invalidation이 더 적절하지만, 
+  // queryClient를 통한 invalidation이 더 적절하지만,
   // 여기서는 단순히 새로운 요청 트리거
   try {
     // 새로운 데이터 로드 트리거
@@ -321,7 +332,7 @@ export const refreshDashboardAtom = atom(null, async (get, set) => {
  * 사용 예시:
  * ```typescript
  * const summary = useAtomValue(dashboardSummaryAtom);
- * <DashboardHeader 
+ * <DashboardHeader
  *   grade={summary.selectedGrade}
  *   totalExams={summary.totalExams}
  *   averageSubmissionRate={summary.averageSubmissionRate}
@@ -337,14 +348,16 @@ export const dashboardSummaryAtom = atom((get) => {
   const { hasError } = get(dashboardErrorAtom);
 
   // 평균 제출률 계산
-  const averageSubmissionRate = examSubmissions.length > 0
-    ? examSubmissions.reduce((sum, exam) => {
-        const rate = exam.totalStudents > 0 
-          ? exam.submissionCount / exam.totalStudents 
-          : 0;
-        return sum + rate;
-      }, 0) / examSubmissions.length
-    : 0;
+  const averageSubmissionRate =
+    examSubmissions.length > 0
+      ? examSubmissions.reduce((sum, exam) => {
+          const rate =
+            exam.totalStudents > 0
+              ? exam.submissionCount / exam.totalStudents
+              : 0;
+          return sum + rate;
+        }, 0) / examSubmissions.length
+      : 0;
 
   return {
     selectedGrade,

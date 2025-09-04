@@ -24,7 +24,7 @@ import { UnitTreeItem } from "./UnitTreeItem";
 import { useExamSheetRegistration } from "@/hooks/exam-sheet/useExamSheetRegistration";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { findProblemInTree, unitTreeData } from "@/data/exam-sheet-mock-data";
+// Mock data imports removed - will be replaced with server API calls
 /**
  * 문제지 등록 탭 콘텐츠
  * @description 교사가 새로운 시험지를 생성하기 위한 종합적인 인터페이스를 제공하는 핵심 컴포넌트
@@ -332,7 +332,8 @@ export function ExamSheetRegistrationTab() {
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto">
               <div className="space-y-2">
-                {unitTreeData.map((unit) => (
+                {/* TODO: unitTreeData를 서버 API로 교체 필요 */}
+                {[].map((unit: any) => (
                   <UnitTreeItem
                     key={unit.id}
                     unit={unit}
@@ -426,12 +427,8 @@ export function ExamSheetRegistrationTab() {
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2 min-w-0">
-                                  {findProblemInTree(problem.id)?.type ===
-                                  "objective" ? (
-                                    <Circle className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                                  ) : (
-                                    <Square className="h-3 w-3 text-green-500 flex-shrink-0" />
-                                  )}
+                                  {/* TODO: findProblemInTree를 서버 API로 교체 필요 */}
+                                  <Circle className="h-3 w-3 text-blue-500 flex-shrink-0" />
                                   <div className="min-w-0 flex-1 overflow-hidden">
                                     <Label className="text-sm font-medium truncate block w-full">
                                       {problem.name}

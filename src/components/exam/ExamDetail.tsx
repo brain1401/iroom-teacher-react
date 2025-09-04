@@ -1,13 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ExamDetailTable } from "./ExamDetailTable";
 import { Badge } from "@/components/ui/badge";
-import { examSubmissionMockData } from "@/data/student-mock-data";
-import {
-  getExamSubmissionData,
-  dashboardExamSubmissions,
-} from "@/data/exam-submission-dashboard";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
+import type {
+  ServerSubmissionStatus,
+  ServerRecentSubmission,
+} from "@/types/server-exam";
+
 import { AnswerSheetCheckModal } from "./AnswerSheetResult";
+import { mapRecentSubmissionToStatusDetail } from "@/utils/exam";
+import { useRouter } from "@tanstack/react-router";
 
 /**
  * 시험 문항 답안 정보 타입
@@ -57,29 +59,43 @@ type ExamDetailProps = {
   examName?: string;
   /** 특정 시험 ID (선택적) */
   examId?: string;
+  /** SSR로 사전 로드된 제출 현황 데이터 */
+  preloadedData?: ServerSubmissionStatus | null;
+  /** SSR 데이터 로딩 에러 */
+  preloadedError?: string | null;
 };
 
 /**
  * 시험 제출 현황 상세 컴포넌트
- * @description 특정 시험의 학생별 제출 현황을 표시
+ * @description 특정 시험의 학생별 제출 현황을 표시 (SSR로 사전 로드된 데이터 사용)
  *
  * 주요 기능:
  * - 제출/미제출 통계 표시
  * - 학생별 제출 현황 테이블
  * - 답안 상세 확인 모달
  * - 뒤로가기 기능
- * - 가데이터 기반 제출 현황 표시
+ * - SSR 사전 로드된 서버 데이터 기반 제출 현황 표시
+ * - 로딩 상태 없는 즉시 렌더링 (SSR 장점 활용)
  */
-export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
-  // 제출 현황 데이터 (가데이터 기반)
+export function ExamDetail({ onBack, examName, examId, preloadedData, preloadedError }: ExamDetailProps) {
+  // SSR 사전 로드된 데이터 사용
+  const submissionData = preloadedData;
+  const loading = false; // SSR에서 이미 로드되었으므로 로딩 상태 없음
+  const error = preloadedError;
+
+  const router = useRouter();
+
+  // 서버 데이터를 컴포넌트 형식으로 변환
   const submissions = useMemo(() => {
-    if (examId) {
-      // 특정 시험의 제출 현황 데이터 가져오기
-      return getExamSubmissionData(examId);
-    }
-    // 전체 제출 현황 데이터 (기본값)
-    return examSubmissionMockData;
-  }, [examId]);
+    if (!submissionData) return [] as ExamSubmitStatusDetail[];
+
+    return submissionData.recentSubmissions.map((recent) =>
+      mapRecentSubmissionToStatusDetail(
+        recent,
+        submissionData.examInfo.examName,
+      ),
+    );
+  }, [submissionData]);
 
   // 선택된 항목 관리
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -88,22 +104,26 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<QuestionAnswer[]>([]);
 
   /**
-   * 제출 통계 계산
+   * 제출 통계 - 서버 데이터 사용
    */
   const submissionStats = useMemo(() => {
-    const total = submissions.length;
-    const submitted = submissions.filter(
-      (s) => s.submissionStatus === "제출완료",
-    ).length;
-    const notSubmitted = total - submitted;
+    if (!submissionData) {
+      return {
+        total: 0,
+        submitted: 0,
+        notSubmitted: 0,
+        submissionRate: 0,
+      };
+    }
 
+    const { submissionStats: serverStats } = submissionData;
     return {
-      total,
-      submitted,
-      notSubmitted,
-      submissionRate: total > 0 ? (submitted / total) * 100 : 0,
+      total: serverStats.totalExpectedStudents,
+      submitted: serverStats.actualSubmissions,
+      notSubmitted: serverStats.notSubmitted,
+      submissionRate: serverStats.submissionRate,
     };
-  }, [submissions]);
+  }, [submissionData]);
 
   /**
    * 전체 선택/해제 핸들러
@@ -202,7 +222,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
       onBack();
     } else {
       // 기본 뒤로가기 (브라우저 히스토리)
-      window.history.back();
+      router.history.back();
     }
   };
 
@@ -214,14 +234,41 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
   }, [selectedAnswers]);
 
   /**
-   * 시험 정보 가져오기
+   * 시험 정보 - 서버 데이터 사용
    */
   const examInfo = useMemo(() => {
-    if (examId) {
-      return dashboardExamSubmissions.find((exam) => exam.id === examId);
-    }
-    return null;
-  }, [examId]);
+    if (!submissionData) return null;
+    return submissionData.examInfo;
+  }, [submissionData]);
+
+  // 로딩 상태 처리
+  if (loading) {
+    return (
+      <div className="space-y-4 w-full">
+        <div className="text-[2.5rem] font-bold">시험 제출 현황</div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="text-lg">데이터를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태 처리
+  if (error) {
+    return (
+      <div className="space-y-4 w-full">
+        <div className="text-[2.5rem] font-bold">시험 제출 현황</div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center text-red-600">
+            <div className="text-lg font-medium">오류가 발생했습니다</div>
+            <div className="text-sm mt-1">{error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 w-full">
@@ -236,13 +283,17 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
           {examInfo && (
             <div className="flex items-center gap-4 mt-2">
               <Badge variant="outline" className="text-sm">
-                {examInfo.unitName}
+                {examInfo.grade}학년 - {examInfo.content}
               </Badge>
-              <Badge variant="outline" className="text-sm">
-                {examInfo.status}
-              </Badge>
+              {examInfo.examSheetInfo && (
+                <Badge variant="outline" className="text-sm">
+                  {examInfo.examSheetInfo.totalQuestions}문항 /{" "}
+                  {examInfo.examSheetInfo.totalPoints}점
+                </Badge>
+              )}
               <span className="text-sm text-gray-500">
-                생성일: {examInfo.createdAt}
+                생성일:{" "}
+                {new Date(examInfo.createdAt).toLocaleDateString("ko-KR")}
               </span>
             </div>
           )}
@@ -274,7 +325,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
           </div>
         </div>
 
-        {/* 시험별 추가 정보 */}
+        {/* TODO: 서버 API에서 시험별 추가 정보 제공 시 활성화
         {examInfo && (
           <div className="flex items-center gap-4">
             <div className="text-sm text-gray-600">
@@ -289,11 +340,12 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
             </div>
           </div>
         )}
+        */}
       </div>
 
       {/* 테이블 컴포넌트 */}
       <ExamDetailTable
-        submissions={submissions as ExamSubmitStatusDetail[]}
+        submissions={submissions}
         selectedIds={selectedIds}
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}

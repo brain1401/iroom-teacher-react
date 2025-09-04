@@ -10,7 +10,6 @@ import type { QuestionAnswer } from "./ExamDetail";
 
 /**
  * 답안지 결과 모달 컴포넌트 Props
- * @interface AnswerSheetResultProps
  */
 type Props = {
   /** 선택된 학생의 시험 제출 상세 정보 - null이면 모달 비활성화 */

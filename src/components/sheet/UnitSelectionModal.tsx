@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { unitTreeData } from "@/data/exam-sheet-mock-data";
-import type { UnitTreeNode } from "@/data/exam-sheet-mock-data";
+// TODO: 서버 API에서 단원 트리 데이터를 가져오도록 수정 필요
+type UnitTreeNode = {
+  id: string;
+  name: string;
+  children?: UnitTreeNode[];
+};
 
 /**
  * 단원 선택 모달 컴포넌트
@@ -281,7 +285,8 @@ export function UnitSelectionModal({
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto">
           <div className="space-y-2">
-            {unitTreeData.map((unit) => (
+            {/* TODO: 서버 API에서 단원 트리 데이터를 가져와서 표시 */}
+            {[].map((unit: UnitTreeNode) => (
               <UnitTreeItem
                 key={unit.id}
                 unit={unit}

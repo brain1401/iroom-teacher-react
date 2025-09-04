@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Eye, FileText, Users, Target } from "lucide-react";
 import { useExamList } from "@/hooks/exam/useExamList";
-import type { Exam, ExamLevel, ExamStatus } from "@/types/exam";
+import type { Exam, ExamStatus } from "@/types/exam";
 
 /**
  * 시험 출제 및 등록 탭 컴포넌트
@@ -149,11 +149,12 @@ export function ExamSheetRegistrationTab() {
       | "totalParticipants"
       | "actualParticipants"
     > = {
-      unitName: `${selectedGrade} 수학 - ${selectedExamName}`,
+      // TODO: unitName 속성이 서버 타입에 없음 - 단원 정보는 별도 API로 관리
       examName: selectedExamName,
-      questionCount: 20, // 기본값
-      questionLevel: "기초" as ExamLevel,
-      status: "승인완료" as ExamStatus,
+      content: `${selectedGrade} 수학 시험지`, // content 속성 사용
+      grade: parseInt(selectedGrade.replace('중', ''), 10) || 1,
+      qrCodeUrl: null,
+      examSheetInfo: null,
     };
 
     console.log("시험 출제 데이터:", {

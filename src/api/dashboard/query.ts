@@ -21,7 +21,8 @@ export const dashboardKeys = {
   recentExamsStatus: (params: RecentExamsStatusParams) =>
     [...dashboardKeys.recentExams(), params] as const,
   /** 성적 분포도 쿼리들의 기본 키 */
-  scoreDistributions: () => [...dashboardKeys.all, "score-distribution"] as const,
+  scoreDistributions: () =>
+    [...dashboardKeys.all, "score-distribution"] as const,
   /** 특정 학년의 성적 분포도 쿼리 키 */
   scoreDistribution: (params: ScoreDistributionParams) =>
     [...dashboardKeys.scoreDistributions(), params] as const,
@@ -50,17 +51,17 @@ export const dashboardKeys = {
  * );
  *
  * // Jotai atomWithQuery와 함께 사용
- * const recentExamsAtom = atomWithQuery((get) => 
+ * const recentExamsAtom = atomWithQuery((get) =>
  *   recentExamsStatusQueryOptions({ grade: get(gradeAtom) })
  * );
  * ```
  */
 export const recentExamsStatusQueryOptions = (
-  params: RecentExamsStatusParams
+  params: RecentExamsStatusParams,
 ) => {
   return queryOptions({
     queryKey: dashboardKeys.recentExamsStatus(params),
-    queryFn: async ({ signal }): Promise<RecentExamsStatusResponse> => {
+    queryFn: async (): Promise<RecentExamsStatusResponse> => {
       return await fetchRecentExamsStatus(params);
     },
     staleTime: 3 * 60 * 1000, // 3분간 데이터를 신선하다고 간주 (대시보드 데이터는 자주 업데이트)
@@ -114,7 +115,7 @@ export const recentExamsStatusQueryOptions = (
  * ```
  */
 export const scoreDistributionQueryOptions = (
-  params: ScoreDistributionParams
+  params: ScoreDistributionParams,
 ) => {
   return queryOptions({
     queryKey: dashboardKeys.scoreDistribution(params),

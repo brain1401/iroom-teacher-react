@@ -14,7 +14,6 @@ import { useExamList } from "@/hooks/exam/useExamList";
 
 /**
  * 시험 목록 탭 컴포넌트 Props
- * @interface ExamListTabProps
  */
 type ExamListTabProps = {
   /**
@@ -311,7 +310,8 @@ export function ExamSheetListTab({
               <DialogHeader>
                 <DialogTitle>시험 제출 현황</DialogTitle>
                 <DialogDescription>
-                  {selectedSheet.examName} - {selectedSheet.unitName}
+                  {selectedSheet.examName}
+                  {/* TODO: unitName 속성이 서버 타입에 없음 - 단원 정보 API 구현 필요 */}
                 </DialogDescription>
               </DialogHeader>
               {/* 시험 제출 현황 테이블 */}

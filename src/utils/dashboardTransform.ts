@@ -10,8 +10,7 @@
  */
 
 import type { ExamSubmissionInfo, ScoreDistribution } from "@/api/dashboard/types";
-import type { DashboardExamSubmission } from "@/data/exam-submission-dashboard";
-import type { Exam } from "@/types/exam";
+import type { DashboardExamSubmission, ExamStatus } from "@/types/exam";
 
 /**
  * 시험 제출 정보를 대시보드 형태로 변환
@@ -77,7 +76,7 @@ export function transformExamSubmissions(
       submissionCount: exam.actualSubmissions || 0, // actualSubmissions -> submissionCount
       totalStudents: exam.totalExpected || 0, // totalExpected -> totalStudents
       submissionRate: Math.round(submissionRate * 100 * 10) / 10, // 소수점 첫째 자리까지
-      status: "승인완료" as Exam["status"], // status 타입 맞춤
+      status: "승인완료" as ExamStatus, // status 타입 맞춤
     } satisfies DashboardExamSubmission;
   });
 }
@@ -141,7 +140,7 @@ export function transformScoreDistributionForChart(
       return (range1?.studentCount || 0) + (range2?.studentCount || 0);
     } else {
       // 다른 구간들은 "점" 문자를 추가해서 찾기
-      const serverFormat = targetRange + "점";
+      const serverFormat = `${targetRange  }점`;
       const distribution = distributions.find(d => d.scoreRange === serverFormat);
       return distribution?.studentCount || 0;
     }
@@ -155,7 +154,7 @@ export function transformScoreDistributionForChart(
     
     console.log(`[transformScoreDistributionForChart] ${range} 구간:`, { 
       찾는형식: range,
-      서버형식: range === "0-59" ? "0-39점 + 40-59점" : range + "점",
+      서버형식: range === "0-59" ? "0-39점 + 40-59점" : `${range  }점`,
       학생수: studentCount
     });
     
