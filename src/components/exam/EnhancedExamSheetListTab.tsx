@@ -49,11 +49,6 @@ import {
   SubmissionStatusLoading 
 } from "@/components/loading/ExamLoadingStates";
 import { cn } from "@/lib/utils";
-import { 
-  useExamListPrefetch, 
-  useRealtimeSync, 
-  usePerformanceMetrics 
-} from "@/contexts/CacheContext";
 
 /**
  * 시험 목록 탭 컴포넌트 Props
@@ -169,19 +164,7 @@ export function EnhancedExamSheetListTab({
   const selectedExamDetail = useAtomValue(selectedExamDetailAtom);
   const selectedExamSubmissionStatus = useAtomValue(selectedExamSubmissionStatusAtom);
 
-  // 스마트 캐싱 및 성능 최적화 훅들
-  const { 
-    prefetchVisibleExams, 
-    prefetchNextPageSmart, 
-    resetPrefetchCache 
-  } = useExamListPrefetch();
-  
-  const { isActive: isRealtimeSyncActive } = useRealtimeSync(
-    currentSelectedExamId || undefined, 
-    activeModal === "submissionStatus"
-  );
-  
-  const { metrics: performanceMetrics } = usePerformanceMetrics();
+
 
   // 스크롤 위치 추적 (프리페칭 최적화용)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -200,41 +183,7 @@ export function EnhancedExamSheetListTab({
     }
   }, []);
 
-  /**
-   * 스마트 프리페칭 실행
-   * @description 현재 화면의 시험들과 다음 페이지를 지능적으로 프리페치
-   */
-  const executeSmartPrefetch = useCallback(async () => {
-    if (dataState.hasData && exams.length > 0) {
-      // 현재 화면의 시험 ID들 추출
-      const visibleExamIds = exams.map(exam => exam.id);
-      
-      // 시험 상세 정보 프리페치 (스크롤 위치 고려)
-      await prefetchVisibleExams(visibleExamIds, scrollPositionRef.current);
-      
-      // 다음 페이지 프리페치 (사용자가 페이지 하단 근처에 있을 때)
-      const currentFilters = {
-        page: pagination.currentPage,
-        size: 20, // 기본 페이지 크기
-        search: searchKeyword,
-        grade: selectedGrade ? parseInt(selectedGrade, 10) : undefined,
-      };
-      
-      await prefetchNextPageSmart(
-        currentFilters, 
-        pagination.currentPage, 
-        scrollPositionRef.current
-      );
-    }
-  }, [
-    dataState.hasData, 
-    exams, 
-    prefetchVisibleExams, 
-    prefetchNextPageSmart, 
-    pagination.currentPage, 
-    searchKeyword, 
-    selectedGrade
-  ]);
+
 
   /**
    * 새로고침 핸들러
@@ -256,26 +205,11 @@ export function EnhancedExamSheetListTab({
     }
   }, [handleScroll]);
 
-  // 데이터 변경 시 스마트 프리페칭 실행 (디바운스 적용)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      executeSmartPrefetch();
-    }, 500); // 500ms 후 실행 (데이터 로딩 완료 후)
 
-    return () => clearTimeout(timeoutId);
-  }, [executeSmartPrefetch]);
 
-  // 페이지 변경 시 프리페치 캐시 초기화
-  useEffect(() => {
-    resetPrefetchCache();
-  }, [pagination.currentPage, resetPrefetchCache]);
 
-  // 개발 환경에서 성능 메트릭 로깅
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && performanceMetrics) {
-      console.log('📊 캐시 성능 메트릭:', performanceMetrics);
-    }
-  }, [performanceMetrics]);
+
+
 
   return (
     <div className={cn("flex h-full gap-4", className)}>

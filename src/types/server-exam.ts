@@ -223,3 +223,106 @@ export type ExamStatisticsParams = {
   /** 통계 타입 */
   type: "by-grade";
 };
+
+/**
+ * 서버 학생 답안 상세 정보 - 문항별 답안 타입
+ */
+export type ServerQuestionAnswer = {
+  /** 문항 고유 ID */
+  questionId: string;
+  /** 문항 번호 */
+  questionNumber: number;
+  /** 문항 내용 */
+  questionText: string;
+  /** 문항 유형 (객관식/주관식) */
+  questionType: "MULTIPLE_CHOICE" | "SUBJECTIVE";
+  /** 학생이 제출한 답안 */
+  studentAnswer: string;
+  /** 정답 */
+  correctAnswer: string;
+  /** 정답 여부 */
+  isCorrect: boolean;
+  /** 문항 배점 */
+  maxScore: number;
+  /** 학생이 획득한 점수 */
+  obtainedScore: number;
+  /** 문항 난이도 */
+  difficulty?: "상" | "중" | "하";
+  /** 채점 시간 */
+  gradedAt?: string;
+};
+
+/**
+ * 서버 학생 답안 상세 정보 메인 타입
+ */
+export type ServerStudentAnswerDetail = {
+  /** 시험 정보 */
+  examInfo: {
+    /** 시험 ID */
+    examId: string;
+    /** 시험명 */
+    examName: string;
+    /** 학년 */
+    grade: number;
+    /** 총 문항 수 */
+    totalQuestions: number;
+    /** 총 배점 */
+    totalPoints: number;
+  };
+  /** 학생 정보 */
+  studentInfo: {
+    /** 학생 ID */
+    studentId: number;
+    /** 학생명 */
+    studentName: string;
+    /** 학번 */
+    studentNumber?: string;
+    /** 학급 */
+    className?: string;
+  };
+  /** 제출 정보 */
+  submissionInfo: {
+    /** 제출 ID */
+    submissionId: string;
+    /** 제출 시간 */
+    submittedAt: string;
+    /** 채점 완료 시간 */
+    gradedAt?: string;
+    /** 제출 상태 */
+    status: "제출완료" | "채점완료" | "미제출";
+  };
+  /** 점수 정보 */
+  scoreInfo: {
+    /** 총 획득 점수 */
+    totalScore: number;
+    /** 총 배점 */
+    maxScore: number;
+    /** 정답 개수 */
+    correctCount: number;
+    /** 오답 개수 */
+    wrongCount: number;
+    /** 미답 개수 */
+    unansweredCount: number;
+    /** 정답률 (백분율) */
+    accuracy: number;
+  };
+  /** 문항별 답안 목록 */
+  questionAnswers: ServerQuestionAnswer[];
+  /** 상세 정보 조회 시간 */
+  retrievedAt: string;
+};
+
+/**
+ * 학생 답안 상세 조회 응답 타입
+ */
+export type ServerStudentAnswerDetailResponse = ApiResponse<ServerStudentAnswerDetail>;
+
+/**
+ * 학생 답안 상세 조회 파라미터 타입
+ */
+export type StudentAnswerDetailParams = {
+  /** 시험 ID */
+  examId: string;
+  /** 학생 ID */
+  studentId: number;
+};

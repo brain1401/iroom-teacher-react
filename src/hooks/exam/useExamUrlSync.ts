@@ -38,10 +38,12 @@ import {
  * @param options.debounceMs 디바운스 지연 시간 (기본: 300ms)
  * @param options.enabled 동기화 활성화 여부 (기본: true)
  */
-export function useExamUrlSync(options: {
-  debounceMs?: number;
-  enabled?: boolean;
-} = {}) {
+export function useExamUrlSync(
+  options: {
+    debounceMs?: number;
+    enabled?: boolean;
+  } = {},
+) {
   const { debounceMs = 300, enabled = true } = options;
   const router = useRouter();
 
@@ -113,19 +115,25 @@ export function useExamUrlSync(options: {
     };
 
     // 빈 값들 제거
-    Object.keys(mergedParams).forEach(key => {
-      if (mergedParams[key] === undefined || mergedParams[key] === null || mergedParams[key] === "") {
+    Object.keys(mergedParams).forEach((key) => {
+      if (
+        mergedParams[key] === undefined ||
+        mergedParams[key] === null ||
+        mergedParams[key] === ""
+      ) {
         delete mergedParams[key];
       }
     });
 
     // URL 업데이트 (히스토리 교체, 페이지 리로드 없음)
-    router.navigate({
-      search: mergedParams,
-      replace: true, // 브라우저 히스토리 스택을 증가시키지 않음
-    }).catch((error) => {
-      console.warn("URL 파라미터 업데이트 실패:", error);
-    });
+    router
+      .navigate({
+        search: mergedParams,
+        replace: true, // 브라우저 히스토리 스택을 증가시키지 않음
+      })
+      .catch((error) => {
+        console.warn("URL 파라미터 업데이트 실패:", error);
+      });
   }, [
     enabled,
     searchKeyword,
@@ -166,10 +174,10 @@ export function useExamUrlSync(options: {
       showFilterSidebar,
       collapsedFilterSidebar,
       hasFilters: Boolean(
-        searchKeyword.trim() || 
-        selectedGrade || 
-        examPage > 0 || 
-        recentExamFilter
+        searchKeyword.trim() ||
+          selectedGrade ||
+          examPage > 0 ||
+          recentExamFilter,
       ),
     },
   };
@@ -182,16 +190,15 @@ export function useExamUrlSync(options: {
 export function useExamDetailUrl() {
   const router = useRouter();
 
-  return useCallback((examId: string, examName?: string) => {
-    const currentSearch = router.latestLocation.search as any;
-    
-    return {
-      to: "/main/exam/manage/$examId" as const,
-      params: { examId },
-      search: {
-        ...currentSearch,
-        examName: examName || undefined,
-      },
-    };
-  }, [router]);
+  return useCallback(
+    (examId: string, examName?: string) => {
+      const currentSearch = router.latestLocation.search as any;
+
+      return {
+        to: "/main/exam/manage/$examId" as const,
+        params: { examId },
+      };
+    },
+    [router],
+  );
 }

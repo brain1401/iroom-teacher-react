@@ -37,6 +37,7 @@ const createBaseApiClient = (): AxiosInstance => {
     isAuthClient: false,
     enableLogging: true,
     logPrefix: "API Request",
+    enableValidation: true, // Zod 검증 활성화
   });
 };
 

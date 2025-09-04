@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
+import type { Problem } from "@/types/exam-sheet";
+import type { Exam } from "@/types/exam";
 // TODO: 서버 API에서 문제 관련 함수들을 가져오도록 수정 필요
 type ProblemHierarchy = {
   unit: string;
   subunit: string;
   chapter: string;
 };
-import type { Problem } from "@/types/exam-sheet";
-import type { Exam } from "@/types/exam";
 
 /**
  * 문제지 등록 관련 상태 관리 커스텀 훅

@@ -197,7 +197,6 @@ function RouteComponent() {
     navigate({
       to: "/main/exam/manage/$examId",
       params: { examId: exam.examId },
-      search: { examName: exam.examName },
     });
   };
 
@@ -213,7 +212,7 @@ function RouteComponent() {
         sort: "createdAt,desc",
         search: undefined,
         grade: undefined,
-        recent: undefined
+        recent: undefined,
       },
     });
   };

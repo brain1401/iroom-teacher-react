@@ -7,6 +7,8 @@ import { isAxiosError } from "axios";
 import { ApiError } from "./baseClient";
 import { isSuccessResponse, isErrorResponse, ApiResponseError } from "./types";
 import type { ApiResponse } from "./types";
+import { validateEndpointResponse } from "./validation";
+import { logApiValidationFailure } from "@/utils/logger";
 
 /**
  * 백엔드 표준 ApiResponse 형식인지 확인하는 타입 가드
@@ -37,6 +39,8 @@ export type InterceptorOptions = {
   enableLogging?: boolean;
   /** 로그 메시지 접두사 */
   logPrefix?: string;
+  /** Zod 검증 활성화 여부 */
+  enableValidation?: boolean;
 };
 
 /**
@@ -83,6 +87,7 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
     enableLogging = true,
     logPrefix = "API Response",
     isAuthClient = false,
+    enableValidation = true,
   } = options;
 
   const clientType = isAuthClient ? "Auth" : "";
@@ -107,6 +112,50 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
               responseData.message,
             );
           }
+          
+          // Zod 검증 로직 적용 (활성화된 경우)
+          if (enableValidation) {
+            const endpoint = response.config.url || "unknown";
+            const method = response.config.method?.toUpperCase() || "GET";
+            
+            // 각 도메인별 스키마를 동적으로 결정하고 검증
+            const validationResult = validateEndpointResponse(
+              responseData,
+              endpoint,
+              method,
+              response.config.headers?.["x-request-id"] as string | undefined,
+            );
+            
+            if (validationResult.isValid) {
+              if (enableLogging && import.meta.env.DEV) {
+                console.log(`✨ [${clientType} 검증 성공] ${endpoint}:`, validationResult.data);
+              }
+            } else {
+              // 검증 실패시 tslog를 통한 구조화된 에러 로깅
+              logApiValidationFailure(
+                `API 응답 검증 실패: ${endpoint}`,
+                {
+                  endpoint,
+                  method,
+                  expectedSchema: "Unknown Schema",
+                  requestId: response.config.headers?.["x-request-id"] as string,
+                  validationErrors: validationResult.errors,
+                  receivedData: responseData.data,
+                  statusCode: response.status,
+                  userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Server",
+                },
+              );
+              
+              // 개발 환경에서는 콘솔에도 출력
+              if (import.meta.env.DEV) {
+                console.warn(
+                  `⚠️ [${clientType} 검증 실패] ${endpoint}:`,
+                  validationResult.errors,
+                );
+              }
+            }
+          }
+          
           response.data = responseData.data;
         } else if (isErrorResponse(responseData)) {
           // ERROR인 경우: ApiResponseError 발생
@@ -117,6 +166,42 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
             );
           }
           throw new ApiResponseError(responseData.message, responseData.result);
+        }
+      } else {
+        // 외부 API (PokeAPI 등) - ApiResponse 래핑 없음
+        if (enableValidation) {
+          const endpoint = response.config.url || "unknown";
+          const method = response.config.method?.toUpperCase() || "GET";
+          
+          const validationResult = validateEndpointResponse(
+            responseData,
+            endpoint,
+            method,
+            response.config.headers?.["x-request-id"] as string | undefined,
+          );
+          
+          if (!validationResult.isValid) {
+            logApiValidationFailure(
+              `외부 API 응답 검증 실패: ${endpoint}`,
+              {
+                endpoint,
+                method,
+                expectedSchema: "External API Schema",
+                requestId: response.config.headers?.["x-request-id"] as string,
+                validationErrors: validationResult.errors,
+                receivedData: responseData,
+                statusCode: response.status,
+                userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Server",
+              },
+            );
+            
+            if (import.meta.env.DEV) {
+              console.warn(
+                `⚠️ [${clientType} 외부 API 검증 실패] ${endpoint}:`,
+                validationResult.errors,
+              );
+            }
+          }
         }
       }
 

@@ -4,12 +4,13 @@
  */
 
 // API 함수들
-export { fetchRecentExamsStatus, fetchScoreDistribution } from "./api";
+export { fetchRecentExamsStatus, fetchScoreDistribution, fetchStudentAnswerDetail } from "./api";
 
 // React Query 옵션들
 export {
   recentExamsStatusQueryOptions,
   scoreDistributionQueryOptions,
+  studentAnswerDetailQueryOptions,
   dashboardKeys,
 } from "./query";
 

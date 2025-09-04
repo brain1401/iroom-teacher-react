@@ -280,7 +280,6 @@ export function ExamTable({
                   <Link
                     to="/main/exam/manage/$examId"
                     params={{ examId: sheet.id }}
-                    search={{ examName: sheet.examName }}
                   >
                     상세보기
                   </Link>

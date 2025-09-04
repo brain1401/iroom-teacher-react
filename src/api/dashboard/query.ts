@@ -1,12 +1,16 @@
 import { queryOptions } from "@tanstack/react-query";
 import { ApiError } from "@/api/client";
-import { fetchRecentExamsStatus, fetchScoreDistribution } from "./api";
+import { fetchRecentExamsStatus, fetchScoreDistribution, fetchStudentAnswerDetail } from "./api";
 import type {
   RecentExamsStatusResponse,
   RecentExamsStatusParams,
   ScoreDistributionResponse,
   ScoreDistributionParams,
 } from "./types";
+import type {
+  ServerStudentAnswerDetail,
+  StudentAnswerDetailParams,
+} from "@/types/server-exam";
 
 /**
  * Dashboard 쿼리 키 관리 객체
@@ -26,6 +30,11 @@ export const dashboardKeys = {
   /** 특정 학년의 성적 분포도 쿼리 키 */
   scoreDistribution: (params: ScoreDistributionParams) =>
     [...dashboardKeys.scoreDistributions(), params] as const,
+  /** 학생 답안 상세 쿼리들의 기본 키 */
+  studentAnswers: () => [...dashboardKeys.all, "student-answer"] as const,
+  /** 특정 학생의 시험 답안 상세 쿼리 키 */
+  studentAnswerDetail: (params: StudentAnswerDetailParams) =>
+    [...dashboardKeys.studentAnswers(), params] as const,
 } as const;
 
 /**
@@ -140,5 +149,77 @@ export const scoreDistributionQueryOptions = (
     enabled: params.grade >= 1 && params.grade <= 3,
     // 성적 분포는 자주 변하지 않으므로 자동 갱신 비활성화
     refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * 학생 답안 상세 조회를 위한 React Query 옵션 생성 함수
+ * @description 특정 학생의 특정 시험에 대한 상세 답안 정보를 가져오는 쿼리 옵션을 생성
+ *
+ * 주요 기능:
+ * - examId와 studentId로 특정 학생의 답안 조회
+ * - 문항별 상세 답안 및 채점 결과 제공
+ * - 점수 통계와 시험/학생 정보 포함
+ * - 캐싱을 통한 성능 최적화
+ * - 조건부 쿼리 실행 (examId와 studentId가 모두 있을 때만)
+ *
+ * @param params 요청 파라미터
+ * @param params.examId 시험 고유 ID (UUID 형태)
+ * @param params.studentId 학생 고유 ID (정수)
+ * @returns React Query에서 사용할 쿼리 옵션 객체
+ *
+ * @example
+ * ```typescript
+ * // useQuery 훅과 함께 사용
+ * const { data: answerDetail, isLoading, error } = useQuery(
+ *   studentAnswerDetailQueryOptions({ 
+ *     examId: "550e8400-e29b-41d4-a716-446655440000",
+ *     studentId: 12345 
+ *   })
+ * );
+ *
+ * // Jotai atomWithQuery와 함께 사용
+ * const studentAnswerAtom = atomWithQuery((get) =>
+ *   studentAnswerDetailQueryOptions({ 
+ *     examId: get(selectedExamIdAtom),
+ *     studentId: get(selectedStudentIdAtom)
+ *   })
+ * );
+ *
+ * // 답안 모달에서 사용
+ * const modalData = {
+ *   studentName: answerDetail?.studentInfo.studentName,
+ *   totalScore: answerDetail?.scoreInfo.totalScore,
+ *   questionAnswers: answerDetail?.questionAnswers
+ * };
+ * ```
+ */
+export const studentAnswerDetailQueryOptions = (
+  params: StudentAnswerDetailParams,
+) => {
+  return queryOptions({
+    queryKey: dashboardKeys.studentAnswerDetail(params),
+    queryFn: async (): Promise<ServerStudentAnswerDetail> => {
+      return await fetchStudentAnswerDetail(params);
+    },
+    staleTime: 10 * 60 * 1000, // 10분간 데이터를 신선하다고 간주 (답안 데이터는 변경되지 않음)
+    gcTime: 30 * 60 * 1000, // 30분간 캐시에 보관 (상세 답안은 오래 보관)
+    retry: (failureCount, error) => {
+      // 404 에러는 재시도하지 않음 (존재하지 않는 시험/학생 조합)
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      // 401/403 에러는 재시도하지 않음 (인증/권한 실패)
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        return false;
+      }
+      // 다른 에러는 최대 1번까지 재시도 (상세 데이터는 즉시 실패하는 것이 좋음)
+      return failureCount < 1;
+    },
+    // examId와 studentId가 모두 유효한 경우에만 쿼리 실행
+    enabled: Boolean(params.examId && params.studentId),
+    // 답안 상세는 정적 데이터이므로 자동 갱신 비활성화
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };

@@ -5,6 +5,10 @@ import type {
   ScoreDistributionResponse,
   ScoreDistributionParams,
 } from "./types";
+import type {
+  ServerStudentAnswerDetail,
+  StudentAnswerDetailParams,
+} from "@/types/server-exam";
 
 /**
  * 학년별 최근 시험 제출 현황 조회
@@ -86,6 +90,59 @@ export async function fetchScoreDistribution(
   } catch (error) {
     console.error(
       `[Dashboard API] 성적 분포도 조회 실패 - Grade: ${params.grade}`,
+      error
+    );
+    throw error;
+  }
+}
+
+/**
+ * 학생 답안 상세 정보 조회
+ * @description 특정 학생의 특정 시험에 대한 상세 답안 정보를 조회하는 함수
+ *
+ * 주요 기능:
+ * - examId와 studentId로 특정 학생의 답안 조회
+ * - 시험 정보, 학생 정보, 제출 정보 포함
+ * - 문항별 상세 답안 및 채점 결과 제공
+ * - 총점, 정답률, 정답/오답 개수 등 점수 통계 포함
+ * - 각 문항의 배점, 획득 점수, 정답 여부 상세 정보
+ *
+ * @param params 요청 파라미터
+ * @param params.examId 시험 고유 ID (UUID 형태)
+ * @param params.studentId 학생 고유 ID (정수)
+ * @returns 학생 답안 상세 정보
+ * @throws {ApiError} API 요청 실패 시 (404: 데이터 없음, 403: 권한 없음 등)
+ *
+ * @example
+ * ```typescript
+ * const answerDetail = await fetchStudentAnswerDetail({
+ *   examId: "550e8400-e29b-41d4-a716-446655440000",
+ *   studentId: 12345
+ * });
+ * 
+ * console.log(answerDetail.studentInfo.studentName); // 학생명
+ * console.log(answerDetail.scoreInfo.totalScore); // 총점
+ * console.log(answerDetail.questionAnswers); // 문항별 답안 배열
+ * ```
+ */
+export async function fetchStudentAnswerDetail(
+  params: StudentAnswerDetailParams
+): Promise<ServerStudentAnswerDetail> {
+  try {
+    const response = await authApiClient.get<ServerStudentAnswerDetail>(
+      "/teacher/dashboard/student-answer-detail",
+      {
+        params: {
+          examId: params.examId,
+          studentId: params.studentId,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      `[Dashboard API] 학생 답안 상세 조회 실패 - ExamId: ${params.examId}, StudentId: ${params.studentId}`,
       error
     );
     throw error;

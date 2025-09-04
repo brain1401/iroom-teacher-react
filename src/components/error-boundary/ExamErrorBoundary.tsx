@@ -204,7 +204,7 @@ export class ExamErrorBoundary extends React.Component<
   /**
    * 에러 복구 시도
    */
-  private handleRetry = () => {
+  private readonly handleRetry = () => {
     const maxRetries = 3;
 
     if (this.state.retryCount >= maxRetries) {
@@ -229,14 +229,14 @@ export class ExamErrorBoundary extends React.Component<
   /**
    * 홈으로 이동
    */
-  private handleGoHome = () => {
+  private readonly handleGoHome = () => {
     window.location.href = "/main";
   };
 
   /**
    * 뒤로가기
    */
-  private handleGoBack = () => {
+  private readonly handleGoBack = () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
@@ -247,7 +247,7 @@ export class ExamErrorBoundary extends React.Component<
   /**
    * 페이지 새로고침
    */
-  private handleRefresh = () => {
+  private readonly handleRefresh = () => {
     window.location.reload();
   };
 
