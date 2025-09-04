@@ -213,6 +213,10 @@ function RouteComponent() {
         search: undefined,
         grade: undefined,
         recent: undefined,
+        showSidebar: undefined,
+        collapsedSidebar: undefined,
+        selectedExam: undefined,
+        examName: undefined,
       },
     });
   };

@@ -22,6 +22,4 @@ export const examAveragesByGradeQueryOptions = (grade: Grade) =>
     queryKey: examResultsKeys.averages(grade),
     queryFn: ({ signal }): Promise<ExamAverage[]> =>
       getExamAveragesByGrade(grade, { signal }),
-    staleTime: 60 * 1000,
-    gcTime: 10 * 60 * 1000,
   });

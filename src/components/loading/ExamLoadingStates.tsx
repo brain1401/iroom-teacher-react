@@ -28,7 +28,7 @@ type LoadingSpinnerProps = {
   /** 아이콘 크기 */
   size?: "sm" | "md" | "lg";
   /** 세로 정렬 여부 */
-  vertical?: boolean;
+  isVertical?: boolean;
   /** 커스텀 CSS 클래스 */
   className?: string;
 };
@@ -40,7 +40,7 @@ type LoadingSpinnerProps = {
 export function LoadingSpinner({
   message = "로딩 중...",
   size = "md",
-  vertical = false,
+  isVertical = false,
   className,
 }: LoadingSpinnerProps) {
   const sizeClasses = {
@@ -49,7 +49,7 @@ export function LoadingSpinner({
     lg: "h-8 w-8",
   };
 
-  const containerClasses = vertical
+  const containerClasses = isVertical
     ? "flex-col items-center space-y-2"
     : "items-center space-x-2";
 
@@ -72,7 +72,7 @@ type ExamListLoadingProps = {
   /** 표시할 스켈레톤 아이템 수 */
   itemCount?: number;
   /** 헤더 스켈레톤 표시 여부 */
-  showHeader?: boolean;
+  isShowHeader?: boolean;
   /** 커스텀 CSS 클래스 */
   className?: string;
 };
@@ -83,13 +83,13 @@ type ExamListLoadingProps = {
  */
 export function ExamListLoadingSkeleton({
   itemCount = 5,
-  showHeader = true,
+  isShowHeader = true,
   className,
 }: ExamListLoadingProps) {
   return (
     <div className={cn("space-y-4", className)} role="status" aria-label="시험 목록 로딩 중">
       {/* 헤더 스켈레톤 */}
-      {showHeader && (
+      {isShowHeader && (
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <Skeleton className="h-8 w-32" />
@@ -115,9 +115,11 @@ export function ExamListLoadingSkeleton({
           </div>
 
           {/* 테이블 행들 */}
-          {Array.from({ length: itemCount }).map((_, index) => (
+          {Array.from({ length: itemCount }).map(() => {
+            const key = Math.random().toString(36).substr(2, 9);
+            return (
             <div
-              key={index}
+              key={`skeleton-item-${key}`}
               className="flex items-center p-4 border-b last:border-b-0"
             >
               <Skeleton className="h-4 w-4 mr-4" />
@@ -133,7 +135,8 @@ export function ExamListLoadingSkeleton({
                 <Skeleton className="h-8 w-8" />
               </div>
             </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -243,7 +246,7 @@ type ProgressLoadingProps = {
   /** 현재 진행 단계 설명 */
   description?: string;
   /** 취소 버튼 표시 여부 */
-  cancellable?: boolean;
+  isCancellable?: boolean;
   /** 취소 핸들러 */
   onCancel?: () => void;
   /** 커스텀 CSS 클래스 */
@@ -258,7 +261,7 @@ export function ProgressLoading({
   progress,
   title,
   description,
-  cancellable = false,
+  isCancellable = false,
   onCancel,
   className,
 }: ProgressLoadingProps) {
@@ -286,7 +289,7 @@ export function ProgressLoading({
           </div>
         )}
 
-        {cancellable && onCancel && (
+        {isCancellable && onCancel && (
           <Button
             variant="outline"
             size="sm"

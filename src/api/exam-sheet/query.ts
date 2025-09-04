@@ -10,6 +10,5 @@ export function unitsByGradeQueryOptions(grade: Grade) {
   return queryOptions({
     queryKey: ["units-by-grade", grade],
     queryFn: ({ signal }) => getUnitsByGrade(grade, { signal }),
-    staleTime: 1000 * 60, // 1분
   });
 }

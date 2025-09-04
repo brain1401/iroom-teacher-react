@@ -18,18 +18,30 @@ import {
   recentExamFilterAtom,
   showFilterSidebarAtom,
   collapsedFilterSidebarAtom,
+  setSearchKeywordAtom,
+  setSelectedGradeAtom,
+  setExamPageAtom,
 } from "@/atoms/examFilters";
 import { examListQueryOptions } from "@/api/exam";
 
 export const Route = createFileRoute("/main/exam/manage/")({
   validateSearch: (search: Record<string, unknown>) => {
     return {
+      // 기본 필터링 파라미터들 - 시험 목록 페이지 전용
       page: search.page ? Number(search.page) : undefined,
       size: search.size ? Number(search.size) : undefined,
       sort: search.sort ? String(search.sort) : undefined,
       search: search.search ? String(search.search) : undefined,
       grade: search.grade ? String(search.grade) : undefined,
       recent: search.recent ? Boolean(search.recent) : undefined,
+      
+      // UI 상태 파라미터들
+      showSidebar: search.showSidebar ? Boolean(search.showSidebar) : undefined,
+      collapsedSidebar: search.collapsedSidebar ? Boolean(search.collapsedSidebar) : undefined,
+      
+      // 네비게이션 파라미터들 (부모 route.tsx에서 상속)
+      selectedExam: search.selectedExam ? String(search.selectedExam) : undefined,
+      examName: search.examName ? String(search.examName) : undefined,
     };
   },
   // 로더에서 사용할 의존성 추출
@@ -74,16 +86,17 @@ export const Route = createFileRoute("/main/exam/manage/")({
     }
   },
   component: RouteComponent,
-});
+});;
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
-  const { selectedExam, examName } = ParentRoute.useSearch();
   
-  // SSR 사전 로드된 데이터 가져오기
-  const loaderData = Route.useLoaderData();
-  const { searchParams } = loaderData;
-
+  // 부모 route.tsx에서 네비게이션 파라미터 가져오기
+  const { selectedExam, examName } = Route.useSearch();
+  
+  // 현재 route의 필터링 파라미터 가져오기
+  const searchParams = Route.useSearch();
+  
   // SSR 하이드레이션 - URL 파라미터를 Jotai atoms에 동기화
   useHydrateAtoms([
     [searchKeywordAtom, searchParams.search || ""],
@@ -92,9 +105,68 @@ function RouteComponent() {
     [examPageSizeAtom, searchParams.size || 20],
     [examSortAtom, searchParams.sort || "createdAt,desc"],
     [recentExamFilterAtom, searchParams.recent || false],
-    [showFilterSidebarAtom, true], // 기본값 사용
-    [collapsedFilterSidebarAtom, false], // 기본값 사용
+    [showFilterSidebarAtom, searchParams.showSidebar !== undefined ? searchParams.showSidebar : true],
+    [collapsedFilterSidebarAtom, searchParams.collapsedSidebar !== undefined ? searchParams.collapsedSidebar : false],
   ]);
+
+  // URL 파라미터 변경 시 atom 상태 동기화
+  const setSearchKeyword = useSetAtom(setSearchKeywordAtom);
+  const setSelectedGrade = useSetAtom(setSelectedGradeAtom);
+  const setExamPage = useSetAtom(setExamPageAtom);
+  const setExamPageSize = useSetAtom(examPageSizeAtom);
+  const setExamSort = useSetAtom(examSortAtom);
+  const setRecentFilter = useSetAtom(recentExamFilterAtom);
+  const setShowSidebar = useSetAtom(showFilterSidebarAtom);
+  const setCollapsedSidebar = useSetAtom(collapsedFilterSidebarAtom);
+
+  // URL 파라미터 변경 시 atom 동기화
+  useEffect(() => {
+    if (searchParams.search !== undefined) {
+      setSearchKeyword(searchParams.search);
+    }
+  }, [searchParams.search, setSearchKeyword]);
+
+  useEffect(() => {
+    if (searchParams.grade !== undefined) {
+      setSelectedGrade(searchParams.grade);
+    }
+  }, [searchParams.grade, setSelectedGrade]);
+
+  useEffect(() => {
+    if (searchParams.page !== undefined) {
+      setExamPage(searchParams.page);
+    }
+  }, [searchParams.page, setExamPage]);
+
+  useEffect(() => {
+    if (searchParams.size !== undefined) {
+      setExamPageSize(searchParams.size);
+    }
+  }, [searchParams.size, setExamPageSize]);
+
+  useEffect(() => {
+    if (searchParams.sort !== undefined) {
+      setExamSort(searchParams.sort);
+    }
+  }, [searchParams.sort, setExamSort]);
+
+  useEffect(() => {
+    if (searchParams.recent !== undefined) {
+      setRecentFilter(searchParams.recent);
+    }
+  }, [searchParams.recent, setRecentFilter]);
+
+  useEffect(() => {
+    if (searchParams.showSidebar !== undefined) {
+      setShowSidebar(searchParams.showSidebar);
+    }
+  }, [searchParams.showSidebar, setShowSidebar]);
+
+  useEffect(() => {
+    if (searchParams.collapsedSidebar !== undefined) {
+      setCollapsedSidebar(searchParams.collapsedSidebar);
+    }
+  }, [searchParams.collapsedSidebar, setCollapsedSidebar]);
 
   // 현재 활성 탭 상태
   const [activeTab, setActiveTab] = useState<string>("list");
@@ -104,7 +176,7 @@ function RouteComponent() {
   }, [setIsShowHeader]);
 
   /**
-   * 시험 출제 완료 후 목록 탭으로 이동하고 새로운 시험 추가
+   * 부모 컴포넌트의 탭 상태 동기화
    */
   useEffect(() => {
     // 부모 컴포넌트의 탭 상태를 동기화
@@ -126,7 +198,7 @@ function RouteComponent() {
    * - framer-motion `layoutId` 기반 밑줄 이동 애니메이션 처리
    * - shadcn/ui `Tabs` 조합 스타일 적용
    * - 대시보드에서 선택된 시험 정보 전달
-   * - 시험 출제 완료 후 자동 탭 전환
+   * - URL 기반 필터링 상태와 atom 상태 동기화
    */
   return (
     <>

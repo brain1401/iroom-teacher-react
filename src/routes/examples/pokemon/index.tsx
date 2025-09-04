@@ -4,6 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useMainBackground } from "@/hooks/ui/useMainBackground";
 import { useHydrateAtoms } from "jotai-ssr";
 import { z } from "zod";
+
 import {
   pokemonPageAtom,
   pokemonListFiltersAtom,

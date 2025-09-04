@@ -1,28 +1,26 @@
 /**
  * tslog 기반 구조화된 로깅 시스템
- * @description API 응답 검증 실패와 기타 시스템 로그를 구조화하여 관리
+ * @description 시스템 로그를 구조화하여 관리하는 통합 로깅 유틸리티
  *
  * 주요 기능:
  * - 개발/프로덕션 환경별 로그 레벨 자동 조정
- * - API 검증 실패 전용 로거 제공
+ * - 도메인별 서브 로거 제공 (성능, 보안, 사용자액션)
  * - 구조화된 메타데이터로 디버깅 효율성 향상
  * - 콘솔과 파일 출력 지원
  *
  * @example
  * ```typescript
- * import { logger, apiValidationLogger } from "@/utils/logger";
- * 
+ * import { logger, performanceLogger, securityLogger } from "@/utils/logger";
+ *
  * // 일반 로깅
  * logger.info("애플리케이션 시작", { version: "1.0.0" });
  * logger.error("예상치 못한 오류", { error: errorObj });
- * 
- * // API 검증 실패 로깅
- * apiValidationLogger.error("포켓몬 API 응답 검증 실패", {
- *   endpoint: "/api/pokemon/25",
- *   expectedSchema: "PokemonSchema",
- *   validationErrors: errors,
- *   receivedData: responseData
- * });
+ *
+ * // 성능 로깅
+ * performanceLogger.info("API 응답시간", { endpoint: "/api/users", duration: 250 });
+ *
+ * // 보안 로깅
+ * securityLogger.warn("인증 실패", { userId: "123", reason: "invalid_token" });
  * ```
  */
 
@@ -39,12 +37,14 @@ import { Logger } from "tslog";
  * - 타임스탬프와 호출 위치 정보 포함
  */
 export const logger = new Logger<ILogObj>({
-  name: "이룸클래스-API",
+  name: "",
   minLevel: import.meta.env.DEV ? 0 : 3, // DEV: SILLY(0), PROD: INFO(3)
   type: import.meta.env.DEV ? "pretty" : "json",
   hideLogPositionForProduction: !import.meta.env.DEV,
-  prettyLogTemplate: "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}}.{{ms}} {{logLevelName}} [{{name}}]",
-  prettyErrorTemplate: "\n{{errorName}} {{errorMessage}}\nCall Stack:\n{{errorStack}}",
+  prettyLogTemplate:
+    "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}}.{{ms}} {{logLevelName}} [{{name}}]",
+  prettyErrorTemplate:
+    "\n{{errorName}} {{errorMessage}}\nCall Stack:\n{{errorStack}}",
   prettyLogStyles: {
     logLevelName: {
       "*": ["bold", "black", "bgWhiteBright", "dim"],
@@ -64,20 +64,6 @@ export const logger = new Logger<ILogObj>({
   },
   stylePrettyLogs: true,
   prettyLogTimeZone: "local",
-});
-
-/**
- * API 응답 검증 전용 로거
- * @description Zod를 통한 API 응답 검증 실패 로깅 전담
- *
- * 특징:
- * - API 검증 실패만을 위한 전문 로거
- * - 상세한 메타데이터로 디버깅 지원
- * - 검증 실패 패턴 분석 가능한 구조화된 형식
- */
-export const apiValidationLogger = logger.getSubLogger({
-  name: "API-검증",
-  prefix: ["🔍"],
 });
 
 /**
@@ -108,32 +94,12 @@ export const userActionLogger = logger.getSubLogger({
 });
 
 /**
- * API 검증 실패 로그 메타데이터 타입
+ * API 응답 시간 로깅
  * @description API 응답 검증 실패 시 로깅할 정보의 표준 구조
  */
-export type ApiValidationFailureMetadata = {
-  /** API 엔드포인트 URL */
-  endpoint: string;
-  /** HTTP 메서드 */
-  method: string;
-  /** 예상했던 Zod 스키마 이름 */
-  expectedSchema: string;
-  /** Zod 검증 에러 상세 정보 */
-  validationErrors: unknown;
-  /** 실제 받은 응답 데이터 */
-  receivedData: unknown;
-  /** 응답 상태 코드 */
-  statusCode?: number;
-  /** 응답 헤더 정보 */
-  responseHeaders?: Record<string, string>;
-  /** 요청 ID (추적용) */
-  requestId?: string;
-  /** 사용자 에이전트 정보 */
-  userAgent?: string;
-};
 
 /**
- * API 검증 실패 로깅 헬퍼 함수
+ * API 성능 메트릭 로깅 헬퍼 함수
  * @description 일관된 형식으로 API 검증 실패를 로깅하는 유틸리티
  *
  * @param message 에러 메시지
@@ -145,7 +111,7 @@ export type ApiValidationFailureMetadata = {
  *   "포켓몬 상세 정보 검증 실패",
  *   {
  *     endpoint: "/api/pokemon/25",
- *     method: "GET", 
+ *     method: "GET",
  *     expectedSchema: "ServerPokemonDetailResponse",
  *     validationErrors: zodError.issues,
  *     receivedData: response.data,
@@ -154,35 +120,14 @@ export type ApiValidationFailureMetadata = {
  * );
  * ```
  */
-export function logApiValidationFailure(
-  message: string,
-  metadata: ApiValidationFailureMetadata,
-): void {
-  apiValidationLogger.error(message, {
-    ...metadata,
-    timestamp: new Date().toISOString(),
-    userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Server",
-  });
-}
 
 /**
- * API 성공 검증 로깅 헬퍼 함수
+ * REMOVE_SUCCESS_BLOCK
  * @description API 응답 검증 성공을 로깅 (개발 환경에서만)
  *
  * @param message 성공 메시지
  * @param metadata 검증 성공 관련 메타데이터
  */
-export function logApiValidationSuccess(
-  message: string,
-  metadata: Pick<ApiValidationFailureMetadata, "endpoint" | "method" | "expectedSchema">,
-): void {
-  if (import.meta.env.DEV) {
-    apiValidationLogger.debug(message, {
-      ...metadata,
-      timestamp: new Date().toISOString(),
-    });
-  }
-}
 
 /**
  * API 응답 시간 로깅 헬퍼 함수
@@ -200,7 +145,7 @@ export function logApiPerformance(
   statusCode: number,
 ): void {
   const level = duration > 1000 ? "warn" : duration > 500 ? "info" : "debug";
-  
+
   performanceLogger[level](`API 응답시간: ${duration}ms`, {
     endpoint,
     method,

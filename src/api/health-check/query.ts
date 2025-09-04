@@ -52,10 +52,6 @@ export const healthCheckQueryOptions = (options?: {
       return await fetchHealthCheck({ signal });
     },
 
-    // 캐시 설정: 상태 지속성을 위한 최적화
-    staleTime: 15 * 1000, // 15초간 fresh 상태 유지하여 탭 전환 시 불필요한 refetch 방지
-    gcTime: 5 * 60 * 1000, // 5분간 캐시 보관 (탭 전환/브라우저 재활성화 시 상태 유지 향상)
-
     // 이전 데이터 유지: 탭 전환 시 깜빡임 방지
     placeholderData: (previousData) => previousData, // 이전 상태를 유지하면서 백그라운드에서 업데이트
 

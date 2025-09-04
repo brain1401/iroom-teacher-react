@@ -64,9 +64,6 @@ export const selectedGradeAtom = atomWithStorage<1 | 2 | 3>(
  * 3. 로딩, 에러, 데이터 상태를 모든 컴포넌트에서 공유
  * 4. 동일한 학년 요청은 캐시에서 바로 반환
  *
- * 캐시 설정:
- * - staleTime: 5분 (데이터가 5분간 fresh 상태 유지)
- * - gcTime: 10분 (캐시 10분간 유지)
  * - 자동 재시도: 3회
  *
  * 사용 예시:

@@ -15,7 +15,7 @@ import type { StudentAnswerDetailParams } from "@/types/server-exam";
 export const selectedExamIdAtom = atom<string>("");
 
 /**
- * 선택된 학생 ID atom  
+ * 선택된 학생 ID atom
  * @description 답안 상세를 조회할 학생의 고유 ID (정수)
  */
 export const selectedStudentIdAtom = atom<number>(0);
@@ -23,21 +23,23 @@ export const selectedStudentIdAtom = atom<number>(0);
 /**
  * 학생 답안 상세 조회 파라미터 atom
  * @description examId와 studentId를 결합한 파라미터 객체
- * 
+ *
  * 주요 기능:
  * - selectedExamIdAtom과 selectedStudentIdAtom을 결합
  * - API 호출에 필요한 파라미터 형태로 변환
  * - 유효성 검증을 통해 안전한 API 호출 보장
  */
-export const studentAnswerParamsAtom = atom<StudentAnswerDetailParams>((get) => {
-  const examId = get(selectedExamIdAtom);
-  const studentId = get(selectedStudentIdAtom);
-  
-  return {
-    examId,
-    studentId,
-  };
-});
+export const studentAnswerParamsAtom = atom<StudentAnswerDetailParams>(
+  (get) => {
+    const examId = get(selectedExamIdAtom);
+    const studentId = get(selectedStudentIdAtom);
+
+    return {
+      examId,
+      studentId,
+    };
+  },
+);
 
 /**
  * 학생 답안 상세 조회 쿼리 atom
@@ -49,9 +51,6 @@ export const studentAnswerParamsAtom = atom<StudentAnswerDetailParams>((get) => 
  * - 로딩, 에러, 성공 상태 자동 관리
  * - 답안 데이터는 정적이므로 긴 캐시 시간 설정
  *
- * 캐싱 전략:
- * - staleTime: 10분 (답안 데이터는 변경되지 않음)
- * - gcTime: 30분 (상세 답안은 오래 보관)
  * - enabled: examId와 studentId가 모두 유효한 경우에만 실행
  * - refetchOnWindowFocus: false (답안은 정적 데이터)
  *
@@ -60,14 +59,14 @@ export const studentAnswerParamsAtom = atom<StudentAnswerDetailParams>((get) => 
  * // 컴포넌트에서 사용
  * function StudentAnswerModal() {
  *   const { data, isPending, isError } = useAtomValue(studentAnswerDetailQueryAtom);
- *   
+ *
  *   if (isPending) return <Loading />;
  *   if (isError) return <Error />;
  *   if (!data) return <NoData />;
- *   
+ *
  *   return <AnswerDetailView answerData={data} />;
  * }
- * 
+ *
  * // 모달 열기
  * function openAnswerModal(examId: string, studentId: number) {
  *   setSelectedExamId(examId);
@@ -77,7 +76,7 @@ export const studentAnswerParamsAtom = atom<StudentAnswerDetailParams>((get) => 
  */
 export const studentAnswerDetailQueryAtom = atomWithQuery((get) => {
   const params = get(studentAnswerParamsAtom);
-  
+
   return studentAnswerDetailQueryOptions(params);
 });
 
@@ -95,11 +94,11 @@ export const studentAnswerDetailQueryAtom = atomWithQuery((get) => {
  * ```typescript
  * function AnswerDetail() {
  *   const answerData = useAtomValue(studentAnswerDetailDataAtom);
- *   
+ *
  *   if (!answerData) {
  *     return <div>답안 데이터를 불러오는 중...</div>;
  *   }
- *   
+ *
  *   return (
  *     <div>
  *       <h2>{answerData.examInfo.examName}</h2>
@@ -115,12 +114,12 @@ export const studentAnswerDetailQueryAtom = atomWithQuery((get) => {
  */
 export const studentAnswerDetailDataAtom = atom((get) => {
   const queryResult = get(studentAnswerDetailQueryAtom);
-  
+
   // 로딩 중이거나 에러인 경우 null 반환
   if (queryResult.isPending || queryResult.isError || !queryResult.data) {
     return null;
   }
-  
+
   return queryResult.data;
 });
 
@@ -137,12 +136,12 @@ export const studentAnswerDetailDataAtom = atom((get) => {
 export const studentAnswerLoadingAtom = atom((get) => {
   const params = get(studentAnswerParamsAtom);
   const queryResult = get(studentAnswerDetailQueryAtom);
-  
+
   // 파라미터가 무효하면 로딩 상태 false (무한 로딩 방지)
   if (!params.examId || !params.studentId) {
     return false;
   }
-  
+
   return queryResult.isPending;
 });
 

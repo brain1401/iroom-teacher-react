@@ -2,29 +2,18 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { z } from "zod";
+
 import { useExamList } from "@/hooks/exam/useExamList";
 import { ExamErrorBoundary } from "@/components/error-boundary/ExamErrorBoundary";
 import { LoadingSpinner } from "@/components/loading/ExamLoadingStates";
 
-// 검색 파라미터 스키마 정의 - SSR 최적화를 위한 완전한 필터 지원
+// 검색 파라미터 스키마 정의 - 네비게이션 파라미터만 포함
 const searchSchema = z.object({
-  // 시험 선택 관련
+  // 네비게이션 관련 파라미터만 - 시험 상세 페이지 이동에 필요
   selectedExam: z.string().optional(),
   examName: z.string().optional(),
-  
-  // 필터링 파라미터
-  search: z.string().optional(),
-  grade: z.string().optional(),
-  page: z.number().default(0),
-  size: z.number().default(20),
-  sort: z.string().default("createdAt,desc"),
-  recent: z.boolean().optional(),
-  
-  // UI 상태
-  showSidebar: z.boolean().default(true),
-  collapsedSidebar: z.boolean().default(false),
 });
 
 export const Route = createFileRoute("/main/exam/manage")({
@@ -34,7 +23,7 @@ export const Route = createFileRoute("/main/exam/manage")({
 
 function RouteComponent() {
   const searchParams = Route.useSearch();
-  const { selectedExam, examName, search, grade, page } = searchParams;
+  const { selectedExam, examName } = searchParams;
 
   /** 현재 활성 탭 값 상태 */
   const [activeTab, setActiveTab] = useState<string>("list");
@@ -45,7 +34,7 @@ function RouteComponent() {
   const router = useRouter();
 
   // 선택된 시험이 있으면 상세 탭으로 자동 전환
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (selectedExam && examName) {
       setActiveTab("list");
       // TODO: 선택된 시험의 상세 정보를 표시하는 로직 추가
@@ -147,8 +136,8 @@ function RouteComponent() {
           <div className="flex-1 min-h-0">
             <ExamErrorBoundary
               fallbackTitle="탭 컴포넌트 오류"
-              showHomeButton={false}
-              showBackButton={false}
+              shouldShowHomeButton={false}
+              shouldShowBackButton={false}
             >
               <Outlet />
             </ExamErrorBoundary>

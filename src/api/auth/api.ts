@@ -1,4 +1,4 @@
-import { authApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 
 /**
  * 로그아웃 API 응답 타입
@@ -36,7 +36,7 @@ type LogoutResponse = {
  * ```
  */
 export async function logout(): Promise<LogoutResponse> {
-  const response = await authApiClient.post<LogoutResponse>("/api/auth/logout");
+  const response = await apiClient.post<LogoutResponse>("/api/auth/logout");
   return response.data;
 }
 
@@ -54,7 +54,7 @@ export async function getCurrentUser(): Promise<{
   email: string;
   role: string;
 }> {
-  const response = await authApiClient.get("/api/auth/me");
+  const response = await apiClient.get("/api/auth/me");
   return response.data;
 }
 
@@ -78,6 +78,6 @@ export async function login(credentials: {
   email: string;
   role: string;
 }> {
-  const response = await authApiClient.post("/api/auth/login", credentials);
+  const response = await apiClient.post("/api/auth/login", credentials);
   return response.data;
 }

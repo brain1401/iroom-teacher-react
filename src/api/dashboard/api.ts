@@ -1,4 +1,4 @@
-import { authApiClient } from "@/api/client";
+import { apiClient, ApiError } from "@/api/client";
 import type {
   RecentExamsStatusResponse,
   RecentExamsStatusParams,
@@ -9,6 +9,7 @@ import type {
   ServerStudentAnswerDetail,
   StudentAnswerDetailParams,
 } from "@/types/server-exam";
+import logger from "@/utils/logger";
 
 /**
  * 학년별 최근 시험 제출 현황 조회
@@ -27,24 +28,32 @@ import type {
  * @throws {ApiError} API 요청 실패 시
  */
 export async function fetchRecentExamsStatus(
-  params: RecentExamsStatusParams
+  params: RecentExamsStatusParams,
 ): Promise<RecentExamsStatusResponse> {
   try {
-    const response = await authApiClient.get<RecentExamsStatusResponse>(
+    // 요청 파라미터 검증
+
+
+    const response = await apiClient.get<RecentExamsStatusResponse>(
       "/teacher/dashboard/recent-exams-status",
       {
         params: {
           grade: params.grade,
           limit: params.limit || 10,
         },
-      }
+      },
+    );
+
+    logger.info(
+      `[Dashboard API] 최근 시험 제출 현황 조회 성공 - Grade: ${params.grade}`,
     );
 
     return response.data;
   } catch (error) {
+
     console.error(
       `[Dashboard API] 최근 시험 제출 현황 조회 실패 - Grade: ${params.grade}`,
-      error
+      error,
     );
     throw error;
   }
@@ -74,23 +83,27 @@ export async function fetchRecentExamsStatus(
  * ```
  */
 export async function fetchScoreDistribution(
-  params: ScoreDistributionParams
+  params: ScoreDistributionParams,
 ): Promise<ScoreDistributionResponse> {
   try {
-    const response = await authApiClient.get<ScoreDistributionResponse>(
+    // 요청 파라미터 검증
+
+
+    const response = await apiClient.get<ScoreDistributionResponse>(
       "/teacher/dashboard/score-distribution",
       {
         params: {
           grade: params.grade,
         },
-      }
+      },
     );
 
     return response.data;
   } catch (error) {
+
     console.error(
       `[Dashboard API] 성적 분포도 조회 실패 - Grade: ${params.grade}`,
-      error
+      error,
     );
     throw error;
   }
@@ -119,31 +132,62 @@ export async function fetchScoreDistribution(
  *   examId: "550e8400-e29b-41d4-a716-446655440000",
  *   studentId: 12345
  * });
- * 
+ *
  * console.log(answerDetail.studentInfo.studentName); // 학생명
  * console.log(answerDetail.scoreInfo.totalScore); // 총점
  * console.log(answerDetail.questionAnswers); // 문항별 답안 배열
  * ```
  */
 export async function fetchStudentAnswerDetail(
-  params: StudentAnswerDetailParams
+  params: StudentAnswerDetailParams,
 ): Promise<ServerStudentAnswerDetail> {
   try {
-    const response = await authApiClient.get<ServerStudentAnswerDetail>(
+    // 기본적인 파라미터 검증
+    if (!params.examId || !params.studentId) {
+      throw new ApiError("examId와 studentId가 모두 필요합니다", 400);
+    }
+
+    if (
+      typeof params.examId !== "string" ||
+      params.examId.trim().length === 0
+    ) {
+      throw new ApiError("examId는 비어있지 않은 문자열이어야 합니다", 400);
+    }
+
+    if (typeof params.studentId !== "number" || params.studentId <= 0) {
+      throw new ApiError("studentId는 양수여야 합니다", 400);
+    }
+
+    const response = await apiClient.get<ServerStudentAnswerDetail>(
       "/teacher/dashboard/student-answer-detail",
       {
         params: {
           examId: params.examId,
           studentId: params.studentId,
         },
-      }
+      },
     );
 
-    return response.data;
+    // 응답 데이터 기본 구조 검증
+    const responseData = response.data;
+    if (!responseData || typeof responseData !== "object") {
+      throw new ApiError("유효하지 않은 응답 데이터 형식", 500);
+    }
+
+    // 필수 필드 존재 여부 검증
+    if (
+      !responseData.studentInfo ||
+      !responseData.examInfo ||
+      !responseData.scoreInfo
+    ) {
+      throw new ApiError("응답 데이터에 필수 정보가 누락되었습니다", 500);
+    }
+
+    return responseData;
   } catch (error) {
     console.error(
       `[Dashboard API] 학생 답안 상세 조회 실패 - ExamId: ${params.examId}, StudentId: ${params.studentId}`,
-      error
+      error,
     );
     throw error;
   }

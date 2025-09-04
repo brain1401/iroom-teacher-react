@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from "axios";
-import { authApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 import type { Grade } from "@/types/grade";
 import type { UnitsByGradeData } from "./types";
 
@@ -13,8 +13,8 @@ import type { UnitsByGradeData } from "./types";
  * - 자동 에러 처리 및 토큰 갱신
  * - AbortController 지원으로 요청 취소 가능
  */
-const examSheetApiClient = authApiClient.create({
-  baseURL: `${authApiClient.defaults.baseURL  }/exam-sheet`,
+const examSheetApiClient = apiClient.create({
+  baseURL: `${apiClient.defaults.baseURL  }/exam-sheet`,
 });
 
 /**

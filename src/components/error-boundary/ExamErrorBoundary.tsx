@@ -48,11 +48,11 @@ type ExamErrorBoundaryProps = {
   /** 에러 발생 시 호출될 콜백 (선택적) */
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   /** 홈 버튼 표시 여부 (기본: true) */
-  showHomeButton?: boolean;
+  shouldShowHomeButton?: boolean;
   /** 뒤로가기 버튼 표시 여부 (기본: true) */
-  showBackButton?: boolean;
+  shouldShowBackButton?: boolean;
   /** 개발자 정보 표시 여부 (기본: 개발 환경에서만) */
-  showDeveloperInfo?: boolean;
+  shouldShowDeveloperInfo?: boolean;
   /** 커스텀 CSS 클래스 */
   className?: string;
 };
@@ -79,7 +79,7 @@ type ExamErrorBoundaryProps = {
  * <ExamErrorBoundary
  *   fallbackTitle="시험 목록 오류"
  *   onError={(error, info) => logError(error, info)}
- *   showDeveloperInfo={true}
+ *   shouldShowDeveloperInfo={true}
  * >
  *   <ComplexExamComponent />
  * </ExamErrorBoundary>
@@ -256,9 +256,9 @@ export class ExamErrorBoundary extends React.Component<
       children,
       fallbackTitle = "시험 관리 오류",
       fallbackDescription = "예상치 못한 오류가 발생했습니다.",
-      showHomeButton = true,
-      showBackButton = true,
-      showDeveloperInfo = process.env.NODE_ENV === "development",
+      shouldShowHomeButton = true,
+      shouldShowBackButton = true,
+      shouldShowDeveloperInfo = process.env.NODE_ENV === "development",
       className,
     } = this.props;
 
@@ -333,7 +333,7 @@ export class ExamErrorBoundary extends React.Component<
                 페이지 새로고침
               </Button>
 
-              {showBackButton && (
+              {shouldShowBackButton && (
                 <Button
                   variant="outline"
                   onClick={this.handleGoBack}
@@ -344,7 +344,7 @@ export class ExamErrorBoundary extends React.Component<
                 </Button>
               )}
 
-              {showHomeButton && (
+              {shouldShowHomeButton && (
                 <Button
                   variant="outline"
                   onClick={this.handleGoHome}
@@ -357,7 +357,7 @@ export class ExamErrorBoundary extends React.Component<
             </div>
 
             {/* 개발자 정보 (개발 환경에서만) */}
-            {showDeveloperInfo && error && (
+            {shouldShowDeveloperInfo && error && (
               <>
                 <Separator />
                 <details className="space-y-2">

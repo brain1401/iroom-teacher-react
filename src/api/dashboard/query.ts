@@ -1,6 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { ApiError } from "@/api/client";
-import { fetchRecentExamsStatus, fetchScoreDistribution, fetchStudentAnswerDetail } from "./api";
+import {
+  fetchRecentExamsStatus,
+  fetchScoreDistribution,
+  fetchStudentAnswerDetail,
+} from "./api";
 import type {
   RecentExamsStatusResponse,
   RecentExamsStatusParams,
@@ -70,18 +74,40 @@ export const recentExamsStatusQueryOptions = (
 ) => {
   return queryOptions({
     queryKey: dashboardKeys.recentExamsStatus(params),
-    queryFn: async (): Promise<RecentExamsStatusResponse> => {
-      return await fetchRecentExamsStatus(params);
-    },
-    staleTime: 3 * 60 * 1000, // 3분간 데이터를 신선하다고 간주 (대시보드 데이터는 자주 업데이트)
-    gcTime: 10 * 60 * 1000, // 10분간 캐시에 보관
-    retry: (failureCount, error) => {
-      // 404 에러는 재시도하지 않음 (존재하지 않는 학년)
-      if (error instanceof ApiError && error.status === 404) {
-        return false;
+    queryFn: async ({ signal }): Promise<RecentExamsStatusResponse> => {
+      try {
+        return await fetchRecentExamsStatus(params);
+      } catch (error) {
+        // API 레이어에서 이미 검증되었으므로 여기서는 사용자 친화적 에러 처리
+        if (error instanceof ApiError) {
+          // 학년별 특화된 에러 메시지
+          if (error.status === 404) {
+            throw new Error(
+              `${params.grade}학년의 시험 제출 현황 데이터를 찾을 수 없습니다.`,
+            );
+          }
+          if (error.status === 401 || error.status === 403) {
+            throw new Error(
+              "시험 제출 현황 조회 권한이 없습니다. 로그인을 확인해주세요.",
+            );
+          }
+          throw new Error(
+            `시험 제출 현황 조회 중 오류가 발생했습니다: ${error.message}`,
+          );
+        }
+
+        // 네트워크 오류 등
+        throw new Error(
+          `${params.grade}학년 시험 제출 현황을 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요.`,
+        );
       }
-      // 401 에러는 재시도하지 않음 (인증 실패)
-      if (error instanceof ApiError && error.status === 401) {
+    },
+    retry: (failureCount, error) => {
+      // 권한 에러나 404는 재시도하지 않음
+      if (
+        error instanceof ApiError &&
+        [401, 403, 404].includes(error.status || 0)
+      ) {
         return false;
       }
       // 다른 에러는 최대 2번까지 재시도
@@ -91,6 +117,8 @@ export const recentExamsStatusQueryOptions = (
     enabled: params.grade >= 1 && params.grade <= 3,
     // 5분마다 백그라운드에서 자동 갱신
     refetchInterval: 5 * 60 * 1000,
+    // 요청 취소 처리 추가
+    throwOnError: true, // jotai-tanstack-query에서 Error Boundary 활용
   });
 };
 
@@ -129,17 +157,38 @@ export const scoreDistributionQueryOptions = (
   return queryOptions({
     queryKey: dashboardKeys.scoreDistribution(params),
     queryFn: async ({ signal }): Promise<ScoreDistributionResponse> => {
-      return await fetchScoreDistribution(params);
-    },
-    staleTime: 5 * 60 * 1000, // 5분간 데이터를 신선하다고 간주 (성적 데이터는 상대적으로 안정적)
-    gcTime: 15 * 60 * 1000, // 15분간 캐시에 보관 (성적 분포는 더 오래 캐시)
-    retry: (failureCount, error) => {
-      // 404 에러는 재시도하지 않음 (존재하지 않는 학년)
-      if (error instanceof ApiError && error.status === 404) {
-        return false;
+      try {
+        return await fetchScoreDistribution(params);
+      } catch (error) {
+        // API 레이어에서 이미 검증되었으므로 여기서는 사용자 친화적 에러 처리
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            throw new Error(
+              `${params.grade}학년의 성적 분포 데이터가 없습니다. 아직 제출된 시험이 없는 것 같습니다.`,
+            );
+          }
+          if (error.status === 401 || error.status === 403) {
+            throw new Error(
+              "성적 분포 조회 권한이 없습니다. 로그인을 확인해주세요.",
+            );
+          }
+          throw new Error(
+            `성적 분포 조회 중 오류가 발생했습니다: ${error.message}`,
+          );
+        }
+
+        // 네트워크 오류 등
+        throw new Error(
+          `${params.grade}학년 성적 분포를 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요.`,
+        );
       }
-      // 401 에러는 재시도하지 않음 (인증 실패)
-      if (error instanceof ApiError && error.status === 401) {
+    },
+    retry: (failureCount, error) => {
+      // 권한 에러나 404는 재시도하지 않음
+      if (
+        error instanceof ApiError &&
+        [401, 403, 404].includes(error.status || 0)
+      ) {
         return false;
       }
       // 다른 에러는 최대 2번까지 재시도
@@ -149,6 +198,7 @@ export const scoreDistributionQueryOptions = (
     enabled: params.grade >= 1 && params.grade <= 3,
     // 성적 분포는 자주 변하지 않으므로 자동 갱신 비활성화
     refetchOnWindowFocus: false,
+    throwOnError: true, // jotai-tanstack-query에서 Error Boundary 활용
   });
 };
 
@@ -172,15 +222,15 @@ export const scoreDistributionQueryOptions = (
  * ```typescript
  * // useQuery 훅과 함께 사용
  * const { data: answerDetail, isLoading, error } = useQuery(
- *   studentAnswerDetailQueryOptions({ 
+ *   studentAnswerDetailQueryOptions({
  *     examId: "550e8400-e29b-41d4-a716-446655440000",
- *     studentId: 12345 
+ *     studentId: 12345
  *   })
  * );
  *
  * // Jotai atomWithQuery와 함께 사용
  * const studentAnswerAtom = atomWithQuery((get) =>
- *   studentAnswerDetailQueryOptions({ 
+ *   studentAnswerDetailQueryOptions({
  *     examId: get(selectedExamIdAtom),
  *     studentId: get(selectedStudentIdAtom)
  *   })
@@ -199,27 +249,59 @@ export const studentAnswerDetailQueryOptions = (
 ) => {
   return queryOptions({
     queryKey: dashboardKeys.studentAnswerDetail(params),
-    queryFn: async (): Promise<ServerStudentAnswerDetail> => {
-      return await fetchStudentAnswerDetail(params);
-    },
-    staleTime: 10 * 60 * 1000, // 10분간 데이터를 신선하다고 간주 (답안 데이터는 변경되지 않음)
-    gcTime: 30 * 60 * 1000, // 30분간 캐시에 보관 (상세 답안은 오래 보관)
-    retry: (failureCount, error) => {
-      // 404 에러는 재시도하지 않음 (존재하지 않는 시험/학생 조합)
-      if (error instanceof ApiError && error.status === 404) {
-        return false;
+    queryFn: async ({ signal }): Promise<ServerStudentAnswerDetail> => {
+      try {
+        return await fetchStudentAnswerDetail(params);
+      } catch (error) {
+        // API 레이어에서 이미 검증되었으므로 여기서는 사용자 친화적 에러 처리
+        if (error instanceof ApiError) {
+          if (error.status === 404) {
+            throw new Error(
+              `해당 학생의 시험 답안을 찾을 수 없습니다. (시험ID: ${params.examId}, 학생ID: ${params.studentId})`,
+            );
+          }
+          if (error.status === 401 || error.status === 403) {
+            throw new Error(
+              "학생 답안 조회 권한이 없습니다. 로그인을 확인해주세요.",
+            );
+          }
+          if (error.status === 400) {
+            throw new Error(
+              "잘못된 요청입니다. 시험ID나 학생ID를 확인해주세요.",
+            );
+          }
+          throw new Error(
+            `학생 답안 조회 중 오류가 발생했습니다: ${error.message}`,
+          );
+        }
+
+        // 네트워크 오류 등
+        throw new Error(
+          "학생 답안을 불러오는데 실패했습니다. 네트워크 연결을 확인해주세요.",
+        );
       }
-      // 401/403 에러는 재시도하지 않음 (인증/권한 실패)
-      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+    },
+    retry: (failureCount, error) => {
+      // 권한 에러, 404, 400은 재시도하지 않음
+      if (
+        error instanceof ApiError &&
+        [400, 401, 403, 404].includes(error.status || 0)
+      ) {
         return false;
       }
       // 다른 에러는 최대 1번까지 재시도 (상세 데이터는 즉시 실패하는 것이 좋음)
       return failureCount < 1;
     },
     // examId와 studentId가 모두 유효한 경우에만 쿼리 실행
-    enabled: Boolean(params.examId && params.studentId),
+    enabled: Boolean(
+      params.examId &&
+        params.studentId &&
+        params.examId.trim().length > 0 &&
+        params.studentId > 0,
+    ),
     // 답안 상세는 정적 데이터이므로 자동 갱신 비활성화
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    throwOnError: true, // jotai-tanstack-query에서 Error Boundary 활용
   });
 };

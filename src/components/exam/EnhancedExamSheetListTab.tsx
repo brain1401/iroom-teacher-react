@@ -347,7 +347,7 @@ export function EnhancedExamSheetListTab({
           {dataState.isLoading && !dataState.hasError && (
             <ExamListLoadingSkeleton 
               itemCount={10}
-              showHeader={true}
+              isShowHeader={true}
 
             />
           )}

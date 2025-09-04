@@ -15,7 +15,6 @@ import { mainBgExtraCombinedClassAtom } from "@/atoms/ui";
 import { isAuthenticatedAtom } from "@/atoms/auth";
 import { cn } from "@/lib/utils";
 
-
 /**
  * 라우터 컨텍스트 타입 정의
  *
@@ -39,6 +38,7 @@ type MyRouterContext = {
  * - shellComponent: HTML 문서 전체 구조를 담당하는 RootDocument 지정
  */
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  ssr: true,
   errorComponent: ({ error }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background-400 dark:bg-background-900 p-6">

@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from "axios";
-import { baseApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 import {
   buildPokemonListUrl,
   buildPokemonByNameOrIdUrl,
@@ -10,7 +10,7 @@ import type { Pokemon, PokemonListResponse } from "./types";
  * 포켓몬 전용 API 클라이언트
  * @description 기본 API 클라이언트를 확장하여 포켓몬 API 전용으로 설정
  */
-const pokemonApiClient = baseApiClient.create({
+const pokemonApiClient = apiClient.create({
   baseURL: "https://pokeapi.co/api/v2",
 });
 
