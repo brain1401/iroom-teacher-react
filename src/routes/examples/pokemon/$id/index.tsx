@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useMainBackground } from "@/hooks/ui/useMainBackground";
-import { useHydrateAtoms } from "jotai-ssr";
+import { useHydrateAtoms } from "jotai/utils";
 import { useEffect } from "react";
 import {
   pokemonIdOrNameAtom,

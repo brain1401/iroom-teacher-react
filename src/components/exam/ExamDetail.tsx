@@ -1,6 +1,6 @@
 import { useState, useMemo, useLayoutEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useHydrateAtoms } from "jotai-ssr";
+import { useHydrateAtoms } from "jotai/utils";
 import { ExamDetailTable } from "./ExamDetailTable";
 import { Badge } from "@/components/ui/badge";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
@@ -15,14 +15,11 @@ import {
   studentAnswerLoadingAtom,
   studentAnswerErrorAtom,
 } from "@/atoms/examAnswers";
+import { selectedExamIdAtom, selectExamAtom } from "@/atoms/exam";
 import {
-  examDetailQueryAtom,
-  examSubmissionStatusQueryAtom,
-  selectedExamIdAtom,
-  selectExamAtom,
   selectedExamDetailAtom,
   selectedExamSubmissionStatusAtom,
-} from "@/atoms/exam";
+} from "@/atoms/examDetail";
 
 /**
  * 시험 문항 답안 정보 타입
@@ -91,6 +88,10 @@ type ExamDetailProps = {
 export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
   const router = useRouter();
 
+  // SSR 하이드레이션: examId로 selectedExamIdAtom 즉시 초기화
+  // 서버에서 프리로드된 QueryClient 데이터와 atom 상태 동기화
+  useHydrateAtoms([[selectedExamIdAtom, examId || null]] as const);
+
   // 상태 관리
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedSubmission, setSelectedSubmission] =
@@ -103,16 +104,12 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
   const isLoadingAnswer = useAtomValue(studentAnswerLoadingAtom);
   const answerError = useAtomValue(studentAnswerErrorAtom);
 
-  // 기존에 정의된 atoms 사용 (무한 렌더링 방지)
+  // 기존에 정의된 atoms 사용
   const examDetailState = useAtomValue(selectedExamDetailAtom);
   const submissionStatusState = useAtomValue(selectedExamSubmissionStatusAtom);
 
   const examDetail = examDetailState.exam;
   const submissionStatus = submissionStatusState.submissionStatus;
-
-  // SSR 하이드레이션: examId로 selectedExamIdAtom 즉시 초기화
-  // 서버에서 프리로드된 QueryClient 데이터와 atom 상태 동기화
-  useHydrateAtoms([[selectedExamIdAtom, examId || null]] as const);
 
   // examId가 변경될 때 selectedExamIdAtom 업데이트 (URL 변경 대응)
   useLayoutEffect(() => {

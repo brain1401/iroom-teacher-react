@@ -18,6 +18,7 @@ import {
   submissionStatusQueryOptions,
 } from "@/api/exam/query";
 import logger from "@/utils/logger";
+import { selectedExamIdAtom } from "./exam";
 
 /**
  * 시험 상세 페이지 기본값 상수
@@ -94,18 +95,19 @@ export const examDetailStateAtom = atom((get) => ({
 }));
 
 /**
- * 시험 상세 데이터 쿼리 원자
+ * 시험 상세 데이터 쿼리 원자 (하이드레이션 안전)
  * @description examId atom을 기반으로 시험 상세 정보를 가져오는 atomWithQuery
  *
  * 주요 기능:
- * - examId가 없으면 쿼리 비활성화
+ * - 하이드레이션 timing 이슈 방지를 위한 안전한 쿼리 생성
+ * - examId가 유효할 때만 쿼리 실행
  * - atom 기반 쿼리 키 관리로 상태 동기화
  * - 에러 상태 및 로딩 상태 자동 관리
  */
 export const examDetailQueryAtom = atomWithQuery((get) => {
   const examId = get(examDetailIdAtom);
 
-  // examId가 없거나 빈 문자열이면 쿼리 비활성화
+  // 하이드레이션 timing 이슈 방지: examId가 유효하지 않으면 쿼리 비활성화
   if (!examId || examId.trim() === "") {
     return {
       queryKey: ["exam", "detail", "disabled"] as const,
@@ -117,27 +119,30 @@ export const examDetailQueryAtom = atomWithQuery((get) => {
 });
 
 /**
- * 시험 제출 현황 쿼리 원자
+ * 시험 제출 현황 쿼리 원자 (하이드레이션 안전)
  * @description examId atom을 기반으로 제출 현황을 가져오는 atomWithQuery
  *
  * 주요 기능:
- * - examId가 없으면 쿼리 비활성화
+ * - 하이드레이션 timing 이슈 방지를 위한 안전한 쿼리 생성
+ * - examId가 유효할 때만 쿼리 실행
  * - atom 기반 쿼리 키 관리로 상태 동기화
  * - 실시간 제출 현황 업데이트 지원
  */
 export const submissionStatusQueryAtom = atomWithQuery((get) => {
   const examId = get(examDetailIdAtom);
 
-  logger.info(`atomWithQuery 안에서 examId : ${examId}`);
+  logger.info(`[하이드레이션 안전] atomWithQuery 안에서 examId: ${examId}`);
 
-  // examId가 없거나 빈 문자열이면 쿼리 비활성화
+  // 하이드레이션 timing 이슈 방지: examId가 유효하지 않으면 쿼리 비활성화
   if (!examId || examId.trim() === "") {
+    logger.info(`[하이드레이션 안전] examId가 비어있음, 쿼리 비활성화`);
     return {
       queryKey: ["exam", "submission", "disabled"] as const,
       queryFn: skipToken,
     };
   }
 
+  logger.info(`[하이드레이션 안전] 유효한 examId로 쿼리 생성: ${examId}`);
   return submissionStatusQueryOptions(examId);
 });
 
@@ -360,5 +365,81 @@ export const examDetailSummaryAtom = atom((get) => {
     currentPage: state.page + 1, // UI에서는 1부터 표시
     totalUrlParams: Object.keys(urlParams).length,
     isDefaultState: Object.keys(urlParams).length === 0,
+  };
+});
+
+/**
+ * ==========================================
+ * MOVED FROM exam.ts - 관심사 분리를 위한 이동
+ * ==========================================
+ */
+
+/**
+ * 선택된 시험 상세 쿼리 원자 (일반 시험 관리용)
+ * @description selectedExamIdAtom 기반 시험 상세 정보 조회
+ *
+ * 조건부 활성화:
+ * - selectedExamIdAtom이 있을 때만 쿼리 실행
+ * - 일반 시험 관리 페이지에서 사용
+ */
+export const selectedExamDetailQueryAtom = atomWithQuery((get) => {
+  const examId = get(selectedExamIdAtom);
+  return {
+    ...examDetailQueryOptions(examId || ""),
+    enabled: !!examId,
+  };
+});
+
+/**
+ * 선택된 시험 제출 현황 쿼리 원자 (일반 시험 관리용)
+ * @description selectedExamIdAtom 기반 제출 현황 조회
+ *
+ * 특징:
+ * - 30초마다 자동 리페칭 (실시간 업데이트)
+ * - 조건부 활성화
+ * - 일반 시험 관리 페이지에서 사용
+ */
+export const selectedExamSubmissionStatusQueryAtom = atomWithQuery((get) => {
+  const examId = get(selectedExamIdAtom);
+  return {
+    ...submissionStatusQueryOptions(examId || ""),
+    enabled: !!examId,
+  };
+});
+
+/**
+ * 선택된 시험 상세 정보 파생 원자 (일반 시험 관리용)
+ * @description 시험 상세 쿼리 결과 정리
+ */
+export const selectedExamDetailAtom = atom((get) => {
+  const queryResult = get(selectedExamDetailQueryAtom);
+  const examId = get(selectedExamIdAtom);
+
+  return {
+    exam: queryResult.data || null,
+    examId,
+    isLoading: queryResult.isLoading,
+    isError: queryResult.isError,
+    error: queryResult.error,
+    hasData: Boolean(queryResult.data),
+  };
+});
+
+/**
+ * 선택된 시험 제출 현황 파생 원자 (일반 시험 관리용)
+ * @description 제출 현황 쿼리 결과 정리
+ */
+export const selectedExamSubmissionStatusAtom = atom((get) => {
+  const queryResult = get(selectedExamSubmissionStatusQueryAtom);
+  const examId = get(selectedExamIdAtom);
+
+  return {
+    submissionStatus: queryResult.data || null,
+    examId,
+    isLoading: queryResult.isLoading,
+    isError: queryResult.isError,
+    error: queryResult.error,
+    hasData: Boolean(queryResult.data),
+    lastUpdated: queryResult.dataUpdatedAt,
   };
 });

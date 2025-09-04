@@ -13,9 +13,6 @@ import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import {
   examListQueryOptions,
-  examDetailQueryOptions,
-  submissionStatusQueryOptions,
-  examStatisticsQueryOptions,
   defaultExamStatisticsQueryOptions,
 } from "@/api/exam";
 import {
@@ -43,36 +40,6 @@ export const examListQueryAtom = atomWithQuery((get) => {
   return examListQueryOptions(serverParams);
 });
 
-/**
- * 시험 상세 쿼리 원자
- * @description 선택된 시험의 상세 정보 조회
- *
- * 조건부 활성화:
- * - selectedExamIdAtom이 있을 때만 쿼리 실행
- */
-export const examDetailQueryAtom = atomWithQuery((get) => {
-  const examId = get(selectedExamIdAtom);
-  return {
-    ...examDetailQueryOptions(examId || ""),
-    enabled: !!examId,
-  };
-});
-
-/**
- * 시험 제출 현황 쿼리 원자
- * @description 선택된 시험의 제출 현황과 통계 조회
- *
- * 특징:
- * - 30초마다 자동 리페칭 (실시간 업데이트)
- * - 조건부 활성화
- */
-export const examSubmissionStatusQueryAtom = atomWithQuery((get) => {
-  const examId = get(selectedExamIdAtom);
-  return {
-    ...submissionStatusQueryOptions(examId || ""),
-    enabled: !!examId,
-  };
-});
 
 /**
  * 시험 통계 쿼리 원자
@@ -106,42 +73,6 @@ export const currentExamListAtom = atom((get) => {
   };
 });
 
-/**
- * 선택된 시험 상세 정보 파생 원자
- * @description 시험 상세 쿼리 결과 정리
- */
-export const selectedExamDetailAtom = atom((get) => {
-  const queryResult = get(examDetailQueryAtom);
-  const examId = get(selectedExamIdAtom);
-
-  return {
-    exam: queryResult.data || null,
-    examId,
-    isLoading: queryResult.isLoading,
-    isError: queryResult.isError,
-    error: queryResult.error,
-    hasData: Boolean(queryResult.data),
-  };
-});
-
-/**
- * 선택된 시험 제출 현황 파생 원자
- * @description 제출 현황 쿼리 결과 정리
- */
-export const selectedExamSubmissionStatusAtom = atom((get) => {
-  const queryResult = get(examSubmissionStatusQueryAtom);
-  const examId = get(selectedExamIdAtom);
-
-  return {
-    submissionStatus: queryResult.data || null,
-    examId,
-    isLoading: queryResult.isLoading,
-    isError: queryResult.isError,
-    error: queryResult.error,
-    hasData: Boolean(queryResult.data),
-    lastUpdated: queryResult.dataUpdatedAt,
-  };
-});
 
 /**
  * 시험 통계 파생 원자
@@ -168,7 +99,7 @@ export const examStatisticsAtom = atom((get) => {
  * 시험 선택 액션 원자
  * @description 시험 ID를 설정하여 상세 조회 활성화
  */
-export const selectExamAtom = atom(null, (get, set, examId: string | null) => {
+export const selectExamAtom = atom(null, (_get, set, examId: string | null) => {
   set(selectedExamIdAtom, examId);
 });
 
@@ -176,7 +107,7 @@ export const selectExamAtom = atom(null, (get, set, examId: string | null) => {
  * 시험 선택 해제 액션 원자
  * @description 선택된 시험 해제
  */
-export const clearSelectedExamAtom = atom(null, (get, set) => {
+export const clearSelectedExamAtom = atom(null, (_get, set) => {
   set(selectedExamIdAtom, null);
 });
 
@@ -184,7 +115,7 @@ export const clearSelectedExamAtom = atom(null, (get, set) => {
  * 시험 목록 새로고침 액션 원자
  * @description 현재 필터로 시험 목록 다시 로드
  */
-export const refreshExamListAtom = atom(null, async (get, set) => {
+export const refreshExamListAtom = atom(null, (get, set) => {
   // 쿼리 무효화는 TanStack Query가 자동으로 처리
   // 필터 상태가 변경되면 자동으로 새 쿼리 실행
   const currentPage = get(examPageAtom);
@@ -195,7 +126,7 @@ export const refreshExamListAtom = atom(null, async (get, set) => {
  * 특정 학년 시험 조회 액션 원자
  * @description 학년을 변경하고 첫 페이지로 이동
  */
-export const viewGradeExamsAtom = atom(null, (get, set, grade: string) => {
+export const viewGradeExamsAtom = atom(null, (_get, set, grade: string) => {
   set(selectedGradeAtom, grade);
   set(examPageAtom, 0);
 });

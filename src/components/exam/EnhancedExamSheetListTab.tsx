@@ -40,7 +40,7 @@ import {
 import { 
   selectedExamDetailAtom,
   selectedExamSubmissionStatusAtom,
-} from "@/atoms/exam";
+} from "@/atoms/examDetail";
 import { useExamListWithFilters } from "@/hooks/exam/useExamListWithFilters";
 import { useExamUrlSync } from "@/hooks/exam/useExamUrlSync";
 import { 

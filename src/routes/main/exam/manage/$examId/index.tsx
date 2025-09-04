@@ -7,8 +7,7 @@ import {
 import { isShowHeaderAtom } from "@/atoms/ui";
 import { examDetailIdAtom, examDetailPageDataAtom } from "@/atoms/examDetail";
 import { useSetAtom, useAtomValue } from "jotai";
-import { useLayoutEffect, useEffect } from "react";
-import { useHydrateAtoms } from "jotai-ssr";
+import { useLayoutEffect } from "react";
 import logger from "@/utils/logger";
 
 export const Route = createFileRoute("/main/exam/manage/$examId/")({
@@ -16,12 +15,12 @@ export const Route = createFileRoute("/main/exam/manage/$examId/")({
     const { examId } = params;
     const { queryClient } = context;
 
-    logger.info(`examId : ${examId})`);
+    logger.info(`[SSR] examId 로더: ${examId}`);
 
     try {
-      const [examDetail, submissionStatus] = await Promise.all([
-        queryClient.ensureQueryData(examDetailQueryOptions(examId)),
-        queryClient.ensureQueryData(submissionStatusQueryOptions(examId)),
+      await Promise.all([
+        queryClient.prefetchQuery(examDetailQueryOptions(examId)),
+        queryClient.prefetchQuery(submissionStatusQueryOptions(examId)),
       ]);
 
       logger.info(
@@ -39,22 +38,11 @@ export const Route = createFileRoute("/main/exam/manage/$examId/")({
 
 function ExamDetailPage() {
   const { examId } = Route.useParams();
-  // SSR 하이드레이션 - examId만 설정
-  useHydrateAtoms([[examDetailIdAtom, examId]]);
 
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
-  const setExamDetailId = useSetAtom(examDetailIdAtom);
-
-  // atom 기반 데이터 사용
-  const pageData = useAtomValue(examDetailPageDataAtom);
   const router = useRouter();
 
-  // examId를 atom에 설정 (atom 기반 쿼리 활성화)
-  useEffect(() => {
-    if (examId) {
-      setExamDetailId(examId);
-    }
-  }, [examId, setExamDetailId]);
+  const pageData = useAtomValue(examDetailPageDataAtom);
 
   useLayoutEffect(() => {
     setIsShowHeader(true);
@@ -66,18 +54,6 @@ function ExamDetailPage() {
   const handleBack = () => {
     router.history.back();
   };
-
-  // 로딩 상태 처리
-  // if (pageData.isLoading) {
-  //   return (
-  //     <div className="w-full h-full py-5 flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-  //         <p>시험 정보를 불러오는 중...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   // 에러 상태 처리
   if (pageData.hasError) {
