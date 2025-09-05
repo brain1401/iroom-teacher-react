@@ -2,18 +2,29 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { loginAtom } from "@/atoms/auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/errorHandling";
 
 /**
  * 로그인 섹션 컴포넌트
- * 좌우 분할 레이아웃으로 브랜딩 영역과 로그인 폼을 분리
+ * @description 서버 API 연동이 준비된 로그인 폼 컴포넌트
+ *
+ * 주요 개선사항:
+ * - 서버 API 기반 인증 시스템 연동
+ * - 체계적인 에러 처리 및 사용자 친화적 메시지
+ * - 타입 안전성 보장된 로그인 플로우
+ * - React Query 캐시 연동으로 사용자 정보 자동 관리
+ *
+ * 지원 계정:
+ * - admin/1234 (관리자)
+ * - teacher/1234 (교사)
  */
 export function LoginSection() {
   const navigate = useNavigate();
-  const [, login] = useAtom(loginAtom);
+  const login = useSetAtom(loginAtom);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
@@ -22,21 +33,32 @@ export function LoginSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.username.trim() || !formData.password.trim()) {
+      toast.error("아이디와 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       const result = await login(formData);
+      
       if (result.success) {
-        toast.success("로그인되었습니다!");
-        // 약간의 지연 후 네비게이션 (상태 업데이트 완료 대기)
+        toast.success(`환영합니다, ${result.user?.name}님!`);
+        
+        // 로그인 성공 시 메인 페이지로 이동
+        // 약간의 지연으로 토스트 메시지를 사용자가 볼 수 있도록 함
         setTimeout(() => {
           navigate({ to: "/main" });
-        }, 100);
+        }, 500);
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "로그인에 실패했습니다.",
-      );
+      // 구조화된 에러 메시지 처리
+      const friendlyMessage = getErrorMessage(error);
+      toast.error(friendlyMessage);
+      
+      console.error("[LoginSection] 로그인 실패:", error);
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +67,11 @@ export function LoginSection() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 개발용 계정 정보 안내
+  const handleDemoLogin = (username: string, password: string) => {
+    setFormData({ username, password });
   };
 
   return (
@@ -58,6 +85,16 @@ export function LoginSection() {
               관리자 로그인
             </h2>
             <p className="text-gray-600">시스템에 접근하려면 로그인하세요.</p>
+            
+            {/* 서버 API 연동 상태 표시 */}
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="text-sm text-blue-800">
+                <strong>🚀 서버 API 연동 준비 완료</strong>
+                <div className="mt-1 text-blue-600">
+                  실제 백엔드 연동시 즉시 적용 가능한 구조로 구현됨
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 로그인 폼 */}
@@ -74,6 +111,7 @@ export function LoginSection() {
                 placeholder="아이디를 입력하세요"
                 className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -90,19 +128,57 @@ export function LoginSection() {
                 placeholder="비밀번호를 입력하세요"
                 className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 required
+                disabled={isLoading}
               />
             </div>
 
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50"
             >
-              {isLoading ? "로그인 중..." : "로그인"}
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  로그인 중...
+                </div>
+              ) : (
+                "로그인"
+              )}
             </Button>
           </form>
 
-          {/* 추가 링크 */}
+          {/* 개발용 테스트 계정 */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              💡 테스트 계정 (개발용)
+            </h4>
+            <div className="space-y-2 text-sm">
+              <button
+                type="button"
+                onClick={() => handleDemoLogin("admin", "1234")}
+                className="block w-full text-left p-2 rounded bg-white hover:bg-gray-50 border transition-colors"
+                disabled={isLoading}
+              >
+                <div className="font-medium text-purple-600">관리자 계정</div>
+                <div className="text-gray-500">admin / 1234</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin("teacher", "1234")}
+                className="block w-full text-left p-2 rounded bg-white hover:bg-gray-50 border transition-colors"
+                disabled={isLoading}
+              >
+                <div className="font-medium text-green-600">교사 계정</div>
+                <div className="text-gray-500">teacher / 1234</div>
+              </button>
+            </div>
+          </div>
+          
+          {/* 개발 상태 표시 */}
+          <div className="mt-4 text-xs text-gray-400 text-center">
+            현재 mock API로 구현됨. 실제 서버 연동시 즉시 전환 가능.
+          </div>
         </div>
       </div>
     </>

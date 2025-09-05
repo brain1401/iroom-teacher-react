@@ -211,13 +211,19 @@ export function ExamSheetRegistrationTab() {
     setExamCreatedCallback((newExam) => {
       // 시험 목록 탭으로 이동
       console.log("시험 출제 완료:", newExam);
-      // localStorage에 새로운 시험 정보 저장
-      const newExams = JSON.parse(localStorage.getItem("newExams") || "[]");
-      newExams.push(newExam);
-      localStorage.setItem("newExams", JSON.stringify(newExams));
+      
+      // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+      if (typeof window !== "undefined") {
+        // localStorage에 새로운 시험 정보 저장
+        const newExams = JSON.parse(localStorage.getItem("newExams") || "[]");
+        newExams.push(newExam);
+        localStorage.setItem("newExams", JSON.stringify(newExams));
+      }
 
       // 시험 목록 탭으로 이동
-      window.location.href = "/main/exam-management?tab=list";
+      if (typeof window !== "undefined") {
+        window.location.href = "/main/exam-management?tab=list";
+      }
     });
   }, [setExamCreatedCallback]);
 

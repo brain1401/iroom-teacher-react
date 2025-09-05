@@ -208,6 +208,8 @@ export type ExamListFilters = {
   search?: string;
   /** 최근 시험만 조회 */
   recent?: boolean;
+  /** 단원 정보 포함 여부 */
+  includeUnits?: boolean;
   /** 페이지 번호 (0부터 시작) */
   page?: number;
   /** 페이지 크기 */

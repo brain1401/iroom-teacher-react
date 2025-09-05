@@ -318,12 +318,15 @@ export function ProblemListTab({
         createdAt: new Date().toISOString(),
       };
 
-      // localStorage에 새 문제지 저장
-      const existingSheets = JSON.parse(
-        localStorage.getItem("newExamSheets") || "[]",
-      );
-      existingSheets.unshift(newExamSheet);
-      localStorage.setItem("newExamSheets", JSON.stringify(existingSheets));
+      // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+      if (typeof window !== "undefined") {
+        // localStorage에 새 문제지 저장
+        const existingSheets = JSON.parse(
+          localStorage.getItem("newExamSheets") || "[]",
+        );
+        existingSheets.unshift(newExamSheet);
+        localStorage.setItem("newExamSheets", JSON.stringify(existingSheets));
+      }
 
       // 성공 메시지 표시
       toast.success("문제지가 성공적으로 생성되었습니다!");

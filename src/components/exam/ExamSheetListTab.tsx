@@ -237,7 +237,6 @@ export function ExamSheetListTab({
     selectedIds,
     activeModal,
     selectedSheet,
-    fakeExamSubmitStatusDetail,
     filters,
 
     // 액션
@@ -317,14 +316,11 @@ export function ExamSheetListTab({
               {/* 시험 제출 현황 테이블 */}
               <div className="overflow-y-auto max-h-[60vh]">
                 <ExamSubmissionTable
-                  submissions={fakeExamSubmitStatusDetail.filter(
-                    (submission) =>
-                      submission.examName === selectedSheet.examName,
-                  )}
+                  submissions={[]} // TODO: 서버에서 시험 제출 현황 데이터 가져오기
                   selectedIds={new Set()}
                   onSelectAll={() => {}}
                   onSelect={() => {}}
-                  onOpenDetail={(submission) => {
+                  onOpenDetail={(submission: any) => {
                     console.log("학생 상세 정보:", submission);
                     alert(
                       `${submission.student.name} 학생의 상세 정보를 확인합니다.`,

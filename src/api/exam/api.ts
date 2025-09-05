@@ -68,6 +68,10 @@ export async function fetchExamList(
     params.append("recent", "true");
   }
 
+  if (filters.includeUnits) {
+    params.append("includeUnits", "true");
+  }
+
   if (filters.page !== undefined) {
     params.append("page", filters.page.toString());
   }

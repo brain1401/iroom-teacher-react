@@ -56,13 +56,20 @@ export const examKeys = {
  * @description 페이지네이션과 필터링을 지원하는 시험 목록 쿼리
  *
  */
-export const examListQueryOptions = (filters: ExamListFilters = {}) =>
-  queryOptions({
-    queryKey: examKeys.list(filters),
-    queryFn: () => fetchExamList(filters),
+export const examListQueryOptions = (filters: ExamListFilters = {}) => {
+  // 단원 정보를 기본적으로 포함하도록 설정
+  const filtersWithUnits = {
+    includeUnits: true,
+    ...filters,
+  };
+
+  return queryOptions({
+    queryKey: examKeys.list(filtersWithUnits),
+    queryFn: () => fetchExamList(filtersWithUnits),
     retry: 3, // 실패 시 3회 재시도
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
   });
+};
 
 /**
  * 시험 상세 정보 쿼리 옵션

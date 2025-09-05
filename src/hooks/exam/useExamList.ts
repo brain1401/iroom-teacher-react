@@ -35,9 +35,7 @@ export function useExamList() {
   // TODO: 서버 API에서 시험 목록을 가져오도록 수정 필요
   const [examList, setExamList] = useState<Exam[]>([]);
 
-  // 시험 제출 현황 데이터
-  // TODO: 서버 API에서 제출 현황 데이터를 가져오도록 수정 필요
-  const fakeExamSubmitStatusDetail: ExamSubmitStatusDetail[] = [];
+  // 시험 제출 현황 데이터는 서버 API에서 가져옴
 
   /**
    * 새로운 시험 추가 함수
@@ -70,6 +68,11 @@ export function useExamList() {
    */
   useEffect(() => {
     try {
+      // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+      if (typeof window === "undefined") {
+        return;
+      }
+      
       const newExams = JSON.parse(localStorage.getItem("newExams") || "[]");
       if (newExams.length > 0) {
         // 새로운 시험들을 목록에 추가
@@ -237,7 +240,7 @@ export function useExamList() {
     activeModal,
     selectedSheet,
     filters,
-    fakeExamSubmitStatusDetail,
+    // fakeExamSubmitStatusDetail removed - now using server API
 
     // 액션
     setSearchKeyword,

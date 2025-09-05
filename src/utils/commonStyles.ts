@@ -16,7 +16,7 @@ export const tableStyles = {
   rowOdd: "bg-muted/20",
   cell: "text-foreground",
   cellCenter: "text-center",
-  cellMedium: "font-medium text-foreground",
+  cellMedium: "font-medium text-foreground max-w-[10rem] h-[2rem]! truncate",
   checkbox:
     "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
 } as const;

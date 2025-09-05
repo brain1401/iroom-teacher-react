@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
-import type { Exam } from "@/types/exam";
+import type { ServerExam as Exam } from "@/api/exam/types";
 import { Link } from "@tanstack/react-router";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 /**
  * 시험지 테이블 컴포넌트 props 타입
@@ -190,7 +191,7 @@ export function ExamTable({
   selectedIds,
   onSelectAll,
   onSelect,
-  onOpenDetail,
+  onOpenDetail: _onOpenDetail,
   selectedExamId,
 }: ExamTableProps) {
   // "전체 선택" 체크박스의 상태를 결정하는 변수
@@ -209,8 +210,8 @@ export function ExamTable({
                 className={tableStyles.checkbox}
               />
             </TableHead>
-            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <TableHead className={tableStyles.headerCell}>시험명</TableHead>
+            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <TableHead className={tableStyles.headerCellCenter}>
               문항수
             </TableHead>
@@ -242,21 +243,38 @@ export function ExamTable({
                   className={tableStyles.checkbox}
                 />
               </TableCell>
-              <TableCell className={tableStyles.cellMedium}>
-                {/* 학년과 내용을 기반으로 단원 정보 표시 */}
-                <span className="text-sm">
-                  {sheet.grade}학년{" "}
-                  {sheet.content
-                    ? `- ${sheet.content.slice(0, 20)}${sheet.content.length > 20 ? "..." : ""}`
-                    : "수학"}
-                </span>
-              </TableCell>
               <TableCell className={tableStyles.cell}>
                 {sheet.examName}
               </TableCell>
+              <TableCell className={tableStyles.cellMedium}>
+                {/* 단원 정보를 Badge 컴포넌트들로 표시 */}
+                {sheet.units && sheet.units.length > 0 ? (
+                  sheet.units.map((unit) => (
+                    <Badge
+                      key={unit.id}
+                      variant="secondary"
+                      className={cn(badgeStyles.secondary, "text-xs")}
+                    >
+                      {unit.unitName}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      badgeStyles.outline,
+                      "text-xs text-muted-foreground",
+                    )}
+                  >
+                    {sheet.grade}학년 수학
+                  </Badge>
+                )}
+              </TableCell>
               <TableCell className={tableStyles.cellCenter}>
                 <Badge variant="outline" className={badgeStyles.outline}>
-                  {sheet.examSheetInfo?.totalQuestions ? (
+                  {sheet.totalQuestions ? (
+                    `${sheet.totalQuestions}문항`
+                  ) : sheet.examSheetInfo?.totalQuestions ? (
                     `${sheet.examSheetInfo.totalQuestions}문항`
                   ) : (
                     <span className="text-muted-foreground">미등록</span>
@@ -264,9 +282,12 @@ export function ExamTable({
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
-                {/* 참여 현황은 별도 제출 현황 API에서 제공 예정 */}
                 <Badge variant="outline" className={badgeStyles.outline}>
-                  <span className="text-muted-foreground">집계중</span>
+                  {sheet.attendanceInfo ? (
+                    `${sheet.attendanceInfo.actualAttendees}/${sheet.attendanceInfo.totalAssigned}`
+                  ) : (
+                    <span className="text-muted-foreground">집계중</span>
+                  )}
                 </Badge>
               </TableCell>
               {/* 3. UI에 있던 버튼들도 추가 */}

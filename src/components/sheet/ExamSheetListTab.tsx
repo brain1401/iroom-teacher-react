@@ -15,78 +15,7 @@ type ExamSheet = {
   createdAt?: string;
 };
 
-const fakeExamSheetData: ExamSheet[] = [
-  {
-    id: "sheet-001",
-    unitName: "1단원: 다항식의 연산",
-    examName: "2025-1학기 중간고사 대비",
-    questionCount: 20,
-    createdAt: "2025-01-15T14:30:00Z",
-  },
-  {
-    id: "sheet-002",
-    unitName: "2단원: 나머지정리와 인수분해",
-    examName: "2025-1학기 중간고사 대비",
-    questionCount: 20,
-    createdAt: "2025-01-16T09:15:00Z",
-  },
-  {
-    id: "sheet-003",
-    unitName: "3단원: 복소수와 이차방정식",
-    examName: "단원 평가 (A)",
-    questionCount: 20,
-    createdAt: "2025-01-17T16:45:00Z",
-  },
-  {
-    id: "sheet-004",
-    unitName: "4단원: 이차방정식과 이차함수",
-    examName: "단원 평가 (B)",
-    questionCount: 20,
-    createdAt: "2025-01-18T11:20:00Z",
-  },
-  {
-    id: "sheet-005",
-    unitName: "5단원: 여러 가지 방정식",
-    examName: "2025-1학기 기말고사 대비",
-    questionCount: 25,
-    createdAt: "2025-01-19T13:10:00Z",
-  },
-  {
-    id: "sheet-006",
-    unitName: "6단원: 부등식",
-    examName: "2025-1학기 기말고사 대비",
-    questionCount: 25,
-    createdAt: "2025-01-20T15:30:00Z",
-  },
-  {
-    id: "sheet-007",
-    unitName: "1단원 종합",
-    examName: "오답노트 클리닉",
-    questionCount: 25,
-    createdAt: "2025-01-21T10:45:00Z",
-  },
-  {
-    id: "sheet-008",
-    unitName: "2단원 종합",
-    examName: "심화 문제 풀이",
-    questionCount: 25,
-    createdAt: "2025-01-22T14:20:00Z",
-  },
-  {
-    id: "sheet-009",
-    unitName: "3단원 종합",
-    examName: "월말 평가",
-    questionCount: 25,
-    createdAt: "2025-01-23T16:55:00Z",
-  },
-  {
-    id: "sheet-010",
-    unitName: "4단원 종합",
-    examName: "온라인 모의고사",
-    questionCount: 25,
-    createdAt: "2025-01-24T12:30:00Z",
-  },
-];
+// Mock data removed - now using server API
 
 /**
  * 문제지 목록 관리 탭 컴포넌트
@@ -186,12 +115,8 @@ const fakeExamSheetData: ExamSheet[] = [
  * - 실시간 협업 기능 (WebSocket 기반)
  */
 export function ExamSheetListTab() {
-  // 문제지 데이터를 상태로 관리하여 동적으로 추가/삭제 가능
-  const [sheets, setSheets] = useState(() => {
-    // localStorage에서 새로 생성된 문제지들 불러오기
-    const newSheets = JSON.parse(localStorage.getItem("newExamSheets") || "[]");
-    return [...newSheets, ...fakeExamSheetData];
-  });
+  // 문제지 데이터를 상태로 관리 - 서버 API에서 가져옴
+  const [sheets, setSheets] = useState<ExamSheet[]>([]);
   const [selectedIds, setSelectedIds] = useState(new Set<string>());
   const [selectedSheet, setSelectedSheet] = useState<ExamSheet | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);

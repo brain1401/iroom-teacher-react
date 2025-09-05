@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useState, useEffect } from "react";
@@ -24,26 +26,37 @@ import {
 } from "@/atoms/examFilters";
 import { examListQueryOptions } from "@/api/exam";
 
+/**
+ * 시험 관리 페이지 검색 파라미터 스키마
+ * @description Zod 스키마를 사용한 타입 안전한 검색 파라미터 검증
+ * 
+ * 포함 파라미터:
+ * - 페이징: page, size
+ * - 정렬: sort
+ * - 필터링: search, grade, recent
+ * - UI 상태: showSidebar, collapsedSidebar
+ * - 네비게이션: selectedExam, examName
+ */
+const examManageSearchSchema = z.object({
+  // 기본 필터링 파라미터들 - 시험 목록 페이지 전용
+  page: z.number().int().min(0).optional(),
+  size: z.number().int().min(1).max(100).optional(),
+  sort: z.string().optional(),
+  search: z.string().optional(),
+  grade: z.string().optional(),
+  recent: z.boolean().optional(),
+  
+  // UI 상태 파라미터들
+  showSidebar: z.boolean().optional(),
+  collapsedSidebar: z.boolean().optional(),
+  
+  // 네비게이션 파라미터들 (부모 route.tsx에서 상속)
+  selectedExam: z.string().optional(),
+  examName: z.string().optional(),
+});
+
 export const Route = createFileRoute("/main/exam/manage/")({
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      // 기본 필터링 파라미터들 - 시험 목록 페이지 전용
-      page: search.page ? Number(search.page) : undefined,
-      size: search.size ? Number(search.size) : undefined,
-      sort: search.sort ? String(search.sort) : undefined,
-      search: search.search ? String(search.search) : undefined,
-      grade: search.grade ? String(search.grade) : undefined,
-      recent: search.recent ? Boolean(search.recent) : undefined,
-      
-      // UI 상태 파라미터들
-      showSidebar: search.showSidebar ? Boolean(search.showSidebar) : undefined,
-      collapsedSidebar: search.collapsedSidebar ? Boolean(search.collapsedSidebar) : undefined,
-      
-      // 네비게이션 파라미터들 (부모 route.tsx에서 상속)
-      selectedExam: search.selectedExam ? String(search.selectedExam) : undefined,
-      examName: search.examName ? String(search.examName) : undefined,
-    };
-  },
+  validateSearch: zodValidator(examManageSearchSchema),
   // 로더에서 사용할 의존성 추출
   loaderDeps: ({ search }) => ({
     page: search.page || 0,

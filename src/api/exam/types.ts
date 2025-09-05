@@ -56,6 +56,47 @@ export type ServerExamSheetInfo = {
  * 시험 기본 정보 타입
  * @description 서버의 Exam 엔티티와 동일
  */
+/**
+ * 단원 정보 타입
+ * @description 서버의 Unit 엔티티와 동일
+ */
+export type ServerUnit = {
+  /** 단원 ID */
+  id: string;
+  /** 단원명 */
+  unitName: string;
+};
+
+/**
+ * 단원별 문항 수 정보 타입
+ * @description 서버의 UnitQuestionCount와 동일
+ */
+export type ServerUnitQuestionCount = {
+  /** 단원 ID */
+  unitId: string;
+  /** 단원명 */
+  unitName: string;
+  /** 문항 수 */
+  questionCount: number;
+  /** 총점 */
+  totalPoints: number;
+};
+
+/**
+ * 참여 현황 정보 타입
+ * @description 서버의 AttendanceInfo와 동일
+ */
+export type ServerAttendanceInfo = {
+  /** 실제 참여자 수 */
+  actualAttendees: number;
+  /** 총 배정 학생 수 */
+  totalAssigned: number;
+  /** 참여율 (%) */
+  attendanceRate: number;
+  /** 표시용 텍스트 (예: "24/40") */
+  displayText: string;
+};
+
 export type ServerExam = {
   /** 시험 ID */
   id: string;
@@ -71,6 +112,18 @@ export type ServerExam = {
   createdAt: string;
   /** 시험지 정보 (없을 수 있음) */
   examSheetInfo: ServerExamSheetInfo | null;
+  /** 참여 현황 정보 (includeUnits=true 시 포함) */
+  attendanceInfo?: ServerAttendanceInfo;
+  /** 단원 목록 (includeUnits=true 시 포함) */
+  units?: ServerUnit[];
+  /** 단원별 문항 수 정보 (includeUnits=true 시 포함) */
+  unitQuestionCounts?: ServerUnitQuestionCount[];
+  /** 총 문항 수 (includeUnits=true 시 포함) */
+  totalQuestions?: number;
+  /** 단원 개수 (includeUnits=true 시 포함) */
+  unitCount?: number;
+  /** 총점 (includeUnits=true 시 포함) */
+  totalPoints?: number;
 };
 
 /**
@@ -202,6 +255,8 @@ export type ServerExamListParams = {
   search?: string;
   /** 최근 시험 필터 */
   recent?: boolean;
+  /** 단원 정보 포함 여부 */
+  includeUnits?: boolean;
   /** 페이지 번호 (0부터 시작) */
   page?: number;
   /** 페이지 크기 (기본 20) */
