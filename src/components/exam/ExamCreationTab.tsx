@@ -141,7 +141,7 @@ export function ExamCreationTab() {
                     <div className="flex items-center justify-between w-full">
                       <span className="truncate">{sheet.examName}</span>
                       <Badge variant="outline" className="ml-2">
-                        {sheet.questionCount}문항
+                        {sheet.totalQuestions}문항
                       </Badge>
                     </div>
                   </SelectItem>
@@ -164,12 +164,12 @@ export function ExamCreationTab() {
                 <div className="flex items-center justify-between">
                   <span className="font-medium">단원:</span>
                   <span className="truncate max-w-xs">
-                    {selectedExamSheet.unitName}
+                    {selectedExamSheet.unitSummary.unitDetails[0]?.unitName || '단원 정보 없음'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-medium">문항 수:</span>
-                  <span>{selectedExamSheet.questionCount}문항</span>
+                  <span>{selectedExamSheet.totalQuestions}문항</span>
                 </div>
                 {selectedExamSheet.createdAt && (
                   <div className="flex items-center justify-between">

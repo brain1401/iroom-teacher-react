@@ -10,6 +10,76 @@ import type { ApiResponse } from "./types";
 import logger from "@/utils/logger";
 
 /**
+ * 에러 객체를 안전하게 로깅하기 위한 정보 생성 함수
+ * @description AbortSignal 등 직렬화 불가능한 객체를 안전하게 처리
+ * @param error 원본 에러 객체
+ * @returns 로깅 안전한 에러 정보 객체
+ */
+function createSafeErrorInfo(error: unknown): Record<string, unknown> {
+  try {
+    if (!error) {
+      return { type: "null_or_undefined", value: error };
+    }
+
+    if (error instanceof Error) {
+      return {
+        type: "Error",
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        // AbortController 관련 속성은 제외하고 기본 Error 속성만 포함
+        ...(isAxiosError(error) && {
+          isAxiosError: true,
+          code: error.code,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          method: error.config?.method,
+        }),
+      };
+    }
+
+    if (typeof error === "string") {
+      return { type: "string", message: error };
+    }
+
+    if (typeof error === "object") {
+      // 객체인 경우 안전한 속성만 추출
+      const safeObject: Record<string, unknown> = { type: "object" };
+      
+      for (const [key, value] of Object.entries(error)) {
+        try {
+          // AbortSignal이나 기타 직렬화 불가능한 객체는 건너뛰기
+          if (value?.constructor?.name === "AbortSignal") {
+            safeObject[key] = "[AbortSignal - 직렬화 불가]";
+          } else if (typeof value === "function") {
+            safeObject[key] = "[Function]";
+          } else if (value && typeof value === "object" && value.constructor?.name === "AbortController") {
+            safeObject[key] = "[AbortController - 직렬화 불가]";
+          } else {
+            // 기본 타입이거나 안전한 객체인 경우만 포함
+            safeObject[key] = value;
+          }
+        } catch {
+          safeObject[key] = "[직렬화 불가능한 값]";
+        }
+      }
+      
+      return safeObject;
+    }
+
+    return { type: typeof error, value: String(error) };
+  } catch (safeError) {
+    // 최종 fallback - 모든 처리가 실패하면 기본 정보만 반환
+    return {
+      type: "safe_error_processing_failed",
+      originalType: typeof error,
+      safeErrorMessage: safeError instanceof Error ? safeError.message : String(safeError),
+    };
+  }
+}
+
+/**
  * 백엔드 표준 ApiResponse 형식인지 확인하는 타입 가드
  * @description 응답 데이터가 { result, message, data } 구조인지 확인
  * @param data 응답 데이터
@@ -110,8 +180,9 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
       return response;
     },
     onRejected: (error: unknown) => {
-      // 에러 로깅
-      logger.error(`❌ [${logPrefix} Error]`, error);
+      // 에러 로깅 - AbortSignal 안전 처리
+      const safeErrorInfo = createSafeErrorInfo(error);
+      logger.error(`❌ [${logPrefix} Error]`, safeErrorInfo);
 
       // Axios 에러인지 확인
       if (isAxiosError(error)) {

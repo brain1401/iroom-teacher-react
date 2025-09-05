@@ -309,13 +309,45 @@ export function ProblemListTab({
       // 문제지 생성 로직 (실제로는 API 호출)
       await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 지연 시뮬레이션
 
-      // 새로 생성된 문제지 데이터
+      // 새로 생성된 문제지 데이터 - API 구조에 맞춤
       const newExamSheet: ExamSheet = {
         id: `sheet-${Date.now()}`, // 고유 ID 생성
-        unitName: problems.map((problem) => problem.unitName).join(", "),
         examName,
-        questionCount: problems.length,
+        grade: 1, // 기본값 1학년
+        totalQuestions: problems.length,
+        multipleChoiceCount: problems.filter(p => p.type === "objective").length,
+        subjectiveCount: problems.filter(p => p.type === "subjective").length,
+        totalPoints: problems.reduce((sum, p) => sum + p.points, 0),
+        averagePointsPerQuestion: problems.length > 0 ? problems.reduce((sum, p) => sum + p.points, 0) / problems.length : 0,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        questions: problems,
+        unitSummary: {
+          totalUnits: new Set(problems.map(p => p.unitName)).size,
+          unitDetails: Array.from(new Set(problems.map(p => p.unitName))).map((unitName, index) => ({
+            unitId: `unit-${index}`,
+            unitName,
+            unitCode: `UC${index + 1}`,
+            subcategoryName: unitName,
+            categoryName: "수학",
+            questionCount: problems.filter(p => p.unitName === unitName).length,
+            totalPoints: problems.filter(p => p.unitName === unitName).reduce((sum, p) => sum + p.points, 0)
+          })),
+          categoryDistribution: [
+            {
+              categoryName: "객관식",
+              questionCount: problems.filter(p => p.type === "objective").length
+            },
+            {
+              categoryName: "주관식", 
+              questionCount: problems.filter(p => p.type === "subjective").length
+            }
+          ],
+          subcategoryDistribution: Array.from(new Set(problems.map(p => p.unitName))).map((unitName) => ({
+            subcategoryName: unitName,
+            questionCount: problems.filter(p => p.unitName === unitName).length
+          }))
+        }
       };
 
       // SSR 호환성: 브라우저 환경에서만 localStorage 접근
@@ -333,7 +365,7 @@ export function ProblemListTab({
 
       // 문제지 목록 탭으로 이동
       setTimeout(() => {
-        navigate({ to: "/main/exam/sheet/manage", search: { tab: "list" } });
+        navigate({ to: "/main/exam/sheet/manage" });
       }, 1500);
     } catch {
       toast.error("문제지 생성에 실패했습니다. 다시 시도해주세요.");
