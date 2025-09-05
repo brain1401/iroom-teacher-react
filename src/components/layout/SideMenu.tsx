@@ -1,22 +1,35 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { ChartColumn, House, FileCog, FolderCog } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+
 // 1. framer-motion에서 필요한 것들을 import
 import { motion } from "framer-motion";
 
-const menuItems: { path: string; icon: LucideIcon; label: string }[] = [
-  { path: "/main", icon: House, label: "홈" },
-  { path: "/main/test-paper", icon: FolderCog, label: "시험지 관리" },
-  { path: "/main/test-management", icon: FileCog, label: "시험 관리" },
-  { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" },
+const menuItems = [
+  { path: "/main", icon: House, label: "홈" } as const,
+  {
+    path: "/main/exam/sheet/manage",
+    icon: FolderCog,
+    label: "문제지 관리",
+  } as const,
+  {
+    path: "/main/exam/manage",
+    icon: FileCog,
+    label: "시험 관리",
+  } as const,
+  { path: "/main/statistics", icon: ChartColumn, label: "통계 관리" } as const,
 ];
 
-export default function SideMenu() {
-  const location = useLocation({ select: (location) => location.pathname });
+export function SideNavigationBar() {
+  const location = useLocation({ select: (loc) => loc.pathname });
 
-  // isActive 함수는 그대로 사용
+  // isActive 함수 수정 - 정확한 경로 매칭만
   const isActive = (path: string) => {
-    return location === path;
+    if (path === "/main") {
+      // 홈의 경우 정확히 /main이거나 /main/statistics만 매치
+      return location === path || location === "/main/statistics";
+    }
+    // 다른 메뉴의 경우 해당 경로와 하위 경로 매치
+    return location === path || location.startsWith(`${path}/`);
   };
 
   return (
@@ -24,7 +37,7 @@ export default function SideMenu() {
       <div className="flex flex-col gap-16 pt-4">
         {menuItems.map((item) => {
           const IconComponent = item.icon;
-          
+
           return (
             // 2. Link의 key를 item.path로 설정하는 것이 중요!
             <Link to={item.path} key={item.path}>
@@ -40,7 +53,7 @@ export default function SideMenu() {
                   <motion.div
                     className="absolute w-1 h-full bg-blue-500"
                     // 5. layoutId를 부여해서 애니메이션을 연결
-                    layoutId="active-indicator" 
+                    layoutId="active-indicator"
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   />
                 )}

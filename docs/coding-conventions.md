@@ -349,11 +349,11 @@ export async function fetchPokemonDetail(
   options?: { signal?: AbortSignal },
 ): Promise<Pokemon> {
   try {
-    return await pokemonApiRequest<Pokemon>({
-      method: "GET",
-      url: buildPokemonByNameOrIdUrl(idOrName),
+    // baseApiClient 직접 사용 (인터셉터가 자동으로 ApiResponse<T> 처리)
+    const data = await baseApiClient.get<Pokemon>(`/pokemon/${idOrName}`, {
       signal: options?.signal,
     });
+    return data;
   } catch (error) {
     console.error(`포켓몬 상세 조회 실패: ${idOrName}`, error);
     throw error;
@@ -477,31 +477,115 @@ if (filtered.length === 0) {
 
 ## 🚨 에러 처리 규칙
 
-### API 에러 처리
+### 백엔드 표준 응답 에러 처리
+
+백엔드의 `ApiResponse<T>` 형식을 자동으로 처리하는 통합 에러 시스템:
 
 ```typescript
-// ✅ 통일된 에러 클래스 사용
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public data?: unknown,
-    public originalError?: unknown,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
+// ✅ 백엔드 표준 응답 에러 (자동 처리)
+import { ApiResponseError, getErrorMessage, logError } from "@/api/client";
+import { getErrorMessage } from "@/utils/errorHandling";
 
-// ✅ 에러 처리 유틸리티
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    return error.message;
+// API 호출 시 인터셉터가 자동으로 처리
+try {
+  const userData = await authApiClient.get<User>("/api/user/profile");
+  // SUCCESS인 경우: User 데이터 직접 반환
+  console.log(userData.name);
+} catch (error) {
+  // ERROR인 경우: ApiResponseError 또는 기타 에러 발생
+
+  if (error instanceof ApiResponseError) {
+    // 백엔드에서 명시적으로 반환한 에러
+    console.error("백엔드 에러:", error.message);
   }
-  if (error instanceof Error) {
-    return error.message;
+
+  // 통합 에러 메시지 처리
+  const friendlyMessage = getErrorMessage(error);
+  showToast(friendlyMessage);
+
+  // 구조화된 에러 로깅
+  logError(error, "UserProfile 컴포넌트");
+}
+```
+
+### 통합 에러 처리 패턴
+
+```typescript
+// ✅ 컴포넌트에서의 에러 처리
+import { getErrorMessage, logError, isRetryableError } from "@/utils/errorHandling";
+
+function UserList() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    try {
+      setError(null);
+      const data = await authApiClient.get<User[]>("/api/users");
+      setUsers(data);
+    } catch (err) {
+      // 구조화된 에러 로깅
+      logError(err, "UserList.fetchUsers");
+
+      // 사용자 친화적 메시지
+      const message = getErrorMessage(err);
+      setError(message);
+
+      // 재시도 가능한 에러인지 확인
+      if (isRetryableError(err)) {
+        setTimeout(() => fetchUsers(), 3000);
+      }
+    }
+  };
+
+  if (error) {
+    return <ErrorDisplay message={error} onRetry={fetchUsers} />;
   }
-  return "알 수 없는 오류가 발생했습니다";
+
+  return <UserGrid users={users} />;
+}
+```
+
+### 에러 타입별 처리
+
+```typescript
+// ✅ 에러 타입별 세밀한 처리
+import {
+  ApiError,
+  ApiResponseError,
+  getErrorMessage,
+  type UserFriendlyError,
+} from "@/utils/errorHandling";
+
+function handleApiError(error: unknown): UserFriendlyError {
+  const errorInfo = getErrorMessage(error);
+
+  // 에러 타입별 UI 처리
+  switch (errorInfo.type) {
+    case "network":
+      return {
+        ...errorInfo,
+        retryable: true,
+        showRetryButton: true,
+      };
+
+    case "server":
+      if (errorInfo.status === 401) {
+        // 인증 에러 - 로그인 페이지로 리다이렉트
+        redirectToLogin();
+      }
+      return errorInfo;
+
+    case "client":
+      // 사용자 입력 오류 - 폼 검증 메시지 표시
+      return {
+        ...errorInfo,
+        showInForm: true,
+      };
+
+    default:
+      return errorInfo;
+  }
 }
 ```
 

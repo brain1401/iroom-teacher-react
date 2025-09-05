@@ -10,9 +10,9 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import appCss from "@/css/root.css?url";
-import NavigationBar from "@/components/layout/NavigationBar";
 import { useAtomValue } from "jotai";
 import { mainBgExtraCombinedClassAtom } from "@/atoms/ui";
+import { isAuthenticatedAtom } from "@/atoms/auth";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,6 +38,35 @@ type MyRouterContext = {
  * - shellComponent: HTML 문서 전체 구조를 담당하는 RootDocument 지정
  */
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+  errorComponent: ({ error }) => {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background-400 dark:bg-background-900 p-6">
+        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+            오류가 발생했습니다
+          </h1>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            예상치 못한 오류가 발생했습니다. 페이지를 새로고침하거나 잠시 후
+            다시 시도해주세요.
+          </p>
+          <details className="mb-4">
+            <summary className="cursor-pointer text-gray-600 dark:text-gray-400 mb-2">
+              오류 세부정보
+            </summary>
+            <pre className="text-xs bg-gray-100 dark:bg-gray-700 p-2 rounded overflow-auto max-h-40">
+              {error.message}
+            </pre>
+          </details>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+          >
+            페이지 새로고침
+          </button>
+        </div>
+      </div>
+    );
+  },
   head: () => ({
     // HTML 메타데이터 설정 (charset, viewport, title, description)
     meta: [
@@ -100,6 +129,8 @@ function RootComponent() {
    * - 성능 최적화: 값 변경 기능이 없어 더 가벼운 훅 사용
    */
   const extra = useAtomValue(mainBgExtraCombinedClassAtom);
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
+
   return (
     <>
       {/* <NavigationBar /> */}

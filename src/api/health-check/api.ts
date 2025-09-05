@@ -2,7 +2,7 @@ import type { AxiosRequestConfig } from "axios";
 import { baseApiClient } from "@/api/client";
 import type {
   HealthCheckResponse,
-  BackendHealthCheckResponse,
+  HealthCheckData,
   HealthStatus,
   FrontendServiceInfo,
   ServiceHealthInfo,
@@ -106,13 +106,13 @@ function transformServiceInfo(
 
 /**
  * 백엔드 응답을 프론트엔드 형식으로 변환
- * @description BackendHealthCheckResponse를 HealthCheckResponse로 변환
+ * @description HealthCheckData를 HealthCheckResponse로 변환
  */
 function transformBackendResponse(
-  backendResponse: BackendHealthCheckResponse,
+  healthCheckData: HealthCheckData,
   responseTime: number,
 ): HealthCheckResponse {
-  const { data } = backendResponse;
+  const data = healthCheckData;
 
   // 서비스별 상태 정보 변환
   const services: FrontendServiceInfo[] = Object.entries(data.services).map(
@@ -217,25 +217,19 @@ export async function fetchHealthCheck(options?: {
   try {
     const startTime = Date.now();
 
-    // 백엔드 원본 응답 형식으로 요청
-    const backendResponse =
-      await healthCheckApiRequest<BackendHealthCheckResponse>({
-        method: "GET",
-        url: "/api/system/health",
-        signal: options?.signal,
-      });
+    // 백엔드 표준 ApiResponse 형식으로 요청
+    // 인터셉터가 자동으로 SUCCESS인 경우 data를 추출하여 반환
+    // ERROR인 경우 ApiResponseError 발생
+    const healthCheckData = await healthCheckApiRequest<HealthCheckData>({
+      method: "GET",
+      url: "/api/system/health",
+      signal: options?.signal,
+    });
 
     const responseTime = Date.now() - startTime;
 
-    // API 응답이 실패인 경우 에러 처리
-    if (backendResponse.result === "FAILURE") {
-      throw new Error(
-        backendResponse.message || "서버에서 헬스체크 실패를 반환했습니다",
-      );
-    }
-
-    // 백엔드 응답을 프론트엔드 형식으로 변환
-    return transformBackendResponse(backendResponse, responseTime);
+    // 인터셉터에 의해 이미 처리되었으므로 직접 변환
+    return transformBackendResponse(healthCheckData, responseTime);
   } catch (error) {
     // 구체적인 에러 메시지 생성하여 다시 throw
     throw new Error(createErrorMessage(error));

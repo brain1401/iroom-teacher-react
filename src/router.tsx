@@ -32,6 +32,10 @@ export const createRouter = () => {
     context: { ...rqContext },
     // 프리로딩 전략: "intent"는 링크에 호버할 때 미리 로딩
     defaultPreload: "intent",
+    // 라우트 이동 시 스크롤 복원 기능 활성화
+    scrollRestoration: true,
+    // 라우트 이동 시 스크롤 복원 기능 행동 방식
+    scrollRestorationBehavior: "instant",
     // 404 페이지 처리를 위한 기본 컴포넌트
     defaultNotFoundComponent: () => <NotFound />,
     // 전체 애플리케이션을 감싸는 래퍼 컴포넌트
@@ -67,6 +71,7 @@ export const createRouter = () => {
  * - 라우트 파라미터와 검색 파라미터의 타입 안전성 보장
  */
 declare module "@tanstack/react-router" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Register {
     router: ReturnType<typeof createRouter>;
   }

@@ -6,14 +6,14 @@ import { formatPokemonId, formatPokemonName } from "@/utils/pokemonStyles";
 import { cn } from "@/lib/utils";
 import { usePokemonCardImage } from "@/hooks/pokemon";
 
-interface PokemonCardProps {
+type PokemonCardProps = {
   /** 포켓몬 이름 */
   name: string;
   /** 포켓몬 API URL */
   url: string;
   /** 카드 클릭 시 이동할 경로 */
   href?: string;
-}
+};
 
 /**
  * 포켓몬 카드 컴포넌트

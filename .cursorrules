@@ -19,6 +19,40 @@ const pokemonData = await baseApiClient.get('/api/v2/pokemon/25');
 const userData = await authApiClient.get('/api/user/profile');
 ```
 
+#### 백엔드 표준 응답 자동 처리
+
+**모든 백엔드 API 응답은 `ApiResponse<T>` 형태로 래핑됩니다:**
+```typescript
+type ApiResponse<T> = {
+  result: "SUCCESS" | "ERROR";  // 응답 결과 상태
+  message: string;              // 응답 메시지
+  data: T;                     // 실제 데이터
+};
+```
+
+**인터셉터가 자동으로 처리하므로 기존 코드 변경 불필요:**
+```typescript
+// ✅ 인터셉터가 자동 처리 - 기존 코드 그대로 사용
+const userData = await authApiClient.get<User>('/api/user/profile');
+// SUCCESS: User 타입 데이터 직접 반환
+// ERROR: ApiResponseError 자동 발생
+
+// ✅ 통합 에러 처리
+import { getErrorMessage, logError } from '@/utils/errorHandling';
+
+try {
+  const data = await authApiClient.get<User[]>('/api/users');
+  console.log(data); // User[] 배열 직접 사용
+} catch (error) {
+  // 구조화된 에러 로깅
+  logError(error, 'UserList 컴포넌트');
+  
+  // 사용자 친화적 메시지
+  const message = getErrorMessage(error);
+  showToast(message);
+}
+```
+
 ### 2. 주석 작성 규칙
 - **모든 주석은 한국어 명사형** (존댓말 사용 안함)
 - **TSDoc 형식 적극 활용** (`@description`, `@param`, `@returns`, `@example`)
@@ -87,9 +121,11 @@ interface PokemonCardProps {
 src/
 ├── api/                    # API 레이어
 │   ├── client/            # HTTP 클라이언트
-│   │   ├── index.ts       # baseApiClient, authApiClient export
+│   │   ├── index.ts       # baseApiClient, authApiClient, ApiResponse 타입 export
 │   │   ├── baseClient.ts  # 기본 API 클라이언트
-│   │   └── authClient.ts  # 인증 API 클라이언트
+│   │   ├── authClient.ts  # 인증 API 클라이언트
+│   │   ├── types.ts       # 백엔드 표준 응답 타입 (ApiResponse<T>)
+│   │   └── interceptors.ts # 자동 응답 처리 인터셉터
 │   └── [domain]/          # 도메인별 API
 │       ├── api.ts         # API 함수들
 │       ├── types.ts       # 응답 타입 정의
@@ -224,7 +260,10 @@ import { cn } from "@/lib/utils";
 )} />
 ```
 
-### shadcn/ui 컴포넌트 활용
+### shadcn/ui 컴포넌트 활용 (필수 사용)
+
+**🚨 중요: 모든 UI 컴포넌트는 shadcn/ui를 사용해야 함. 커스텀 컴포넌트 생성 금지**
+
 ```typescript
 // ✅ 기본 컴포넌트 사용
 <Button variant="outline" size="sm">버튼</Button>
@@ -246,9 +285,53 @@ import { cn } from "@/lib/utils";
 >
   커스텀 버튼
 </Button>
+
+// ✅ 새 shadcn/ui 컴포넌트 추가
+// pnpx shadcn@latest add [컴포넌트명]
 ```
 
 ## 🚨 에러 처리 및 품질 기준
+
+### 통합 에러 처리 시스템
+
+**에러 타입 계층 구조:**
+```typescript
+// 1. ApiResponseError - 백엔드 표준 응답 에러 (최우선 처리)
+// 2. ApiError - Axios 기반 네트워크 에러
+// 3. Error - 일반 JavaScript 에러
+
+import { 
+  getErrorMessage, 
+  logError, 
+  isRetryableError,
+  type UserFriendlyError 
+} from '@/utils/errorHandling';
+
+// ✅ 컴포넌트에서의 에러 처리
+function UserList() {
+  const [error, setError] = useState<string | null>(null);
+  
+  const fetchUsers = async () => {
+    try {
+      setError(null);
+      const users = await authApiClient.get<User[]>('/api/users');
+      setUsers(users);
+    } catch (err) {
+      // 구조화된 에러 로깅
+      logError(err, 'UserList.fetchUsers');
+      
+      // 사용자 친화적 메시지
+      const message = getErrorMessage(err);
+      setError(message);
+      
+      // 재시도 가능한 에러 확인
+      if (isRetryableError(err)) {
+        setTimeout(() => fetchUsers(), 3000);
+      }
+    }
+  };
+}
+```
 
 ### 방어적 프로그래밍
 ```typescript
@@ -304,6 +387,8 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { pokemonListAtom } from "@/atoms/pokemon";
+import { baseApiClient, authApiClient, type ApiResponse } from "@/api/client";
+import { getErrorMessage, logError } from "@/utils/errorHandling";
 
 // 4. 상대 경로 (같은 디렉토리)
 import { PokemonCard } from "./PokemonCard";
@@ -331,9 +416,13 @@ export default function Component() {}
 - `npm run dev` - 개발 서버 실행 (포트 3012)
 - `npm run build` - 프로덕션 빌드
 - `npm run test` - Vitest를 사용한 테스트 실행
-- `npm run lint` - ESLint 실행
-- `npm run format` - Prettier 실행
-- `npm run check` - **커밋 전 필수 실행** (Prettier + ESLint 통합 자동 수정)
+
+### 코드 품질 관리 (커밋 전 필수)
+- `npm run lint` - ESLint 검사만 실행
+- `npm run lint:fix` - **ESLint + Prettier 자동 수정 (권장)**
+- `npm run format` - Prettier 포맷팅만 실행
+- `npm run format:check` - Prettier 검사만 실행
+- `npm run type-check` - TypeScript 타입 검사만 실행
 
 ### 컴포넌트 추가
 - `pnpx shadcn@latest add [컴포넌트명]` - shadcn/ui 컴포넌트 추가
@@ -354,7 +443,8 @@ export default function Component() {}
 - [ ] 함수 컴포넌트만 사용
 
 ### 완료 후
-- [ ] `npm run check` 통과
+- [ ] **`npm run lint:fix` 실행 (필수)**
+- [ ] `npm run type-check` 통과
 - [ ] 타입 에러 해결
 - [ ] 에러 처리 및 로딩 상태 포함
 - [ ] 접근성 고려 (alt 텍스트, 키보드 네비게이션)

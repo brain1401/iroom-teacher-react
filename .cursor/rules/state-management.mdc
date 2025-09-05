@@ -1,0 +1,623 @@
+---
+description: Jotai + TanStack Query state management patterns and SSR rules for iroom-teacher project
+globs: src/atoms/**/*.ts,src/atoms/**/*.tsx,src/routes/**/*.ts,src/routes/**/*.tsx,src/api/**/*.ts,src/api/**/*.tsx
+alwaysApply: false
+---
+
+# State Management Rules: Jotai + TanStack Query + SSR
+
+Advanced state management patterns for the iroom-teacher React project using Jotai with TanStack Query integration and SSR optimization.
+
+## Core State Management Principles
+
+### Atomic State Design
+
+**Follow the Pokemon example patterns exactly for SSR data fetching:**
+
+1. **Route loader for SSR prefetch**
+2. **Query options definition** 
+3. **Jotai atoms with atomWithQuery**
+4. **SSR hydration with useHydrateAtoms**
+
+## Route-Level Data Loading (Critical Pattern)
+
+### TanStack Start Loader Pattern
+
+```typescript
+// routes/your-domain/$id/index.tsx
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { yourDataQueryOptions } from "@/api/your-domain/query";
+
+// 1. Search parameters validation schema
+const searchSchema = z.object({
+  page: z.number().default(1),
+  search: z.string().optional(),
+  sortBy: z.enum(["name", "date", "priority"]).default("name"),
+});
+
+export const Route = createFileRoute("/your-domain/$id/")({
+  // 2. Validate search parameters
+  validateSearch: searchSchema,
+  
+  // 3. Define loader dependencies
+  loaderDeps: ({ search, params }) => ({ 
+    id: params.id,
+    page: search.page,
+    search: search.search,
+    sortBy: search.sortBy,
+  }),
+  
+  // 4. Critical: SSR data prefetching
+  loader: async ({ context, deps }) => {
+    const { queryClient } = context;
+    
+    // Prefetch main data for SSR
+    await queryClient.ensureQueryData(
+      yourDataQueryOptions(deps.id)
+    );
+    
+    // Prefetch related data if needed
+    await queryClient.ensureQueryData(
+      yourDataListQueryOptions({
+        page: deps.page,
+        search: deps.search,
+        sortBy: deps.sortBy,
+      })
+    );
+    
+    // Return additional loader data for SEO/preloading
+    return {
+      preloadImages: extractImageUrls(data),
+      metadata: {
+        title: `Data ${deps.id}`,
+        description: "Data description for SEO",
+      },
+    };
+  },
+  
+  // 5. SEO and preloading optimization
+  head: ({ loaderData, params }) => ({
+    title: loaderData?.metadata?.title,
+    meta: [
+      {
+        name: "description",
+        content: loaderData?.metadata?.description,
+      },
+    ],
+    // Preload critical images
+    links: loaderData?.preloadImages?.map(url => ({
+      rel: "preload",
+      as: "image",
+      href: url,
+      fetchPriority: "high" as const,
+    })) || [],
+  }),
+  
+  // 6. Connect to component
+  component: YourDomainPage,
+});
+```
+
+## Query Options Definition Pattern
+
+### Standardized Query Options Structure
+
+```typescript
+// api/your-domain/query.ts
+import { queryOptions } from "@tanstack/react-query";
+import { ApiError } from "@/api/client";
+import { fetchYourData, fetchYourDataList } from "./api";
+
+/**
+ * Domain-specific query key management
+ * @description Hierarchical cache key system for efficient invalidation
+ */
+export const yourDomainKeys = {
+  /** Base key for all domain queries */
+  all: ["your-domain"] as const,
+  /** All list queries */
+  lists: () => [...yourDomainKeys.all, "list"] as const,
+  /** Specific list query with filters */
+  list: (filters?: ListFilters) => [...yourDomainKeys.lists(), filters] as const,
+  /** All detail queries */
+  details: () => [...yourDomainKeys.all, "detail"] as const,
+  /** Specific detail query */
+  detail: (id: string) => [...yourDomainKeys.details(), id] as const,
+} as const;
+
+/**
+ * Main data query options - follows Pokemon pattern
+ * @description Primary query options for individual data items
+ */
+export const yourDataQueryOptions = (id: string) => {
+  return queryOptions({
+    queryKey: yourDomainKeys.detail(id),
+    queryFn: async ({ signal }): Promise<YourData> => {
+      // Validate ID before API call
+      if (!id || id === "placeholder" || id === "") {
+        throw new Error("Invalid ID provided");
+      }
+      
+      return await fetchYourData(id, { signal });
+    },
+    // Caching strategy
+    staleTime: 10 * 60 * 1000, // 10 minutes fresh
+    gcTime: 30 * 60 * 1000, // 30 minutes in cache
+    // Error handling strategy
+    retry: (failureCount, error) => {
+      // Don't retry 404s (data doesn't exist)
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
+    // Only execute if ID is valid
+    enabled: Boolean(id && id !== "placeholder" && id !== ""),
+  });
+};
+
+/**
+ * List data query options with filtering
+ * @description Query options for paginated data lists
+ */
+export const yourDataListQueryOptions = (filters?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+}) => {
+  return queryOptions({
+    queryKey: yourDomainKeys.list(filters),
+    queryFn: async ({ signal }): Promise<YourDataListResponse> => {
+      return await fetchYourDataList(filters, { signal });
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes fresh for lists
+    gcTime: 10 * 60 * 1000, // 10 minutes in cache
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 404) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+};
+```
+
+## Jotai Atom Architecture
+
+### Atomic State Hierarchy
+
+```typescript
+// atoms/your-domain.ts
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { atomWithQuery } from "jotai-tanstack-query";
+import { 
+  yourDataQueryOptions, 
+  yourDataListQueryOptions 
+} from "@/api/your-domain/query";
+
+// ============================================================================
+// 1. URL Parameter Atoms (synchronized with router)
+// ============================================================================
+
+/**
+ * Current item ID atom
+ * @description Synchronized with URL parameter via useHydrateAtoms
+ */
+export const yourItemIdAtom = atom<string>("");
+
+/**
+ * Current page number atom  
+ * @description Synchronized with URL search parameter
+ */
+export const yourPageAtom = atom<number>(1);
+
+/**
+ * Search keyword atom
+ * @description Synchronized with URL search parameter
+ */
+export const yourSearchAtom = atom<string>("");
+
+/**
+ * Sort configuration atom
+ * @description Synchronized with URL search parameter
+ */
+export const yourSortAtom = atom<{
+  sortBy: "name" | "date" | "priority";
+  order: "asc" | "desc";
+}>({
+  sortBy: "name",
+  order: "asc",
+});
+
+// ============================================================================
+// 2. Persistent Settings Atoms (localStorage)
+// ============================================================================
+
+/**
+ * User preferences for this domain
+ * @description Persisted user settings in localStorage
+ */
+export const yourDomainSettingsAtom = atomWithStorage("your-domain-settings", {
+  /** Items per page */
+  pageSize: 20,
+  /** Default view mode */
+  viewMode: "grid" as "grid" | "list",
+  /** Show advanced filters */
+  showFilters: false,
+  /** Theme preference for this domain */
+  theme: "system" as "light" | "dark" | "system",
+});
+
+// ============================================================================
+// 3. Computed Filter Atoms (derived state)
+// ============================================================================
+
+/**
+ * Combined filters atom for API calls
+ * @description Combines URL params and settings into API filter object
+ */
+export const yourFiltersAtom = atom((get) => {
+  const page = get(yourPageAtom);
+  const search = get(yourSearchAtom);
+  const sort = get(yourSortAtom);
+  const settings = get(yourDomainSettingsAtom);
+  
+  return {
+    page,
+    limit: settings.pageSize,
+    search: search.trim() || undefined,
+    sortBy: sort.sortBy,
+    sortOrder: sort.order,
+    // Calculate offset for API
+    offset: (page - 1) * settings.pageSize,
+  };
+});
+
+// ============================================================================
+// 4. Server State Atoms (TanStack Query integration)
+// ============================================================================
+
+/**
+ * Main item query atom - Critical Pattern
+ * @description Individual item data with SSR support
+ * 
+ * This follows the Pokemon detail pattern exactly:
+ * - Reactive to yourItemIdAtom changes
+ * - Handles empty/invalid IDs gracefully
+ * - Integrates with SSR prefetching
+ */
+export const yourDataQueryAtom = atomWithQuery((get) => {
+  const id = get(yourItemIdAtom);
+  
+  // Handle empty ID case (similar to Pokemon pattern)
+  if (!id || id === "placeholder" || id === "") {
+    return {
+      queryKey: ["your-domain", "detail", "empty"],
+      queryFn: () => null,
+      enabled: false,
+    };
+  }
+  
+  return yourDataQueryOptions(id);
+});
+
+/**
+ * List query atom with filtering
+ * @description Paginated list data with search and sorting
+ * 
+ * This follows the Pokemon list pattern:
+ * - Reactive to filter changes
+ * - Supports search and pagination
+ * - Integrates with SSR prefetching
+ */
+export const yourDataListQueryAtom = atomWithQuery((get) => {
+  const filters = get(yourFiltersAtom);
+  return yourDataListQueryOptions(filters);
+});
+
+// ============================================================================
+// 5. Derived Data Atoms (computed from server state)
+// ============================================================================
+
+/**
+ * Filtered and processed list data
+ * @description Client-side processing of server data
+ * 
+ * Follows Pokemon filteredPokemonListAtom pattern:
+ * - Extracts data from query result
+ * - Provides loading/error states
+ * - Adds computed metadata
+ */
+export const processedYourDataAtom = atom((get) => {
+  const { data, isPending, isError, error } = get(yourDataListQueryAtom);
+  const settings = get(yourDomainSettingsAtom);
+  
+  return {
+    // Processed results
+    items: data?.results || [],
+    totalCount: data?.count || 0,
+    // Status flags
+    isPending,
+    isError,
+    error,
+    // Pagination metadata
+    hasNextPage: Boolean(data?.next),
+    hasPreviousPage: Boolean(data?.previous),
+    // Computed values
+    currentPage: Math.floor((data?.results?.length || 0) / settings.pageSize) + 1,
+    totalPages: Math.ceil((data?.count || 0) / settings.pageSize),
+    // View settings
+    viewMode: settings.viewMode,
+  };
+});
+
+/**
+ * Statistics and analytics atom
+ * @description Computed statistics from current data
+ */
+export const yourDataStatsAtom = atom((get) => {
+  const { items, totalCount } = get(processedYourDataAtom);
+  const search = get(yourSearchAtom);
+  
+  return {
+    displayedCount: items.length,
+    totalCount,
+    searchActive: Boolean(search.trim()),
+    // Add domain-specific stats here
+    categories: groupBy(items, "category"),
+    priorities: countBy(items, "priority"),
+  };
+});
+```
+
+## SSR Hydration Pattern (Critical!)
+
+### Component-Level SSR Integration
+
+```typescript
+// Component using SSR hydration - EXACT Pokemon pattern
+export function YourDomainPage() {
+  const { id } = Route.useParams();
+  const { page, search, sortBy } = Route.useSearch();
+  
+  /**
+   * SSR Hydration - CRITICAL PATTERN
+   * @description Must follow Pokemon example exactly
+   * 
+   * Key principles:
+   * 1. useHydrateAtoms for initial SSR state sync
+   * 2. Separate useEffect for runtime URL changes
+   * 3. Prevents hydration mismatches and infinite rerenders
+   */
+  
+  // 1. SSR hydration (once only)
+  useHydrateAtoms([
+    [yourItemIdAtom, id || ""],
+    [yourPageAtom, page || 1],
+    [yourSearchAtom, search || ""],
+    [yourSortAtom, { sortBy: sortBy || "name", order: "asc" }],
+  ]);
+  
+  // 2. Runtime URL synchronization (separate from hydration)
+  const setItemId = useSetAtom(yourItemIdAtom);
+  const setPage = useSetAtom(yourPageAtom);
+  const setSearch = useSetAtom(yourSearchAtom);
+  const setSort = useSetAtom(yourSortAtom);
+  
+  useEffect(() => {
+    setItemId(id || "");
+  }, [id, setItemId]);
+  
+  useEffect(() => {
+    setPage(page || 1);
+  }, [page, setPage]);
+  
+  useEffect(() => {
+    setSearch(search || "");
+  }, [search, setSearch]);
+  
+  useEffect(() => {
+    setSort(prev => ({ ...prev, sortBy: sortBy || "name" }));
+  }, [sortBy, setSort]);
+  
+  // 3. Data consumption (read-only optimization)
+  const data = useAtomValue(processedYourDataAtom);
+  const stats = useAtomValue(yourDataStatsAtom);
+  
+  // 4. Standard loading/error handling
+  if (data.isPending) {
+    return <YourDataSkeleton />;
+  }
+  
+  if (data.isError) {
+    const errorMessage = getErrorMessage(data.error);
+    logError(data.error, "YourDomainPage");
+    return (
+      <YourErrorComponent 
+        message={errorMessage}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
+  
+  // 5. Render with data
+  return (
+    <div className="container mx-auto p-4 max-w-7xl">
+      <YourDataHeader stats={stats} />
+      <YourDataFilters />
+      <YourDataGrid 
+        items={data.items} 
+        viewMode={data.viewMode}
+      />
+      <YourDataPagination 
+        currentPage={data.currentPage}
+        totalPages={data.totalPages}
+        hasNextPage={data.hasNextPage}
+        hasPreviousPage={data.hasPreviousPage}
+      />
+    </div>
+  );
+}
+```
+
+## Advanced State Management Patterns
+
+### Optimistic Updates
+
+```typescript
+/**
+ * Optimistic update atom for mutations
+ * @description Handles optimistic UI updates during mutations
+ */
+export const optimisticYourDataAtom = atom(
+  (get) => get(yourDataQueryAtom),
+  (get, set, update: Partial<YourData>) => {
+    const current = get(yourDataQueryAtom);
+    if (current.data) {
+      // Optimistically update the data
+      set(yourDataQueryAtom, {
+        ...current,
+        data: { ...current.data, ...update },
+      });
+    }
+  }
+);
+
+/**
+ * Mutation handling with optimistic updates
+ */
+export function useUpdateYourData() {
+  const setOptimisticData = useSetAtom(optimisticYourDataAtom);
+  
+  return useMutation({
+    mutationFn: updateYourDataApi,
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: yourDomainKeys.detail(variables.id),
+      });
+      
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData(
+        yourDomainKeys.detail(variables.id)
+      );
+      
+      // Optimistically update
+      setOptimisticData(variables);
+      
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          yourDomainKeys.detail(variables.id),
+          context.previousData
+        );
+      }
+    },
+    onSettled: (data, error, variables) => {
+      // Refetch to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: yourDomainKeys.detail(variables.id),
+      });
+    },
+  });
+}
+```
+
+### Performance Optimization Patterns
+
+#### Selective Subscriptions
+
+```typescript
+/**
+ * Selective data subscription atoms
+ * @description Subscribe only to needed data slices
+ */
+
+// Instead of subscribing to entire data object
+const fullData = useAtomValue(yourDataQueryAtom); // ❌ Subscribes to everything
+
+// Subscribe to specific slices
+export const yourDataTitleAtom = atom((get) => {
+  const { data } = get(yourDataQueryAtom);
+  return data?.title || "";
+});
+
+export const yourDataStatusAtom = atom((get) => {
+  const { data } = get(yourDataQueryAtom);
+  return data?.status || "pending";
+});
+
+// Use selective subscriptions
+const title = useAtomValue(yourDataTitleAtom); // ✅ Only rerenders on title change
+const status = useAtomValue(yourDataStatusAtom); // ✅ Only rerenders on status change
+```
+
+#### Debounced Search
+
+```typescript
+/**
+ * Debounced search atom
+ * @description Prevents excessive API calls during typing
+ */
+export const debouncedSearchAtom = atom<string>("");
+
+// Debounce utility
+let searchTimeout: ReturnType<typeof setTimeout>;
+
+export const searchInputAtom = atom(
+  (get) => get(debouncedSearchAtom),
+  (get, set, value: string) => {
+    // Clear previous timeout
+    clearTimeout(searchTimeout);
+    
+    // Set debounced value after delay
+    searchTimeout = setTimeout(() => {
+      set(debouncedSearchAtom, value);
+      set(yourSearchAtom, value); // Trigger API call
+    }, 300);
+  }
+);
+```
+
+## State Management Checklist
+
+For each new domain, ensure:
+
+### Route Level
+- [ ] Loader function with queryClient.ensureQueryData
+- [ ] Search parameter validation with Zod
+- [ ] SEO meta tags and preloading
+- [ ] Error boundaries and loading states
+
+### Query Options
+- [ ] Hierarchical query keys
+- [ ] Proper caching strategy (staleTime, gcTime)
+- [ ] Error handling and retry logic
+- [ ] Request cancellation support
+
+### Jotai Atoms
+- [ ] URL parameter atoms with SSR hydration
+- [ ] Persistent settings with atomWithStorage
+- [ ] Server state with atomWithQuery
+- [ ] Derived/computed atoms for processing
+
+### Component Integration
+- [ ] useHydrateAtoms for SSR (exact Pokemon pattern)
+- [ ] Separate useEffect for URL sync
+- [ ] Read-only subscriptions with useAtomValue
+- [ ] Write-only updates with useSetAtom
+
+### Performance
+- [ ] Selective subscriptions to prevent rerenders
+- [ ] Debounced inputs for search
+- [ ] Optimistic updates for mutations
+- [ ] Background sync for offline support
+
+Following these patterns ensures consistent, performant, and SSR-optimized state management across the iroom-teacher React project.

@@ -22,6 +22,12 @@ Tailwind CSS v4 + shadcn/ui를 활용한 스타일링 패턴과 베스트 프랙
 - 점진적 향상 (Progressive Enhancement)
 - 적절한 브레이크포인트 활용
 
+### 4. 공통 스타일 시스템
+
+- `@/utils/commonStyles` 활용
+- 일관된 디자인 토큰 사용
+- 중복 코드 제거
+
 ## 🛠 핵심 도구
 
 ### cn() 함수
@@ -57,42 +63,42 @@ import { cn } from "@/lib/utils";
 )} />
 ```
 
-### Class Variance Authority (CVA)
+### 공통 스타일 시스템
 
 ```typescript
-import { cva } from "class-variance-authority";
+import {
+  tableStyles,
+  buttonStyles,
+  badgeStyles,
+  cardStyles,
+  layoutStyles,
+  typographyStyles,
+  spacingStyles,
+  statusStyles,
+  getDifficultyBadgeVariant,
+  getStatusBadgeVariant
+} from "@/utils/commonStyles";
 
-// ✅ variant 시스템 정의
-const buttonVariants = cva(
-  // 기본 클래스
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-);
+// ✅ 테이블 스타일 사용
+<div className={tableStyles.container}>
+  <TableRow className={tableStyles.header}>
+    <TableHead className={tableStyles.headerCell}>제목</TableHead>
+  </TableRow>
+</div>
 
-// 사용 예시
-<button
-  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+// ✅ 버튼 스타일 사용
+<Button className={buttonStyles.primary}>버튼</Button>
+
+// ✅ 배지 스타일 사용
+<Badge
+  variant={getDifficultyBadgeVariant("상")}
+  className={badgeStyles[getDifficultyBadgeVariant("상")]}
 >
-  버튼
-</button>
+  상
+</Badge>
+
+// ✅ 카드 스타일 사용
+<Card className={cardStyles.interactive}>내용</Card>
 ```
 
 ## 🧩 shadcn/ui 활용 패턴
@@ -153,87 +159,183 @@ pnpx shadcn@latest add dialog
 pnpx shadcn@latest add dropdown-menu
 ```
 
-## 🎨 디자인 시스템
+## 📊 테이블 스타일링 패턴
 
-### 색상 시스템
+### 통일된 테이블 구조
 
-```css
-/* src/css/colors.css */
-:root {
-  /* Primary Colors */
-  --primary: 220 14% 96%;
-  --primary-foreground: 220 9% 46%;
+```typescript
+import {
+  tableStyles,
+  buttonStyles,
+  badgeStyles,
+  getDifficultyBadgeVariant
+} from "@/utils/commonStyles";
 
-  /* Secondary Colors */
-  --secondary: 220 13% 91%;
-  --secondary-foreground: 220 9% 46%;
-
-  /* Accent Colors */
-  --accent: 220 13% 91%;
-  --accent-foreground: 220 9% 46%;
-
-  /* Destructive Colors */
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 20% 98%;
+export function DataTable({ data }: DataTableProps) {
+  return (
+    <div className={tableStyles.container}>
+      <Table>
+        <TableHeader>
+          <TableRow className={tableStyles.header}>
+            <TableHead className="w-[50px] text-center">
+              <Checkbox className={tableStyles.checkbox} />
+            </TableHead>
+            <TableHead className={tableStyles.headerCell}>제목</TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>상태</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((item, index) => (
+            <TableRow
+              key={item.id}
+              className={cn(
+                tableStyles.row,
+                index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd
+              )}
+            >
+              <TableCell className={tableStyles.cellCenter}>
+                <Checkbox className={tableStyles.checkbox} />
+              </TableCell>
+              <TableCell className={tableStyles.cellMedium}>
+                {item.title}
+              </TableCell>
+              <TableCell className={tableStyles.cellCenter}>
+                <Badge
+                  variant={getDifficultyBadgeVariant(item.level)}
+                  className={badgeStyles[getDifficultyBadgeVariant(item.level)]}
+                >
+                  {item.level}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 }
-
-[data-theme="dark"] {
-  --primary: 220 14% 4%;
-  --primary-foreground: 210 20% 98%;
-  /* ... 다크 모드 색상 */
-}
 ```
 
+### 테이블 스타일 상수
+
 ```typescript
-// 사용 예시
-<div className="bg-primary text-primary-foreground">
-  Primary 배경
-</div>
-
-<div className="bg-secondary text-secondary-foreground">
-  Secondary 배경
-</div>
-
-<div className="bg-destructive text-destructive-foreground">
-  Error 배경
-</div>
+// @/utils/commonStyles.ts
+export const tableStyles = {
+  container: "rounded-lg border bg-card shadow-sm",
+  header: "border-b bg-muted/50",
+  headerCell: "font-semibold text-foreground",
+  headerCellCenter: "font-semibold text-foreground text-center",
+  row: "transition-colors hover:bg-muted/50",
+  rowEven: "bg-background",
+  rowOdd: "bg-muted/20",
+  cell: "text-foreground",
+  cellCenter: "text-center",
+  cellMedium: "font-medium text-foreground",
+  checkbox:
+    "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+} as const;
 ```
 
-### 타이포그래피
+## 🎨 버튼 스타일링 패턴
+
+### 통일된 버튼 스타일
 
 ```typescript
-// ✅ 텍스트 크기 시스템
-<h1 className="text-4xl font-bold">큰 제목</h1>
-<h2 className="text-3xl font-semibold">중간 제목</h2>
-<h3 className="text-2xl font-medium">작은 제목</h3>
-<p className="text-base">본문 텍스트</p>
-<span className="text-sm text-muted-foreground">보조 텍스트</span>
+import { buttonStyles } from "@/utils/commonStyles";
 
-// ✅ 폰트 weight
-<span className="font-thin">100</span>
-<span className="font-light">300</span>
-<span className="font-normal">400</span>
-<span className="font-medium">500</span>
-<span className="font-semibold">600</span>
-<span className="font-bold">700</span>
+// ✅ 기본 버튼
+<Button variant="outline" className={buttonStyles.primary}>
+  기본 버튼
+</Button>
+
+// ✅ 액션 버튼
+<Button variant="outline" className={buttonStyles.secondary}>
+  액션 버튼
+</Button>
+
+// ✅ 위험 버튼
+<Button variant="outline" className={buttonStyles.destructive}>
+  삭제
+</Button>
 ```
 
-### 간격 시스템
+### 버튼 스타일 상수
 
 ```typescript
-// ✅ Margin & Padding
-<div className="p-4">              {/* padding: 1rem */}
-<div className="px-6 py-3">        {/* padding: 0.75rem 1.5rem */}
-<div className="m-2">              {/* margin: 0.5rem */}
-<div className="mx-auto">          {/* margin: 0 auto */}
+// @/utils/commonStyles.ts
+export const buttonStyles = {
+  primary: cn(
+    "transition-all duration-200",
+    "hover:bg-primary hover:text-primary-foreground",
+    "focus:ring-2 focus:ring-primary/20",
+    "border-primary/20 text-primary",
+  ),
+  secondary: cn(
+    "transition-all duration-200",
+    "hover:bg-secondary hover:text-secondary-foreground",
+    "focus:ring-2 focus:ring-secondary/20",
+    "border-secondary/20 text-secondary-foreground",
+  ),
+  destructive: cn(
+    "transition-all duration-200",
+    "hover:bg-destructive hover:text-destructive-foreground",
+    "focus:ring-2 focus:ring-destructive/20",
+    "border-destructive/20 text-destructive",
+  ),
+} as const;
+```
 
-// ✅ Gap (Flexbox/Grid)
-<div className="flex gap-4">       {/* gap: 1rem */}
-<div className="grid gap-6">       {/* gap: 1.5rem */}
+## 🏷️ 배지 스타일링 패턴
 
-// ✅ Space Between
-<div className="space-y-4">        {/* margin-top을 자식에게 적용 */}
-<div className="space-x-2">        {/* margin-left를 자식에게 적용 */}
+### 통일된 배지 스타일
+
+```typescript
+import {
+  badgeStyles,
+  getDifficultyBadgeVariant,
+  getStatusBadgeVariant
+} from "@/utils/commonStyles";
+
+// ✅ 난이도 배지
+<Badge
+  variant={getDifficultyBadgeVariant("상")}
+  className={badgeStyles[getDifficultyBadgeVariant("상")]}
+>
+  상
+</Badge>
+
+// ✅ 상태 배지
+<Badge
+  variant={getStatusBadgeVariant("완료")}
+  className={badgeStyles[getStatusBadgeVariant("완료")]}
+>
+  완료
+</Badge>
+```
+
+### 배지 스타일 상수
+
+```typescript
+// @/utils/commonStyles.ts
+export const badgeStyles = {
+  default: "font-medium",
+  outline: "font-medium",
+  secondary: "font-medium",
+  destructive: "font-medium",
+} as const;
+
+export const getDifficultyBadgeVariant = (level: string) => {
+  switch (level.toLowerCase()) {
+    case "상":
+      return "destructive" as const;
+    case "중":
+      return "default" as const;
+    case "하":
+      return "secondary" as const;
+    default:
+      return "outline" as const;
+  }
+};
 ```
 
 ## 📱 반응형 디자인
@@ -323,96 +425,35 @@ function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant="outline"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      {theme === "dark" ? "🌙" : "☀️"}
+      {theme === "dark" ? "라이트 모드" : "다크 모드"}
     </Button>
   );
 }
 ```
 
-## ✨ 애니메이션과 전환
-
-### Tailwind 애니메이션
-
-```typescript
-// ✅ 기본 애니메이션
-<div className="animate-spin">로딩 스피너</div>
-<div className="animate-pulse">펄스 효과</div>
-<div className="animate-bounce">바운스 효과</div>
-
-// ✅ 호버 전환
-<button className={cn(
-  "transition-all duration-300",      // 모든 속성 0.3초 전환
-  "hover:scale-105",                  // 호버 시 크기 증가
-  "hover:shadow-lg",                  // 호버 시 그림자
-  "active:scale-95"                   // 클릭 시 크기 감소
-)}>
-  인터랙티브 버튼
-</button>
-
-// ✅ 커스텀 전환
-<div className={cn(
-  "transform transition-transform duration-500 ease-in-out",
-  isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-)}>
-  슬라이드 애니메이션
-</div>
-```
-
-### 고급 애니메이션
-
-```css
-/* src/css/animations.css */
-@keyframes slideIn {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-in {
-  animation: slideIn 0.3s ease-out;
-}
-```
-
-```typescript
-// 사용 예시
-<div className="animate-slide-in">
-  커스텀 애니메이션
-</div>
-```
-
-## 🖼️ 레이아웃 패턴
+## 📐 레이아웃 패턴
 
 ### Flexbox 패턴
 
 ```typescript
-// ✅ 중앙 정렬
-<div className="flex items-center justify-center h-screen">
-  중앙 정렬 콘텐츠
+// ✅ 기본 Flexbox
+<div className="flex items-center justify-between">
+  <div>왼쪽</div>
+  <div>오른쪽</div>
 </div>
 
-// ✅ 네비게이션 레이아웃
-<nav className="flex items-center justify-between p-4">
-  <div className="flex items-center gap-4">
-    <Logo />
-    <NavLinks />
-  </div>
-  <UserMenu />
-</nav>
+// ✅ 중앙 정렬
+<div className="flex items-center justify-center">
+  <div>중앙</div>
+</div>
 
-// ✅ 카드 레이아웃
+// ✅ 세로 배치
 <div className="flex flex-col space-y-4">
-  <CardHeader />
-  <CardContent className="flex-1" />
-  <CardFooter />
+  <div>위</div>
+  <div>아래</div>
 </div>
 ```
 
@@ -492,11 +533,13 @@ const getStatusColor = useMemo(() => {
 - [ ] 반응형 요구사항 파악
 - [ ] 다크 모드 필요성 확인
 - [ ] 접근성 요구사항 검토
+- [ ] 공통 스타일 유틸리티 확인
 
 ### 개발 중
 
 - [ ] cn() 함수로 클래스 조합
 - [ ] shadcn/ui 컴포넌트 우선 사용
+- [ ] 공통 스타일 시스템 활용
 - [ ] 모바일 우선 반응형 설계
 - [ ] 적절한 간격과 타이포그래피 적용
 
@@ -506,6 +549,7 @@ const getStatusColor = useMemo(() => {
 - [ ] 다크 모드 동작 확인
 - [ ] 접근성 테스트 (대비, 포커스)
 - [ ] 성능 영향 확인
+- [ ] 스타일 일관성 검토
 
 ## 🚫 피해야 할 패턴
 
@@ -524,6 +568,9 @@ const getStatusColor = useMemo(() => {
 
 // ❌ 중복된 스타일
 <div className="p-4 px-4 py-4">
+
+// ❌ 공통 스타일 시스템 미사용
+<div className="rounded-lg border bg-card shadow-sm"> // tableStyles.container 사용해야 함
 ```
 
 ## ✅ 권장 패턴
@@ -549,6 +596,11 @@ const cardBase = "rounded-lg border bg-card shadow-sm";
   </CardHeader>
   <CardContent>내용</CardContent>
 </Card>
+
+// ✅ 공통 스타일 시스템 활용
+<div className={tableStyles.container}>
+  <Button className={buttonStyles.primary}>버튼</Button>
+</div>
 ```
 
 ---

@@ -11,14 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteRouteImport } from './routes/main/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SignupIndexRouteImport } from './routes/signup/index'
 import { Route as MainIndexRouteImport } from './routes/main/index'
+import { Route as MainExamRouteRouteImport } from './routes/main/exam/route'
 import { Route as ExamplesPokemonRouteRouteImport } from './routes/examples/pokemon/route'
-import { Route as MainTestPaperIndexRouteImport } from './routes/main/test-paper/index'
-import { Route as MainTestManagementIndexRouteImport } from './routes/main/test-management/index'
 import { Route as MainStatisticsIndexRouteImport } from './routes/main/statistics/index'
 import { Route as ExamplesPokemonIndexRouteImport } from './routes/examples/pokemon/index'
+import { Route as MainExamSheetRouteRouteImport } from './routes/main/exam/sheet/route'
+import { Route as MainExamManageRouteRouteImport } from './routes/main/exam/manage/route'
+import { Route as MainExamManageIndexRouteImport } from './routes/main/exam/manage/index'
 import { Route as ExamplesPokemonIdIndexRouteImport } from './routes/examples/pokemon/$id/index'
+import { Route as MainExamSheetManageRouteRouteImport } from './routes/main/exam/sheet/manage/route'
+import { Route as MainExamSheetManageIndexRouteImport } from './routes/main/exam/sheet/manage/index'
+import { Route as MainExamManageExamIdIndexRouteImport } from './routes/main/exam/manage/$examId/index'
+import { Route as MainExamSheetManageExamIdIndexRouteImport } from './routes/main/exam/sheet/manage/$examId/index'
 
 const MainRouteRoute = MainRouteRouteImport.update({
   id: '/main',
@@ -30,30 +35,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupIndexRoute = SignupIndexRouteImport.update({
-  id: '/signup/',
-  path: '/signup/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainExamRouteRoute = MainExamRouteRouteImport.update({
+  id: '/exam',
+  path: '/exam',
   getParentRoute: () => MainRouteRoute,
 } as any)
 const ExamplesPokemonRouteRoute = ExamplesPokemonRouteRouteImport.update({
   id: '/examples/pokemon',
   path: '/examples/pokemon',
   getParentRoute: () => rootRouteImport,
-} as any)
-const MainTestPaperIndexRoute = MainTestPaperIndexRouteImport.update({
-  id: '/test-paper/',
-  path: '/test-paper/',
-  getParentRoute: () => MainRouteRoute,
-} as any)
-const MainTestManagementIndexRoute = MainTestManagementIndexRouteImport.update({
-  id: '/test-management/',
-  path: '/test-management/',
-  getParentRoute: () => MainRouteRoute,
 } as any)
 const MainStatisticsIndexRoute = MainStatisticsIndexRouteImport.update({
   id: '/statistics/',
@@ -65,46 +60,98 @@ const ExamplesPokemonIndexRoute = ExamplesPokemonIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ExamplesPokemonRouteRoute,
 } as any)
+const MainExamSheetRouteRoute = MainExamSheetRouteRouteImport.update({
+  id: '/sheet',
+  path: '/sheet',
+  getParentRoute: () => MainExamRouteRoute,
+} as any)
+const MainExamManageRouteRoute = MainExamManageRouteRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => MainExamRouteRoute,
+} as any)
+const MainExamManageIndexRoute = MainExamManageIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainExamManageRouteRoute,
+} as any)
 const ExamplesPokemonIdIndexRoute = ExamplesPokemonIdIndexRouteImport.update({
   id: '/$id/',
   path: '/$id/',
   getParentRoute: () => ExamplesPokemonRouteRoute,
 } as any)
+const MainExamSheetManageRouteRoute =
+  MainExamSheetManageRouteRouteImport.update({
+    id: '/manage',
+    path: '/manage',
+    getParentRoute: () => MainExamSheetRouteRoute,
+  } as any)
+const MainExamSheetManageIndexRoute =
+  MainExamSheetManageIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => MainExamSheetManageRouteRoute,
+  } as any)
+const MainExamManageExamIdIndexRoute =
+  MainExamManageExamIdIndexRouteImport.update({
+    id: '/$examId/',
+    path: '/$examId/',
+    getParentRoute: () => MainExamManageRouteRoute,
+  } as any)
+const MainExamSheetManageExamIdIndexRoute =
+  MainExamSheetManageExamIdIndexRouteImport.update({
+    id: '/$examId/',
+    path: '/$examId/',
+    getParentRoute: () => MainExamSheetManageRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/main/exam': typeof MainExamRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
-  '/signup': typeof SignupIndexRoute
+  '/main/exam/manage': typeof MainExamManageRouteRouteWithChildren
+  '/main/exam/sheet': typeof MainExamSheetRouteRouteWithChildren
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
-  '/main/test-management': typeof MainTestManagementIndexRoute
-  '/main/test-paper': typeof MainTestPaperIndexRoute
+  '/main/exam/sheet/manage': typeof MainExamSheetManageRouteRouteWithChildren
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
+  '/main/exam/manage/': typeof MainExamManageIndexRoute
+  '/main/exam/manage/$examId': typeof MainExamManageExamIdIndexRoute
+  '/main/exam/sheet/manage/': typeof MainExamSheetManageIndexRoute
+  '/main/exam/sheet/manage/$examId': typeof MainExamSheetManageExamIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/main/exam': typeof MainExamRouteRouteWithChildren
   '/main': typeof MainIndexRoute
-  '/signup': typeof SignupIndexRoute
+  '/main/exam/sheet': typeof MainExamSheetRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonIndexRoute
   '/main/statistics': typeof MainStatisticsIndexRoute
-  '/main/test-management': typeof MainTestManagementIndexRoute
-  '/main/test-paper': typeof MainTestPaperIndexRoute
   '/examples/pokemon/$id': typeof ExamplesPokemonIdIndexRoute
+  '/main/exam/manage': typeof MainExamManageIndexRoute
+  '/main/exam/manage/$examId': typeof MainExamManageExamIdIndexRoute
+  '/main/exam/sheet/manage': typeof MainExamSheetManageIndexRoute
+  '/main/exam/sheet/manage/$examId': typeof MainExamSheetManageExamIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/main': typeof MainRouteRouteWithChildren
   '/examples/pokemon': typeof ExamplesPokemonRouteRouteWithChildren
+  '/main/exam': typeof MainExamRouteRouteWithChildren
   '/main/': typeof MainIndexRoute
-  '/signup/': typeof SignupIndexRoute
+  '/main/exam/manage': typeof MainExamManageRouteRouteWithChildren
+  '/main/exam/sheet': typeof MainExamSheetRouteRouteWithChildren
   '/examples/pokemon/': typeof ExamplesPokemonIndexRoute
   '/main/statistics/': typeof MainStatisticsIndexRoute
-  '/main/test-management/': typeof MainTestManagementIndexRoute
-  '/main/test-paper/': typeof MainTestPaperIndexRoute
+  '/main/exam/sheet/manage': typeof MainExamSheetManageRouteRouteWithChildren
   '/examples/pokemon/$id/': typeof ExamplesPokemonIdIndexRoute
+  '/main/exam/manage/': typeof MainExamManageIndexRoute
+  '/main/exam/manage/$examId/': typeof MainExamManageExamIdIndexRoute
+  '/main/exam/sheet/manage/': typeof MainExamSheetManageIndexRoute
+  '/main/exam/sheet/manage/$examId/': typeof MainExamSheetManageExamIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -112,42 +159,54 @@ export interface FileRouteTypes {
     | '/'
     | '/main'
     | '/examples/pokemon'
+    | '/main/exam'
     | '/main/'
-    | '/signup'
+    | '/main/exam/manage'
+    | '/main/exam/sheet'
     | '/examples/pokemon/'
     | '/main/statistics'
-    | '/main/test-management'
-    | '/main/test-paper'
+    | '/main/exam/sheet/manage'
     | '/examples/pokemon/$id'
+    | '/main/exam/manage/'
+    | '/main/exam/manage/$examId'
+    | '/main/exam/sheet/manage/'
+    | '/main/exam/sheet/manage/$examId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/main/exam'
     | '/main'
-    | '/signup'
+    | '/main/exam/sheet'
     | '/examples/pokemon'
     | '/main/statistics'
-    | '/main/test-management'
-    | '/main/test-paper'
     | '/examples/pokemon/$id'
+    | '/main/exam/manage'
+    | '/main/exam/manage/$examId'
+    | '/main/exam/sheet/manage'
+    | '/main/exam/sheet/manage/$examId'
   id:
     | '__root__'
     | '/'
     | '/main'
     | '/examples/pokemon'
+    | '/main/exam'
     | '/main/'
-    | '/signup/'
+    | '/main/exam/manage'
+    | '/main/exam/sheet'
     | '/examples/pokemon/'
     | '/main/statistics/'
-    | '/main/test-management/'
-    | '/main/test-paper/'
+    | '/main/exam/sheet/manage'
     | '/examples/pokemon/$id/'
+    | '/main/exam/manage/'
+    | '/main/exam/manage/$examId/'
+    | '/main/exam/sheet/manage/'
+    | '/main/exam/sheet/manage/$examId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MainRouteRoute: typeof MainRouteRouteWithChildren
   ExamplesPokemonRouteRoute: typeof ExamplesPokemonRouteRouteWithChildren
-  SignupIndexRoute: typeof SignupIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -166,18 +225,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup/': {
-      id: '/signup/'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/main/': {
       id: '/main/'
       path: '/'
       fullPath: '/main/'
       preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/main/exam': {
+      id: '/main/exam'
+      path: '/exam'
+      fullPath: '/main/exam'
+      preLoaderRoute: typeof MainExamRouteRouteImport
       parentRoute: typeof MainRouteRoute
     }
     '/examples/pokemon': {
@@ -186,20 +245,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/examples/pokemon'
       preLoaderRoute: typeof ExamplesPokemonRouteRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/main/test-paper/': {
-      id: '/main/test-paper/'
-      path: '/test-paper'
-      fullPath: '/main/test-paper'
-      preLoaderRoute: typeof MainTestPaperIndexRouteImport
-      parentRoute: typeof MainRouteRoute
-    }
-    '/main/test-management/': {
-      id: '/main/test-management/'
-      path: '/test-management'
-      fullPath: '/main/test-management'
-      preLoaderRoute: typeof MainTestManagementIndexRouteImport
-      parentRoute: typeof MainRouteRoute
     }
     '/main/statistics/': {
       id: '/main/statistics/'
@@ -215,6 +260,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExamplesPokemonIndexRouteImport
       parentRoute: typeof ExamplesPokemonRouteRoute
     }
+    '/main/exam/sheet': {
+      id: '/main/exam/sheet'
+      path: '/sheet'
+      fullPath: '/main/exam/sheet'
+      preLoaderRoute: typeof MainExamSheetRouteRouteImport
+      parentRoute: typeof MainExamRouteRoute
+    }
+    '/main/exam/manage': {
+      id: '/main/exam/manage'
+      path: '/manage'
+      fullPath: '/main/exam/manage'
+      preLoaderRoute: typeof MainExamManageRouteRouteImport
+      parentRoute: typeof MainExamRouteRoute
+    }
+    '/main/exam/manage/': {
+      id: '/main/exam/manage/'
+      path: '/'
+      fullPath: '/main/exam/manage/'
+      preLoaderRoute: typeof MainExamManageIndexRouteImport
+      parentRoute: typeof MainExamManageRouteRoute
+    }
     '/examples/pokemon/$id/': {
       id: '/examples/pokemon/$id/'
       path: '/$id'
@@ -222,21 +288,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExamplesPokemonIdIndexRouteImport
       parentRoute: typeof ExamplesPokemonRouteRoute
     }
+    '/main/exam/sheet/manage': {
+      id: '/main/exam/sheet/manage'
+      path: '/manage'
+      fullPath: '/main/exam/sheet/manage'
+      preLoaderRoute: typeof MainExamSheetManageRouteRouteImport
+      parentRoute: typeof MainExamSheetRouteRoute
+    }
+    '/main/exam/sheet/manage/': {
+      id: '/main/exam/sheet/manage/'
+      path: '/'
+      fullPath: '/main/exam/sheet/manage/'
+      preLoaderRoute: typeof MainExamSheetManageIndexRouteImport
+      parentRoute: typeof MainExamSheetManageRouteRoute
+    }
+    '/main/exam/manage/$examId/': {
+      id: '/main/exam/manage/$examId/'
+      path: '/$examId'
+      fullPath: '/main/exam/manage/$examId'
+      preLoaderRoute: typeof MainExamManageExamIdIndexRouteImport
+      parentRoute: typeof MainExamManageRouteRoute
+    }
+    '/main/exam/sheet/manage/$examId/': {
+      id: '/main/exam/sheet/manage/$examId/'
+      path: '/$examId'
+      fullPath: '/main/exam/sheet/manage/$examId'
+      preLoaderRoute: typeof MainExamSheetManageExamIdIndexRouteImport
+      parentRoute: typeof MainExamSheetManageRouteRoute
+    }
   }
 }
 
+interface MainExamManageRouteRouteChildren {
+  MainExamManageIndexRoute: typeof MainExamManageIndexRoute
+  MainExamManageExamIdIndexRoute: typeof MainExamManageExamIdIndexRoute
+}
+
+const MainExamManageRouteRouteChildren: MainExamManageRouteRouteChildren = {
+  MainExamManageIndexRoute: MainExamManageIndexRoute,
+  MainExamManageExamIdIndexRoute: MainExamManageExamIdIndexRoute,
+}
+
+const MainExamManageRouteRouteWithChildren =
+  MainExamManageRouteRoute._addFileChildren(MainExamManageRouteRouteChildren)
+
+interface MainExamSheetManageRouteRouteChildren {
+  MainExamSheetManageIndexRoute: typeof MainExamSheetManageIndexRoute
+  MainExamSheetManageExamIdIndexRoute: typeof MainExamSheetManageExamIdIndexRoute
+}
+
+const MainExamSheetManageRouteRouteChildren: MainExamSheetManageRouteRouteChildren =
+  {
+    MainExamSheetManageIndexRoute: MainExamSheetManageIndexRoute,
+    MainExamSheetManageExamIdIndexRoute: MainExamSheetManageExamIdIndexRoute,
+  }
+
+const MainExamSheetManageRouteRouteWithChildren =
+  MainExamSheetManageRouteRoute._addFileChildren(
+    MainExamSheetManageRouteRouteChildren,
+  )
+
+interface MainExamSheetRouteRouteChildren {
+  MainExamSheetManageRouteRoute: typeof MainExamSheetManageRouteRouteWithChildren
+}
+
+const MainExamSheetRouteRouteChildren: MainExamSheetRouteRouteChildren = {
+  MainExamSheetManageRouteRoute: MainExamSheetManageRouteRouteWithChildren,
+}
+
+const MainExamSheetRouteRouteWithChildren =
+  MainExamSheetRouteRoute._addFileChildren(MainExamSheetRouteRouteChildren)
+
+interface MainExamRouteRouteChildren {
+  MainExamManageRouteRoute: typeof MainExamManageRouteRouteWithChildren
+  MainExamSheetRouteRoute: typeof MainExamSheetRouteRouteWithChildren
+}
+
+const MainExamRouteRouteChildren: MainExamRouteRouteChildren = {
+  MainExamManageRouteRoute: MainExamManageRouteRouteWithChildren,
+  MainExamSheetRouteRoute: MainExamSheetRouteRouteWithChildren,
+}
+
+const MainExamRouteRouteWithChildren = MainExamRouteRoute._addFileChildren(
+  MainExamRouteRouteChildren,
+)
+
 interface MainRouteRouteChildren {
+  MainExamRouteRoute: typeof MainExamRouteRouteWithChildren
   MainIndexRoute: typeof MainIndexRoute
   MainStatisticsIndexRoute: typeof MainStatisticsIndexRoute
-  MainTestManagementIndexRoute: typeof MainTestManagementIndexRoute
-  MainTestPaperIndexRoute: typeof MainTestPaperIndexRoute
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainExamRouteRoute: MainExamRouteRouteWithChildren,
   MainIndexRoute: MainIndexRoute,
   MainStatisticsIndexRoute: MainStatisticsIndexRoute,
-  MainTestManagementIndexRoute: MainTestManagementIndexRoute,
-  MainTestPaperIndexRoute: MainTestPaperIndexRoute,
 }
 
 const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
@@ -260,7 +406,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MainRouteRoute: MainRouteRouteWithChildren,
   ExamplesPokemonRouteRoute: ExamplesPokemonRouteRouteWithChildren,
-  SignupIndexRoute: SignupIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

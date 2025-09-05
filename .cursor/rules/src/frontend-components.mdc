@@ -1,0 +1,517 @@
+---
+description: React component and frontend development rules for iroom-teacher project
+globs: src/components/**/*.ts,src/components/**/*.tsx,src/routes/**/*.ts,src/routes/**/*.tsx,src/hooks/**/*.ts,src/hooks/**/*.tsx
+alwaysApply: false
+---
+
+# Frontend Component Development Rules
+
+React component and frontend logic development rules for the iroom-teacher project.
+
+## 🧩 Component Writing Patterns
+
+### Component Structure Template
+
+```typescript
+// 1. Props type definition (above component)
+type YourComponentProps = {
+  /** Required props description */
+  requiredProp: string;
+  /** Optional props description */
+  optionalProp?: number;
+  /** Event handler */
+  onAction?: (value: string) => void;
+};
+
+/**
+ * Component description (Korean explanations when needed)
+ * @description Detailed functionality explanation
+ * 
+ * Key features:
+ * - Feature 1 description
+ * - Feature 2 description
+ * 
+ * @example
+ * ```tsx
+ * <YourComponent 
+ *   requiredProp="example value"
+ *   onAction={(value) => console.log(value)}
+ * />
+ * ```
+ */
+export function YourComponent({ 
+  requiredProp, 
+  optionalProp = 0, 
+  onAction 
+}: YourComponentProps) {
+  // 2. Custom hooks (separate complex logic)
+  const { state, handlers } = useComponentLogic();
+  
+  // 3. Event handler definitions
+  const handleClick = useCallback(() => {
+    onAction?.(requiredProp);
+  }, [requiredProp, onAction]);
+  
+  // 4. Conditional rendering (early return)
+  if (state.isLoading) {
+    return <ComponentSkeleton />;
+  }
+  
+  if (state.isError) {
+    return <ComponentError message={state.errorMessage} />;
+  }
+  
+  // 5. Main JSX
+  return (
+    <div className={cn("base-styles", state.conditionalClass)}>
+      {/* JSX content */}
+    </div>
+  );
+}
+```
+
+### Component Naming Rules
+
+```typescript
+// ✅ Correct component names (PascalCase)
+export function PokemonCard() {}
+export function NavigationBar() {}
+export function TestResultTable() {}
+
+// ✅ Props type (ComponentProps pattern)
+type PokemonCardProps = {};
+type NavigationBarProps = {};
+
+// ❌ Wrong examples
+export function pokemonCard() {} // camelCase forbidden
+export function Pokemon_Card() {} // underscore forbidden
+```
+
+## 🪝 Custom Hook Rules
+
+### Hook Writing Pattern
+
+```typescript
+/**
+ * Custom hook description (한국어 설명이 필요한 경우)
+ * @description Complex logic encapsulation for reusability
+ * 
+ * Purpose:
+ * - Separate state logic
+ * - Manage side effects
+ * - Simplify components
+ */
+export function useYourCustomHook(param: string) {
+  const [state, setState] = useState(initialState);
+  
+  // Combine with other hooks when necessary
+  const queryResult = useAtomValue(someAtom);
+  
+  const handlers = useMemo(() => ({
+    handleAction: (value: string) => {
+      setState(prev => ({ ...prev, value }));
+    },
+    reset: () => {
+      setState(initialState);
+    },
+  }), []);
+  
+  return {
+    // Return state as read-only
+    ...state,
+    // Return handlers
+    ...handlers,
+  };
+}
+```
+
+### Hook Naming Rules
+
+```typescript
+// ✅ Correct hook naming
+export function usePokemonCardImage() {}
+export function useMainBackground() {}
+export function useTestResultData() {}
+
+// ❌ Wrong examples
+export function PokemonImageHook() {} // use prefix required
+export function use_pokemon_data() {} // underscore forbidden
+```
+
+## 🗂️ State Management with Jotai
+
+### Atom Usage Pattern
+
+```typescript
+// atoms/your-domain.ts
+
+// 1. Basic state atom
+export const yourParamAtom = atom<string>("");
+
+// 2. Persistent storage atom (localStorage)
+export const yourSettingsAtom = atomWithStorage("your-settings", {
+  theme: "light" as "light" | "dark",
+  pageSize: 20,
+});
+
+// 3. Server state atom (React Query integration)
+export const yourDataQueryAtom = atomWithQuery((get) => {
+  const param = get(yourParamAtom);
+  if (!param) return { queryKey: [], queryFn: () => null, enabled: false };
+  
+  return yourDataQueryOptions(param);
+});
+
+// 4. Derived atom (computed state)
+export const filteredYourDataAtom = atom((get) => {
+  const { data, isPending, isError } = get(yourDataQueryAtom);
+  const settings = get(yourSettingsAtom);
+  
+  return {
+    results: data?.results.slice(0, settings.pageSize) || [],
+    isPending,
+    isError,
+  };
+});
+```
+
+### Component Atom Usage
+
+```typescript
+export function YourComponent() {
+  // Read-only (performance optimization)
+  const data = useAtomValue(filteredYourDataAtom);
+  
+  // Write-only (rendering optimization)  
+  const setParam = useSetAtom(yourParamAtom);
+  
+  // Read+write (when necessary only)
+  const [settings, setSettings] = useAtom(yourSettingsAtom);
+  
+  return (
+    <div>
+      {data.results.map(item => (
+        <YourItemComponent key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
+```
+
+## 🛣️ Routing with TanStack Router
+
+### Route File Structure
+
+```typescript
+// routes/your-page/$id/index.tsx
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+// 1. Search params schema definition
+const searchSchema = z.object({
+  page: z.number().default(1),
+  keyword: z.string().optional(),
+});
+
+export const Route = createFileRoute("/your-page/$id/")({
+  // 2. Search params validation
+  validateSearch: searchSchema,
+  
+  // 3. Loader dependency definition
+  loaderDeps: ({ search, params }) => ({ 
+    id: params.id, 
+    page: search.page,
+    keyword: search.keyword 
+  }),
+  
+  // 4. Data prefetching (SSR)
+  loader: async ({ context, deps }) => {
+    const { queryClient } = context;
+    
+    // TanStack Query data prefetch
+    await queryClient.ensureQueryData(
+      yourDataQueryOptions(deps)
+    );
+    
+    // Return additional data or settings
+    return { 
+      preloadImages: extractImageUrls(data),
+      meta: { title: `Page - ${deps.id}` }
+    };
+  },
+  
+  // 5. SEO optimization
+  head: ({ loaderData, params }) => ({
+    title: loaderData?.meta.title,
+    meta: [
+      {
+        name: "description", 
+        content: `Detailed information about ${params.id}`
+      }
+    ],
+    links: loaderData?.preloadImages?.map(url => ({
+      rel: "preload",
+      as: "image", 
+      href: url,
+    })) || [],
+  }),
+  
+  // 6. Component connection
+  component: YourPageComponent,
+});
+
+function YourPageComponent() {
+  const { id } = Route.useParams();
+  const { page, keyword } = Route.useSearch();
+  const loaderData = Route.useLoaderData();
+  
+  // SSR hydration
+  useHydrateAtoms([
+    [yourIdAtom, id],
+    [yourPageAtom, page],
+    [yourKeywordAtom, keyword || ""],
+  ]);
+  
+  return <div>{/* Component content */}</div>;
+}
+```
+
+### Type-Safe Navigation
+
+```typescript
+// ✅ Type-checked navigation
+<Link 
+  to="/your-page/$id" 
+  params={{ id: "123" }}
+  search={{ page: 1, keyword: "search term" }}
+>
+  Detail Page
+</Link>
+
+// ✅ Programmatic navigation
+const navigate = useNavigate();
+navigate({
+  to: "/your-page/$id",
+  params: { id: itemId },
+  search: prev => ({ ...prev, page: newPage }),
+});
+```
+
+## 🎨 Styling Patterns
+
+### Tailwind CSS + shadcn/ui
+
+```typescript
+export function StyledComponent() {
+  const [isActive, setIsActive] = useState(false);
+  
+  return (
+    <Card className={cn(
+      // Base styles
+      "p-6 rounded-lg transition-all duration-200",
+      // Conditional styles
+      isActive && "ring-2 ring-blue-500",
+      // Responsive styles
+      "max-w-sm md:max-w-md lg:max-w-lg",
+      // Dark mode styles
+      "bg-white dark:bg-slate-800",
+      "text-gray-900 dark:text-gray-100"
+    )}>
+      <CardContent>
+        {/* asChild pattern utilization */}
+        <Button variant="ghost" asChild>
+          <Link to="/target-page">
+            Link Button
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Theme and Responsive Considerations
+
+```typescript
+// useMainBackground hook utilization (existing pattern)
+export function ThemedPage() {
+  useMainBackground({
+    light: "bg-gradient-to-br from-blue-50 via-white to-purple-50",
+    dark: "bg-gradient-to-br from-slate-800 via-slate-900 to-purple-900",
+  });
+  
+  return (
+    <div className="min-h-screen">
+      <div className="container mx-auto p-4 max-w-7xl">
+        {/* Responsive grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Content */}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+## 🚨 Error Handling and Loading States
+
+### Standard Error Handling Pattern
+
+```typescript
+export function DataDisplayComponent() {
+  const { data, isPending, isError } = useAtomValue(dataQueryAtom);
+  
+  // 1. Loading state
+  if (isPending) {
+    return <YourDataSkeleton />;
+  }
+  
+  // 2. Error state
+  if (isError) {
+    const errorMessage = getErrorMessage(isError);
+    const errorSeverity = getErrorSeverity(isError);
+    logError(isError, "DataDisplayComponent");
+    
+    return (
+      <YourErrorComponent 
+        message={errorMessage} 
+        severity={errorSeverity}
+        onRetry={() => queryClient.refetchQueries()}
+      />
+    );
+  }
+  
+  // 3. Empty state
+  if (!data || data.length === 0) {
+    return <YourEmptyState />;
+  }
+  
+  // 4. Normal state
+  return (
+    <div>
+      {data.map(item => (
+        <YourItemComponent key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Suspense and Error Boundary Usage
+
+```typescript
+// route.tsx settings
+export const Route = createFileRoute("/your-page/")({
+  pendingComponent: YourPageSkeleton,
+  errorComponent: YourPageError,
+  component: YourPageComponent,
+});
+
+function YourPageError({ error }: { error: Error }) {
+  return (
+    <div className="text-center py-8">
+      <p className="text-red-600">An error occurred while loading the page.</p>
+      <p className="text-sm text-gray-500 mt-2">{error.message}</p>
+      <Button 
+        onClick={() => window.location.reload()} 
+        className="mt-4"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
+}
+```
+
+## 📱 Accessibility and User Experience
+
+### Accessibility Considerations
+
+```typescript
+export function AccessibleComponent() {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div>
+      {/* Keyboard accessibility */}
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls="dropdown-content"
+      >
+        Open Menu
+      </Button>
+      
+      {isOpen && (
+        <div 
+          id="dropdown-content"
+          role="menu"
+          aria-labelledby="menu-button"
+        >
+          <Button role="menuitem">Item 1</Button>
+          <Button role="menuitem">Item 2</Button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Loading UX Pattern
+
+```typescript
+// Skeleton component example
+export function YourDataSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## 🔄 Data Fetching Integration
+
+### SSR Data Fetching Pattern (Critical!)
+
+```typescript
+// Following Pokemon pattern exactly
+export function DataFetchingComponent() {
+  const { id } = Route.useParams();
+  const { search } = Route.useSearch();
+  
+  // 1. SSR Hydration (critical for SSR)
+  useHydrateAtoms([
+    [dataIdAtom, id || ""],
+    [searchAtom, search || ""],
+  ]);
+  
+  // 2. Runtime URL sync (separate from hydration)
+  const setDataId = useSetAtom(dataIdAtom);
+  const setSearch = useSetAtom(searchAtom);
+  
+  useEffect(() => {
+    setDataId(id || "");
+  }, [id, setDataId]);
+  
+  useEffect(() => {
+    setSearch(search || "");
+  }, [search, setSearch]);
+  
+  // 3. Data consumption
+  const { data, isPending, isError } = useAtomValue(dataQueryAtom);
+  
+  // Standard loading/error handling pattern
+  if (isPending) return <DataSkeleton />;
+  if (isError) return <DataError />;
+  
+  return <DataDisplay data={data} />;
+}
+```
+
+These patterns ensure consistent, high-quality frontend components for the iroom-teacher React project.
