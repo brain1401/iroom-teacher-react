@@ -18,13 +18,16 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Circle, Square, GripVertical, Eye } from "lucide-react";
+import { useAtomValue } from "jotai";
 import { ProblemListTab } from "./ProblemListTab";
 import { ProblemDetailModal } from "./ProblemDetailModal";
 import { UnitTreeItem } from "./UnitTreeItem";
+import { UnitsTreeLoadingSpinner } from "@/components/units-tree/UnitsTreeLoadingSpinner";
 import { useExamSheetRegistration } from "@/hooks/exam-sheet/useExamSheetRegistration";
+import { unitsTreeWithProblemsAtom } from "@/atoms/unitsTree";
+import type { Grade } from "@/types/units-tree";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-// Mock data imports removed - will be replaced with server API calls
 /**
  * 문제지 등록 탭 콘텐츠
  * @description 교사가 새로운 시험지를 생성하기 위한 종합적인 인터페이스를 제공하는 핵심 컴포넌트
@@ -204,6 +207,16 @@ export function ExamSheetRegistrationTab() {
     setExamCreatedCallback,
   } = useExamSheetRegistration();
 
+  // 단원 트리 데이터 CSR 로딩
+  const unitsTreeQuery = useAtomValue(unitsTreeWithProblemsAtom(selectedGrade as Grade));
+  
+  const {
+    data: unitsTreeData,
+    isPending: isUnitsTreeLoading,
+    isError: isUnitsTreeError,
+    error: unitsTreeError
+  } = unitsTreeQuery;
+
   /**
    * 시험 출제 완료 후 시험 목록 탭으로 이동
    */
@@ -338,16 +351,46 @@ export function ExamSheetRegistrationTab() {
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto">
               <div className="space-y-2">
-                {/* TODO: unitTreeData를 서버 API로 교체 필요 */}
-                {[].map((unit: any) => (
-                  <UnitTreeItem
-                    key={unit.id}
-                    unit={unit}
-                    selectedItems={selectedProblems}
-                    onToggleItem={toggleProblem}
-                    onProblemDetail={handleProblemDetail}
-                  />
-                ))}
+                {/* CSR 방식 단원 트리 로딩 */}
+                {isUnitsTreeLoading ? (
+                  <div className="flex justify-center py-8">
+                    <UnitsTreeLoadingSpinner 
+                      message="문제 포함 단원 트리를 불러오는 중..." 
+                      compact={false}
+                    />
+                  </div>
+                ) : isUnitsTreeError ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-600 mb-2">단원 트리를 불러오는 중 오류가 발생했습니다.</p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {unitsTreeError?.message || "알 수 없는 오류"}
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // React Query 재시도 로직 (추후 구현)
+                        window.location.reload();
+                      }}
+                    >
+                      다시 시도
+                    </Button>
+                  </div>
+                ) : unitsTreeData?.categories ? (
+                  unitsTreeData.categories.map((category) => (
+                    <UnitTreeItem
+                      key={category.id}
+                      unit={category as any} // UnitTreeItem 타입과 맞추기 위한 임시 캐스팅
+                      selectedItems={selectedProblems}
+                      onToggleItem={toggleProblem}
+                      onProblemDetail={handleProblemDetail}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <p className="text-sm">해당 학년의 단원 데이터를 찾을 수 없습니다.</p>
+                    <p className="text-xs mt-1">다른 학년을 선택해보세요.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

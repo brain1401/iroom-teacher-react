@@ -152,7 +152,7 @@ export async function getExamSheetsList(
   },
   options?: Pick<AxiosRequestConfig, "signal">,
 ): Promise<ExamSheetListResponse> {
-  // 새 API 엔드포인트 /api/exam-sheets 사용
+  // 새 API 엔드포인트 /exam-sheets 사용
   return apiClient
     .request<ExamSheetListResponse>({
       method: "GET",
