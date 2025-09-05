@@ -33,6 +33,9 @@ import { examSheetListQueryOptions } from "@/api/exam-sheet";
  * - UI 상태: showSidebar, collapsedSidebar
  */
 const sheetManageSearchSchema = z.object({
+  /** 활성 탭 */
+  tab: z.enum(["list", "register"]).optional().catch("list").default("list"),
+  
   // 기본 필터링 파라미터들 - 시험지 목록 페이지 전용
   page: z.number().int().min(0).optional(),
   size: z.number().int().min(1).max(100).optional(),
@@ -44,7 +47,7 @@ const sheetManageSearchSchema = z.object({
   // UI 상태 파라미터들
   showSidebar: z.boolean().optional(),
   collapsedSidebar: z.boolean().optional(),
-});
+});;
 
 export const Route = createFileRoute("/main/exam/sheet/manage/")({
   validateSearch: zodValidator(sheetManageSearchSchema),
@@ -181,14 +184,17 @@ function RouteComponent() {
    * - URL 기반 필터링 상태와 atom 상태 동기화
    * - SSR에서 사전 로드된 데이터를 자식 컴포넌트에 전달
    */
+  // 현재 활성 탭 확인
+  const activeTab = searchParams.tab;
+
   return (
     <>
       <TabsContent value="list" className="mt-10">
-        <ExamSheetListTab />
+        {activeTab === "list" && <ExamSheetListTab />}
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">
-        <ExamSheetRegistrationTab />
+        {activeTab === "register" && <ExamSheetRegistrationTab />}
       </TabsContent>
     </>
   );

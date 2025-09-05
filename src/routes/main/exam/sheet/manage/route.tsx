@@ -1,23 +1,47 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useCallback } from "react";
+import { z } from "zod";
 
 export const Route = createFileRoute("/main/exam/sheet/manage")({
+  validateSearch: z.object({
+    /** 활성 탭 */
+    tab: z.enum(["list", "register"]).optional().catch("list").default("list"),
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  /** 현재 활성 탭 값 상태 */
-  const [activeTab, setActiveTab] = useState<string>("list");
+  const navigate = useNavigate();
+  const searchParams = Route.useSearch();
+  
+  /** URL 기반 활성 탭 값 */
+  const activeTab = searchParams.tab;
+
+  /**
+   * 탭 변경 핸들러
+   * @description TanStack Router navigate를 사용한 URL 기반 탭 전환
+   */
+  const handleTabChange = useCallback((newTab: string) => {
+    if (newTab === "list" || newTab === "register") {
+      navigate({
+        to: ".",
+        search: (prev) => ({
+          ...prev,
+          tab: newTab,
+        }),
+      });
+    }
+  }, [navigate]);
 
   return (
     <Card className="w-full h-full p-8 flex flex-col">
-      {/* 제어형 탭 구성 */}
+      {/* URL 기반 탭 구성 */}
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
         className="w-full h-full flex flex-col"
       >
         {/* 탭 트랙 및 하단 보더 표시 */}
