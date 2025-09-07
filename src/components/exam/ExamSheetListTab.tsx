@@ -14,7 +14,6 @@ import { useExamList } from "@/hooks/exam/useExamList";
 
 /**
  * 시험 목록 탭 컴포넌트 Props
- * @interface ExamListTabProps
  */
 type ExamListTabProps = {
   /**
@@ -50,7 +49,7 @@ type ExamListTabProps = {
  * 주요 기능:
  * - 시험 목록 표시 및 관리 (생성, 수정, 삭제)
  * - 다중 검색 시스템 (시험명, 단원명, 통합 검색)
- * - 학년별 필터링 (중1, 중2, 중3)
+ * - 학년별 필터링 (1, 2, 3)
  * - 다중 선택 및 일괄 삭제 기능
  * - 시험 상세 정보 모달 (제출 현황 포함)
  * - 대시보드 연동 (선택된 시험 하이라이트)
@@ -77,7 +76,7 @@ type ExamListTabProps = {
  *
  * 검색 및 필터링:
  * - 검색 범위: "all"(시험명+단원명), "examName"(시험명), "unitName"(단원명)
- * - 학년 필터: 중1, 중2, 중3 개별 선택
+ * - 학년 필터: 1, 2, 3 개별 선택
  * - 실시간 검색: 타이핑과 동시에 결과 업데이트
  * - 복합 필터: 검색어와 학년 필터 조합 적용
  *
@@ -238,7 +237,6 @@ export function ExamSheetListTab({
     selectedIds,
     activeModal,
     selectedSheet,
-    fakeExamSubmitStatusDetail,
     filters,
 
     // 액션
@@ -311,20 +309,18 @@ export function ExamSheetListTab({
               <DialogHeader>
                 <DialogTitle>시험 제출 현황</DialogTitle>
                 <DialogDescription>
-                  {selectedSheet.examName} - {selectedSheet.unitName}
+                  {selectedSheet.examName}
+                  {/* TODO: unitName 속성이 서버 타입에 없음 - 단원 정보 API 구현 필요 */}
                 </DialogDescription>
               </DialogHeader>
               {/* 시험 제출 현황 테이블 */}
               <div className="overflow-y-auto max-h-[60vh]">
                 <ExamSubmissionTable
-                  submissions={fakeExamSubmitStatusDetail.filter(
-                    (submission) =>
-                      submission.examName === selectedSheet.examName,
-                  )}
+                  submissions={[]} // TODO: 서버에서 시험 제출 현황 데이터 가져오기
                   selectedIds={new Set()}
                   onSelectAll={() => {}}
                   onSelect={() => {}}
-                  onOpenDetail={(submission) => {
+                  onOpenDetail={(submission: any) => {
                     console.log("학생 상세 정보:", submission);
                     alert(
                       `${submission.student.name} 학생의 상세 정보를 확인합니다.`,

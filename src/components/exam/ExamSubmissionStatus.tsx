@@ -46,15 +46,15 @@ const examSubmissionStatusVariants = cva(
 
 /**
  * 시험 제출 현황 카드 컴포넌트 Props 타입
- * @description 시험 제출 현황을 표시하는 카드 컴포넌트의 모든 속성을 정의
+ * @description 시험 제출 현황을 표시하는 카드 컴포넌트의 모든 속성을 정의 (서버 데이터 구조에 맞춤)
  */
 type ExamSubmissionStatusProps = {
-  /** 단원 이름 */
-  unitName: string;
-  /** 제출 완료 인원 수 */
-  submittedCount: number;
-  /** 전체 학생 수 */
-  totalStudents: number;
+  /** 시험 이름 (서버 필드명: examName) */
+  examName: string;
+  /** 실제 제출 인원 수 (서버 필드명: actualSubmissions) */
+  actualSubmissions: number;
+  /** 전체 예상 제출 인원 (서버 필드명: totalExpected) */
+  totalExpected: number;
   /** 제출률 (0-100 퍼센트) */
   submissionRate: number;
   /** 카드 스타일 변형 */
@@ -96,20 +96,20 @@ type ExamSubmissionStatusProps = {
  *
  * @example
  * ```tsx
- * // 기본 사용법
+ * // 기본 사용법 (서버 데이터 구조 사용)
  * <ExamSubmissionStatus
- *   unitName="수학 단원 평가: 연립방정식"
- *   submittedCount={23}
- *   totalStudents={28}
+ *   examName="수학 단원 평가: 연립방정식"
+ *   actualSubmissions={23}
+ *   totalExpected={28}
  *   submissionRate={82}
  *   onClick={() => handleCardClick()}
  * />
  *
  * // 컴팩트 크기와 뒤로가기 버튼 포함
  * <ExamSubmissionStatus
- *   unitName="영어 단원 평가: 현재완료시제"
- *   submittedCount={15}
- *   totalStudents={20}
+ *   examName="영어 단원 평가: 현재완료시제"
+ *   actualSubmissions={15}
+ *   totalExpected={20}
  *   submissionRate={75}
  *   variant="compact"
  *   size="sm"
@@ -119,9 +119,9 @@ type ExamSubmissionStatusProps = {
  *
  * // 추가 컨텐츠와 함께
  * <ExamSubmissionStatus
- *   unitName="과학 단원 평가: 화학반응"
- *   submittedCount={30}
- *   totalStudents={32}
+ *   examName="과학 단원 평가: 화학반응"
+ *   actualSubmissions={30}
+ *   totalExpected={32}
  *   submissionRate={94}
  * >
  *   <div>추가 정보나 액션 버튼들</div>
@@ -130,9 +130,9 @@ type ExamSubmissionStatusProps = {
  */
 export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
   ({
-    unitName,
-    submittedCount,
-    totalStudents,
+    examName,
+    actualSubmissions,
+    totalExpected,
     submissionRate,
     variant = "default",
     size = "md",
@@ -144,9 +144,9 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
     children,
     ...props
   }) => {
-    // 표시용 텍스트 생성
+    // 표시용 텍스트 생성 (서버 데이터 필드명 사용)
     const submissionRateText = `제출률 ${submissionRate}%`;
-    const submissionCountText = `${submittedCount}/${totalStudents}`;
+    const submissionCountText = `${actualSubmissions}/${totalExpected}`;
 
     /**
      * 키보드 이벤트 핸들러
@@ -187,7 +187,7 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
         onKeyDown={handleKeyDown}
         aria-label={
           onClick
-            ? `${unitName}, ${submissionRateText}, 총 ${totalStudents}명 중 ${submittedCount}명 제출`
+            ? `${examName}, ${submissionRateText}, 총 ${totalExpected}명 중 ${actualSubmissions}명 제출`
             : undefined
         }
         {...props}
@@ -199,7 +199,7 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
               <span className="mr-2 inline-block rounded-2xl bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
                 시험
               </span>
-              {unitName}
+              {examName}
             </h3>
           </div>
 

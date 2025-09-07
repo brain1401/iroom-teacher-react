@@ -1,222 +1,223 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { atomWithQuery } from "jotai-tanstack-query";
+import { login as loginApi, logout as logoutApi, currentUserQueryOptions } from "@/api/auth";
+import type { User, LoginRequest } from "@/api/auth";
 
 /**
- * Jotai 인증 상태 관리란?
- * - 전역 상태 관리 라이브러리로 Redux, Zustand와 비슷한 역할
- * - useState와 비슷하지만 여러 컴포넌트에서 공유 가능
- * - atom이라는 작은 상태 단위로 관리
- * - localStorage와 연동하여 새로고침 후에도 상태 유지
+ * Jotai 인증 상태 관리
+ * @description 서버 API와 연동된 전역 인증 상태 관리 시스템
+ *
+ * 주요 특징:
+ * - 서버 API 함수 활용으로 실제 백엔드 연동 준비 완료
+ * - localStorage 기반 상태 영속화
+ * - React Query와 통합된 사용자 정보 관리
+ * - 타입 안전성 보장
  */
-
-/**
- * 사용자 정보 타입
- * @description 로그인한 사용자의 기본 정보를 담는 타입
- */
-type User = {
-  /** 사용자 고유 ID */
-  id: string;
-  /** 사용자명 (로그인 ID) */
-  username: string;
-  /** 실제 이름 */
-  name: string;
-  /** 사용자 역할 */
-  role: "teacher" | "admin";
-};
-
-/**
- * 로그인 자격 증명 타입
- * @description 로그인 시 필요한 인증 정보
- */
-type LoginCredentials = {
-  /** 사용자명 */
-  username: string;
-  /** 비밀번호 */
-  password: string;
-};
-
-/**
- * 로그인 결과 타입
- * @description 로그인 성공/실패 결과와 사용자 정보
- */
-type LoginResult = {
-  /** 로그인 성공 여부 */
-  success: boolean;
-  /** 로그인한 사용자 정보 (성공시에만) */
-  user?: User;
-};
 
 /**
  * 로그인 상태 관리 atom
  * @description 사용자의 인증 상태를 전역에서 관리하는 atom
  *
  * 주요 기능:
- * - 로그인 상태를 boolean 값으로 관리
  * - localStorage에 자동 저장 (새로고침 후에도 유지)
  * - 모든 컴포넌트에서 로그인 상태 확인 가능
  * - 자동 로그아웃 시 false로 변경
  *
- * 설계 원칙:
- * - 단순한 boolean 값으로 관리 (true: 로그인됨, false: 로그아웃됨)
- * - localStorage 키: "isAuthenticated"로 영구 저장
- * - 기본값: false (로그아웃 상태)
- * - 보안을 위해 토큰이 아닌 상태만 저장
- *
- * 사용 예시:
+ * @example
  * ```typescript
- * // 📌 로그인 상태 확인 - useAtomValue 사용
+ * // 로그인 상태 확인
  * const isAuthenticated = useAtomValue(isAuthenticatedAtom);
- * if (isAuthenticated) {
- *   // 로그인된 사용자만 접근 가능한 컨텐츠 표시
- * }
- *
- * // 📌 로그인 상태 변경 - useSetAtom 사용
+ * 
+ * // 로그인 상태 변경
  * const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
  * setIsAuthenticated(true); // 로그인 처리
- * setIsAuthenticated(false); // 로그아웃 처리
  * ```
  */
 export const isAuthenticatedAtom = atomWithStorage("isAuthenticated", false);
 
 /**
- * 사용자 정보 atom
- * @description 로그인한 사용자의 정보를 localStorage에 영구 저장하여 관리
+ * 사용자 정보 atom (서버 타입 기반)
+ * @description 서버에서 받은 사용자 정보를 localStorage에 영구 저장
  *
  * 주요 기능:
- * - 사용자의 기본 정보 (ID, 이름, 역할 등) 저장
+ * - 서버 API 응답 구조와 일치하는 타입 사용
  * - localStorage에 자동 저장으로 새로고침 후에도 유지
  * - 로그아웃 시 초기값으로 리셋
- * - 사용자 역할에 따른 권한 관리 기반 데이터 제공
  *
- * 설계 원칙:
- * - 민감한 정보 제외 (토큰, 비밀번호 등은 저장 안함)
- * - localStorage 키: "user"로 영구 저장
- * - 기본값: 빈 사용자 객체 (로그아웃 상태)
- * - 역할 기본값: "teacher" (일반 교사 권한)
- *
- * 사용 예시:
+ * @example
  * ```typescript
- * // 📌 사용자 정보 조회 - useAtomValue 사용
+ * // 사용자 정보 조회
  * const user = useAtomValue(userAtom);
  * console.log(`안녕하세요, ${user.name}님!`);
  * 
- * if (user.role === "admin") {
- *   // 관리자 전용 기능
- * }
- *
- * // 📌 사용자 정보 설정 - useSetAtom 사용
+ * // 사용자 정보 설정
  * const setUser = useSetAtom(userAtom);
- * setUser({
- *   id: "12345",
- *   username: "teacher01",
- *   name: "김교사",
- *   role: "teacher"
- * });
+ * setUser(serverUserData);
  * ```
  */
-export const userAtom = atomWithStorage("user", {
-  id: "",
+export const userAtom = atomWithStorage<Partial<User>>("user", {
+  id: 0,
   username: "",
+  email: "",
   name: "",
-  role: "teacher" as "teacher" | "admin",
+  role: "teacher",
+  createdAt: "",
+  lastLoginAt: "",
+});
+
+/**
+ * 현재 사용자 정보 쿼리 atom
+ * @description React Query와 통합된 현재 사용자 정보 조회
+ *
+ * 주요 기능:
+ * - 서버에서 최신 사용자 정보 조회
+ * - 자동 캐싱 및 백그라운드 업데이트
+ * - 인증 에러 시 자동 에러 처리
+ *
+ * @example
+ * ```typescript
+ * const { data: user, isLoading, error } = useAtomValue(currentUserQueryAtom);
+ * 
+ * if (isLoading) return <Loading />;
+ * if (error) return <LoginRedirect />;
+ * return <UserProfile user={user} />;
+ * ```
+ */
+export const currentUserQueryAtom = atomWithQuery(() => {
+  return currentUserQueryOptions();
 });
 
 /**
  * 로그인 처리 atom
- * @description 로그인 로직을 처리하는 write-only atom
+ * @description 서버 API를 사용한 로그인 로직 처리
  *
  * 주요 기능:
- * - 사용자명과 비밀번호를 받아 인증 처리
- * - 로그인 성공 시 사용자 정보와 인증 상태 업데이트
- * - 로그인 실패 시 에러 메시지 반환
- * - 임시 하드코딩된 인증 로직 (실제 API 연동 시 교체 예정)
+ * - 서버 API 호출로 실제 인증 처리
+ * - 성공 시 사용자 정보와 인증 상태 업데이트
+ * - 에러 처리 및 사용자 친화적 메시지 제공
  *
- * 설계 원칙:
- * - write-only atom: 읽기 불가, 로그인 액션만 수행
- * - Promise 반환: 비동기 로그인 처리 지원
- * - 상태 원자성: 로그인 성공 시에만 관련 상태 모두 업데이트
- * - 에러 처리: 실패 시 명확한 에러 메시지 제공
- *
- * 사용 예시:
+ * @example
  * ```typescript
- * // 📌 로그인 처리 - useSetAtom 사용
  * const login = useSetAtom(loginAtom);
  * 
  * const handleLogin = async (credentials) => {
  *   try {
  *     const result = await login(credentials);
  *     if (result.success) {
- *       navigate("/dashboard");
+ *       navigate("/main");
  *     }
  *   } catch (error) {
- *     setErrorMessage(error.message);
+ *     toast.error(getErrorMessage(error));
  *   }
  * };
  * ```
  */
 export const loginAtom = atom(
   null,
-  (get, set, credentials: LoginCredentials): Promise<LoginResult> => {
-    // TODO: 실제 API 호출로 교체 필요
-    // 현재는 개발/테스트용 하드코딩된 로그인
-    if (credentials.username === "admin" && credentials.password === "1234") {
-      const user: User = {
-        id: "1",
-        username: credentials.username,
-        name: "관리자",
-        role: "admin",
-      };
+  async (get, set, credentials: LoginRequest) => {
+    try {
+      // 서버 API를 통한 로그인 처리
+      const response = await loginApi(credentials);
       
-      // 로그인 성공 시 관련 상태 모두 업데이트
-      set(userAtom, user);
+      // 로그인 성공 시 상태 업데이트
+      set(userAtom, response.user);
       set(isAuthenticatedAtom, true);
       
-      return Promise.resolve({ success: true, user });
-    } else {
-      return Promise.reject(new Error("아이디 또는 비밀번호가 올바르지 않습니다."));
+      return {
+        success: true,
+        user: response.user,
+      };
+    } catch (error) {
+      // 에러 발생 시 상태 초기화
+      set(userAtom, {
+        id: 0,
+        username: "",
+        email: "",
+        name: "",
+        role: "teacher",
+        createdAt: "",
+        lastLoginAt: "",
+      });
+      set(isAuthenticatedAtom, false);
+      
+      throw error; // 컴포넌트에서 에러 처리할 수 있도록 재발생
     }
   }
 );
 
 /**
  * 로그아웃 처리 atom
- * @description 로그아웃 로직을 처리하는 write-only atom
+ * @description 서버 API를 사용한 로그아웃 로직 처리
  *
  * 주요 기능:
- * - 사용자 정보를 초기값으로 리셋
- * - 인증 상태를 false로 변경
- * - localStorage에서 사용자 데이터 제거
- * - 세션 정리 및 보안 처리
+ * - 서버에 로그아웃 요청 전송 (쿠키 정리)
+ * - 클라이언트 상태 완전 초기화
+ * - localStorage 데이터 정리
  *
- * 설계 원칙:
- * - write-only atom: 읽기 불가, 로그아웃 액션만 수행
- * - 완전한 정리: 모든 인증 관련 상태 초기화
- * - 즉시 실행: 동기적으로 상태 정리
- * - 안전성: 민감한 정보 완전 삭제
- *
- * 사용 예시:
+ * @example
  * ```typescript
- * // 📌 로그아웃 처리 - useSetAtom 사용
  * const logout = useSetAtom(logoutAtom);
  * 
- * const handleLogout = () => {
- *   logout();
- *   navigate("/login");
+ * const handleLogout = async () => {
+ *   try {
+ *     await logout();
+ *     navigate("/");
+ *   } catch (error) {
+ *     console.error("로그아웃 에러:", error);
+ *     // 에러가 발생해도 클라이언트 상태는 정리됨
+ *   }
  * };
  * ```
  */
 export const logoutAtom = atom(
   null,
-  (get, set) => {
-    // 사용자 정보 초기화
-    set(userAtom, { 
-      id: "", 
-      username: "", 
-      name: "", 
-      role: "teacher" 
-    });
-    
-    // 인증 상태 해제
-    set(isAuthenticatedAtom, false);
+  async (get, set) => {
+    try {
+      // 서버 API를 통한 로그아웃 처리
+      await logoutApi();
+    } catch (error) {
+      console.error("서버 로그아웃 에러:", error);
+      // 서버 에러가 발생해도 클라이언트 상태는 정리
+    } finally {
+      // 클라이언트 상태 완전 초기화
+      set(userAtom, {
+        id: 0,
+        username: "",
+        email: "",
+        name: "",
+        role: "teacher",
+        createdAt: "",
+        lastLoginAt: "",
+      });
+      set(isAuthenticatedAtom, false);
+    }
   }
 );
+
+/**
+ * 인증 상태 확인 atom (derived)
+ * @description 현재 인증 상태와 사용자 정보를 종합한 계산된 상태
+ *
+ * @example
+ * ```typescript
+ * const authStatus = useAtomValue(authStatusAtom);
+ * 
+ * if (authStatus.isLoading) return <Spinner />;
+ * if (!authStatus.isAuthenticated) return <LoginForm />;
+ * return <AuthenticatedApp user={authStatus.user} />;
+ * ```
+ */
+export const authStatusAtom = atom((get) => {
+  const isAuthenticated = get(isAuthenticatedAtom);
+  const user = get(userAtom);
+  const { data: currentUser, isLoading, error } = get(currentUserQueryAtom);
+
+  return {
+    isAuthenticated,
+    user: isAuthenticated ? (currentUser || user) : null,
+    isLoading: isAuthenticated ? isLoading : false,
+    error: isAuthenticated ? error : null,
+    hasValidSession: isAuthenticated && !error,
+  };
+});

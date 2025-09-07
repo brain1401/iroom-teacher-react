@@ -1,4 +1,4 @@
-import { authApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 import type { AxiosRequestConfig } from "@/api/client";
 import type { Grade, ExamAveragesData } from "./types";
 
@@ -7,7 +7,7 @@ import type { Grade, ExamAveragesData } from "./types";
  * @description 선택 학년에 대한 시험별 평균 점수 목록 반환
  *
  * 주요 기능:
- * - httpOnly 쿠키 인증 포함(authApiClient)
+ * - httpOnly 쿠키 인증 포함(apiClient)
  * - grade를 쿼리스트링으로 전달
  * - AbortController signal 연동(옵션)
  *
@@ -21,7 +21,7 @@ export async function getExamAveragesByGrade(
 ): Promise<ExamAveragesData> {
   // 인터셉터가 ApiResponse<T>에서 T만 추출하여 response.data에 저장
   // 따라서 response.data를 반환해야 함
-  const response = await authApiClient.get<ExamAveragesData>(
+  const response = await apiClient.get<ExamAveragesData>(
     "/exam-results/averages",
     {
       params: { grade },

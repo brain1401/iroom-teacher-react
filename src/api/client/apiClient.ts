@@ -2,7 +2,9 @@ import type { AxiosInstance } from "axios";
 import axios from "axios";
 import { applyInterceptors } from "./interceptors";
 
-// 공통 API 에러 클래스
+/**
+ * 공통 API 에러 클래스
+ */
 export class ApiError extends Error {
   /** 에러 타입 식별자 (TypeScript discriminant property) */
   readonly type = "api-error" as const;
@@ -21,23 +23,30 @@ export class ApiError extends Error {
   }
 }
 
-// 기본 Axios 인스턴스 생성 (인증 불필요)
-const createBaseApiClient = (): AxiosInstance => {
+/**
+ * 통합 API 클라이언트 생성 함수
+ * @description 기존 authClient와 baseClient를 통합한 단일 클라이언트
+ */
+const createApiClient = (): AxiosInstance => {
   const client = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3055/api",
     timeout: 10000, // 10초 타임아웃
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
   });
 
-  // 공통 인터셉터 적용 (인증 불필요 클라이언트)
+  // 공통 인터셉터 적용
   return applyInterceptors(client, {
-    isAuthClient: false,
     enableLogging: true,
     logPrefix: "API Request",
   });
 };
 
-// 기본 API 클라이언트 싱글톤 (인증 불필요)
-export const baseApiClient = createBaseApiClient();
+/**
+ * 통합 API 클라이언트 싱글톤
+ * @description 모든 API 호출에 사용하는 단일 클라이언트
+ */
+export const apiClient = createApiClient();

@@ -14,9 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
-import { ParticipationBadge } from "./ParticipationBadge";
-import type { Exam } from "@/types/exam";
+import type { ServerExam as Exam } from "@/api/exam/types";
 import { Link } from "@tanstack/react-router";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 /**
  * 시험지 테이블 컴포넌트 props 타입
@@ -32,7 +32,6 @@ import { Link } from "@tanstack/react-router";
  */
 /**
  * 시험 목록 테이블 컴포넌트 Props
- * @interface ExamTableProps
  */
 type ExamTableProps = {
   /** 시험 목록 데이터 배열 - Exam 타입의 배열로 각 시험 정보를 포함 */
@@ -47,6 +46,8 @@ type ExamTableProps = {
   onOpenPrint: (sheet: Exam) => void;
   /** 시험 상세 정보 모달 열기 핸들러 (현재 라우팅으로 대체) */
   onOpenDetail: (sheet: Exam) => void;
+  /** 대시보드에서 선택된 시험 ID (하이라이트 표시용) */
+  selectedExamId?: string;
 };
 
 /**
@@ -190,7 +191,8 @@ export function ExamTable({
   selectedIds,
   onSelectAll,
   onSelect,
-  onOpenDetail,
+  onOpenDetail: _onOpenDetail,
+  selectedExamId,
 }: ExamTableProps) {
   // "전체 선택" 체크박스의 상태를 결정하는 변수
   const isAllSelected = sheets.length > 0 && selectedIds.size === sheets.length;
@@ -208,8 +210,8 @@ export function ExamTable({
                 className={tableStyles.checkbox}
               />
             </TableHead>
-            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <TableHead className={tableStyles.headerCell}>시험명</TableHead>
+            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <TableHead className={tableStyles.headerCellCenter}>
               문항수
             </TableHead>
@@ -228,6 +230,8 @@ export function ExamTable({
               className={cn(
                 tableStyles.row,
                 index % 2 === 0 ? tableStyles.rowEven : tableStyles.rowOdd,
+                selectedExamId === sheet.id &&
+                  "ring-2 ring-blue-500 bg-blue-50/50 hover:bg-blue-100/50",
               )}
             >
               <TableCell className={tableStyles.cellCenter}>
@@ -239,22 +243,52 @@ export function ExamTable({
                   className={tableStyles.checkbox}
                 />
               </TableCell>
-              <TableCell className={tableStyles.cellMedium}>
-                {sheet.unitName}
-              </TableCell>
               <TableCell className={tableStyles.cell}>
                 {sheet.examName}
               </TableCell>
+              <TableCell className={tableStyles.cellMedium}>
+                {/* 단원 정보를 Badge 컴포넌트들로 표시 */}
+                {sheet.units && sheet.units.length > 0 ? (
+                  sheet.units.map((unit) => (
+                    <Badge
+                      key={unit.id}
+                      variant="secondary"
+                      className={cn(badgeStyles.secondary, "text-xs")}
+                    >
+                      {unit.unitName}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      badgeStyles.outline,
+                      "text-xs text-muted-foreground",
+                    )}
+                  >
+                    {sheet.grade}학년 수학
+                  </Badge>
+                )}
+              </TableCell>
               <TableCell className={tableStyles.cellCenter}>
                 <Badge variant="outline" className={badgeStyles.outline}>
-                  {sheet.questionCount}문항
+                  {sheet.totalQuestions ? (
+                    `${sheet.totalQuestions}문항`
+                  ) : sheet.examSheetInfo?.totalQuestions ? (
+                    `${sheet.examSheetInfo.totalQuestions}문항`
+                  ) : (
+                    <span className="text-muted-foreground">미등록</span>
+                  )}
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
-                <ParticipationBadge
-                  actualParticipants={sheet.actualParticipants}
-                  totalParticipants={sheet.totalParticipants}
-                />
+                <Badge variant="outline" className={badgeStyles.outline}>
+                  {sheet.attendanceInfo ? (
+                    `${sheet.attendanceInfo.actualAttendees}/${sheet.attendanceInfo.totalAssigned}`
+                  ) : (
+                    <span className="text-muted-foreground">집계중</span>
+                  )}
+                </Badge>
               </TableCell>
               {/* 3. UI에 있던 버튼들도 추가 */}
               <TableCell className={tableStyles.cellCenter}>
@@ -267,7 +301,6 @@ export function ExamTable({
                   <Link
                     to="/main/exam/manage/$examId"
                     params={{ examId: sheet.id }}
-                    search={{ examName: sheet.examName }}
                   >
                     상세보기
                   </Link>

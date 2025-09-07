@@ -1,7 +1,8 @@
 import type { AxiosRequestConfig } from "axios";
-import { authApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 import type { Grade } from "@/types/grade";
 import type { UnitsByGradeData } from "./types";
+import type { ExamSheetListResponse } from "@/types/exam-sheet";
 
 /**
  * 시험지 전용 API 클라이언트
@@ -13,8 +14,8 @@ import type { UnitsByGradeData } from "./types";
  * - 자동 에러 처리 및 토큰 갱신
  * - AbortController 지원으로 요청 취소 가능
  */
-const examSheetApiClient = authApiClient.create({
-  baseURL: authApiClient.defaults.baseURL + "/exam-sheet",
+const examSheetApiClient = apiClient.create({
+  baseURL: `${apiClient.defaults.baseURL}/exam-sheet`,
 });
 
 /**
@@ -48,7 +49,7 @@ async function examSheetApiRequest<T>(config: AxiosRequestConfig): Promise<T> {
  * @example
  * ```typescript
  * // 기본 사용법
- * const units = await getUnitsByGrade("중1");
+ * const units = await getUnitsByGrade("1");
  *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
@@ -61,7 +62,7 @@ async function examSheetApiRequest<T>(config: AxiosRequestConfig): Promise<T> {
  * });
  * ```
  *
- * @param grade 조회하고자 하는 학년 ("중1" ~ "중3", "고1" ~ "고3")
+ * @param grade 조회하고자 하는 학년 ("1" ~ "3")
  * @param options 추가 옵션
  * @param options.signal 요청 취소를 위한 AbortSignal
  * @returns 해당 학년의 단원 목록 데이터
@@ -79,4 +80,92 @@ export async function getUnitsByGrade(
     params: { grade },
     signal: options?.signal,
   });
+}
+
+/**
+ * 시험지 목록을 조회하는 함수
+ * @description 페이징, 정렬, 필터링이 적용된 시험지 목록을 가져오는 함수
+ *
+ * 주요 기능:
+ * - 페이징 지원 (page, size)
+ * - 정렬 지원 (sort, direction)
+ * - 학년별 필터링 (grade)
+ * - 검색어 필터링 (search - 시험지명, 단원명)
+ * - httpOnly 쿠키를 통한 자동 인증 처리
+ * - AbortController를 통한 요청 취소 지원
+ * - 백엔드 표준 응답 형식 자동 처리
+ * - 방어적 프로그래밍으로 안전한 데이터 처리
+ *
+ * 사용 사례:
+ * - 시험지 목록 페이지에서 목록 조회
+ * - 검색 및 필터링된 시험지 조회
+ * - 페이지네이션을 통한 대량 데이터 처리
+ * - SSR에서 초기 데이터 사전 로드
+ *
+ * @example
+ * ```typescript
+ * // 기본 목록 조회
+ * const sheets = await getExamSheetsList({
+ *   page: 0,
+ *   size: 10,
+ *   sort: "createdAt",
+ *   direction: "DESC"
+ * });
+ *
+ * // 필터링과 검색
+ * const filteredSheets = await getExamSheetsList({
+ *   page: 0,
+ *   size: 20,
+ *   sort: "examName",
+ *   direction: "ASC",
+ *   grade: "1",
+ *   search: "중간고사"
+ * });
+ *
+ * // 요청 취소 기능 포함
+ * const controller = new AbortController();
+ * const sheets = await getExamSheetsList(params, { signal: controller.signal });
+ * ```
+ *
+ * @param params 시험지 목록 조회 파라미터
+ * @param params.page 현재 페이지 (0부터 시작)
+ * @param params.size 페이지당 항목 수 (1-100)
+ * @param params.sort 정렬 필드 (createdAt, examName, totalQuestions 등)
+ * @param params.direction 정렬 방향 ("ASC" | "DESC")
+ * @param params.grade 학년 필터 (선택사항)
+ * @param params.search 검색 키워드 (선택사항, 시험지명/단원명 통합 검색)
+ * @param options 추가 옵션
+ * @param options.signal 요청 취소를 위한 AbortSignal
+ * @returns 페이지네이션된 시험지 목록 데이터
+ * @throws {ApiResponseError} 백엔드에서 에러 응답을 반환한 경우
+ * @throws {ApiError} 네트워크 오류 또는 인증 실패
+ * @throws {Error} 기타 예상치 못한 오류
+ */
+export async function getExamSheetsList(
+  params: {
+    page: number;
+    size: number;
+    sort: string;
+    direction: "desc" | "asc";
+    grade?: number;
+    search?: string;
+  },
+  options?: Pick<AxiosRequestConfig, "signal">,
+): Promise<ExamSheetListResponse> {
+  // 새 API 엔드포인트 /exam-sheets 사용
+  return apiClient
+    .request<ExamSheetListResponse>({
+      method: "GET",
+      url: "/exam-sheets",
+      params: {
+        page: params.page,
+        size: params.size,
+        sort: params.sort,
+        direction: params.direction,
+        grade: params.grade,
+        search: params.search?.trim() || undefined,
+      },
+      signal: options?.signal,
+    })
+    .then((response) => response.data);
 }

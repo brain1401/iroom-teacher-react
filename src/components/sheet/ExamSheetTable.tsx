@@ -27,7 +27,7 @@ import {
 /**
  * 정렬 타입 정의
  */
-type SortField = "unitName" | "examName" | "createdAt";
+type SortField = "examName" | "createdAt";
 type SortOrder = "asc" | "desc";
 
 /**
@@ -518,13 +518,9 @@ export function ExamSheetTable({
                 }}
               />
             </TableHead>
-            <SortableHeader
-              field="unitName"
-              label="단원정보"
-              sortField={sortField}
-              sortOrder={sortOrder}
-              onSort={onSort}
-            />
+            <TableHead className={tableStyles.headerCell}>
+              단원정보
+            </TableHead>
             <SortableHeader
               field="examName"
               label="시험지명"
@@ -567,14 +563,32 @@ export function ExamSheetTable({
                 />
               </TableCell>
               <TableCell className={tableStyles.cellMedium}>
-                {sheet.unitName}
+                <div className="flex flex-wrap gap-1">
+                  {sheet.unitSummary.unitDetails.slice(0, 3).map((unit, index) => (
+                    <Badge 
+                      key={unit.unitId} 
+                      variant="secondary" 
+                      className="text-xs"
+                    >
+                      {unit.unitName}
+                    </Badge>
+                  ))}
+                  {sheet.unitSummary.unitDetails.length > 3 && (
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs"
+                    >
+                      +{sheet.unitSummary.unitDetails.length - 3}개
+                    </Badge>
+                  )}
+                </div>
               </TableCell>
               <TableCell className={tableStyles.cell}>
                 {sheet.examName}
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>
                 <Badge variant="outline" className={badgeStyles.outline}>
-                  {sheet.questionCount}문항
+                  {sheet.totalQuestions}문항
                 </Badge>
               </TableCell>
               <TableCell className={tableStyles.cellCenter}>

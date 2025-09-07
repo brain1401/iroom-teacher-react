@@ -14,12 +14,12 @@ export function SelectGrade() {
   return (
     <Select value={grade} onValueChange={(value) => setGrade(value as Grade)}>
       <SelectTrigger>
-        <SelectValue placeholder="중1" />
+        <SelectValue placeholder="1" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="중1">중1</SelectItem>
-        <SelectItem value="중2">중2</SelectItem>
-        <SelectItem value="중3">중3</SelectItem>
+        <SelectItem value="1">1</SelectItem>
+        <SelectItem value="2">2</SelectItem>
+        <SelectItem value="3">3</SelectItem>
       </SelectContent>
     </Select>
   );

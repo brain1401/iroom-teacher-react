@@ -18,7 +18,6 @@ import { getStatusBadgeVariant } from "@/utils/badge/ExamSubmission";
  */
 /**
  * 시험 제출 현황 테이블 컴포넌트 Props
- * @interface ExamSubmissionTableProps
  */
 type ExamSubmissionTableProps = {
   /**
@@ -129,7 +128,9 @@ export function ExamSubmissionTable({
         <TableBody>
           {submissions.map((submission, index) => {
             const isSelected = selectedIds.has(submission.student.id);
-            const hasScore = submission.earnedScore !== undefined;
+            // 서버에서 제공하는 score 속성 사용
+            const hasScore =
+              submission.score !== null && submission.score !== undefined;
 
             return (
               <TableRow key={submission.student.id}>
@@ -143,15 +144,20 @@ export function ExamSubmissionTable({
                 </TableCell>
                 <TableCell className="text-center">{index + 1}</TableCell>
                 <TableCell className="text-center">
-                  {submission.student.grade}/{submission.student.class}
+                  {/* 학년/반 정보는 별도 학생 상세 API에서 제공 예정 */}
+                  <span className="text-muted-foreground">-</span>
                 </TableCell>
                 <TableCell className="text-center">
-                  {submission.student.number}
+                  {/* 학생 번호는 별도 학생 상세 API에서 제공 예정 */}
+                  <span className="text-muted-foreground">-</span>
                 </TableCell>
                 <TableCell className="font-medium">
                   {submission.student.name}
                 </TableCell>
-                <TableCell>{submission.student.phoneNumber}</TableCell>
+                <TableCell>
+                  {/* 전화번호는 별도 학생 상세 API에서 제공 예정 */}
+                  <span className="text-muted-foreground">-</span>
+                </TableCell>
                 <TableCell>{submission.submissionDate}</TableCell>
                 <TableCell>
                   <Badge
@@ -162,17 +168,27 @@ export function ExamSubmissionTable({
                 </TableCell>
                 <TableCell className="text-center">
                   {hasScore ? (
-                    <span className="font-semibold">
-                      {submission.earnedScore}/{submission.totalScore}
+                    <span className="font-medium">
+                      {submission.score}/{submission.totalScore}
                     </span>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
                 </TableCell>
                 <TableCell className="text-center">
-                  {submission.submissionTime
-                    ? `${submission.submissionTime}분`
-                    : "-"}
+                  {submission.submittedAt ? (
+                    <span className="text-sm">
+                      {new Date(submission.submittedAt).toLocaleTimeString(
+                        "ko-KR",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
                   {submission.wrongAnswerCount !== undefined

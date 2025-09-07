@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
 import type { ExamSheet } from "@/types/exam-sheet";
 
 /**
@@ -20,7 +19,6 @@ import type { ExamSheet } from "@/types/exam-sheet";
  * @description 시험명 입력과 문제지 선택을 통해 시험을 출제하는 화면
  */
 export function ExamCreationTab() {
-  const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     examName: "",
@@ -32,12 +30,18 @@ export function ExamCreationTab() {
   useEffect(() => {
     const loadExamSheets = () => {
       try {
+        // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+        if (typeof window === "undefined") {
+          setExamSheets([]);
+          return;
+        }
+        
         // localStorage에서 새로 생성된 문제지들 불러오기
         const newSheets = JSON.parse(
           localStorage.getItem("newExamSheets") || "[]",
         );
-        // 기존 문제지 데이터와 합치기 (실제로는 API에서 가져올 것)
-        const allSheets = [...newSheets, ...GetMockExamSheets()];
+        // 서버 API에서 문제지 데이터를 가져올 예정
+        const allSheets = [...newSheets]; // TODO: Add server API call
         setExamSheets(allSheets);
       } catch (error) {
         console.error("문제지 목록 로드 실패:", error);
@@ -78,7 +82,7 @@ export function ExamCreationTab() {
       setTimeout(() => {
         window.location.href = "/main/exam-management";
       }, 1500);
-    } catch (error) {
+    } catch {
       toast.error("시험 출제에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsCreating(false);
@@ -137,7 +141,7 @@ export function ExamCreationTab() {
                     <div className="flex items-center justify-between w-full">
                       <span className="truncate">{sheet.examName}</span>
                       <Badge variant="outline" className="ml-2">
-                        {sheet.questionCount}문항
+                        {sheet.totalQuestions}문항
                       </Badge>
                     </div>
                   </SelectItem>
@@ -160,12 +164,12 @@ export function ExamCreationTab() {
                 <div className="flex items-center justify-between">
                   <span className="font-medium">단원:</span>
                   <span className="truncate max-w-xs">
-                    {selectedExamSheet.unitName}
+                    {selectedExamSheet.unitSummary.unitDetails[0]?.unitName || '단원 정보 없음'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-medium">문항 수:</span>
-                  <span>{selectedExamSheet.questionCount}문항</span>
+                  <span>{selectedExamSheet.totalQuestions}문항</span>
                 </div>
                 {selectedExamSheet.createdAt && (
                   <div className="flex items-center justify-between">
@@ -202,29 +206,4 @@ export function ExamCreationTab() {
   );
 }
 
-// 임시 문제지 데이터 (실제로는 API에서 가져올 것)
-function GetMockExamSheets(): ExamSheet[] {
-  return [
-    {
-      id: "mock-sheet-1",
-      examName: "1단원 기초 문제",
-      unitName: "1단원 - 수와 연산",
-      questionCount: 20,
-      createdAt: "2024-01-15T00:00:00.000Z",
-    },
-    {
-      id: "mock-sheet-2",
-      examName: "2단원 심화 문제",
-      unitName: "2단원 - 방정식과 부등식",
-      questionCount: 15,
-      createdAt: "2024-01-16T00:00:00.000Z",
-    },
-    {
-      id: "mock-sheet-3",
-      examName: "3단원 종합 문제",
-      unitName: "3단원 - 함수",
-      questionCount: 25,
-      createdAt: "2024-01-17T00:00:00.000Z",
-    },
-  ];
-}
+// Mock data removed - will use server API

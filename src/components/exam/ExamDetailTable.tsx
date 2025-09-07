@@ -20,7 +20,6 @@ import type { ExamSubmitStatusDetail } from "@/types/exam";
 
 /**
  * 시험 제출 현황 상세 테이블 컴포넌트 Props
- * @interface ExamDetailTableProps
  */
 type ExamDetailTableProps = {
   /** 시험 제출 현황 데이터 배열 - 학생별 제출 정보를 담은 배열 */
@@ -247,7 +246,8 @@ export function ExamDetailTable({
 
                 {/* 전화번호 */}
                 <TableCell className={tableStyles.cell}>
-                  {submission.student.phoneNumber}
+                  {/* TODO: student.phoneNumber 속성이 서버 타입에 없음 - 학생 상세정보 API 구현 필요 */}
+                  -
                 </TableCell>
 
                 {/* 제출일자 */}

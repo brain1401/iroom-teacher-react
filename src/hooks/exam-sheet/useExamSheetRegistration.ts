@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
-import {
-  findProblemHierarchy,
-  findProblemInTree,
-  generateProblemData,
-} from "@/data/exam-sheet-mock-data";
-import type { ProblemHierarchy } from "@/data/exam-sheet-mock-data";
 import type { Problem } from "@/types/exam-sheet";
 import type { Exam } from "@/types/exam";
+// TODO: 서버 API에서 문제 관련 함수들을 가져오도록 수정 필요
+type ProblemHierarchy = {
+  unit: string;
+  subunit: string;
+  chapter: string;
+};
 
 /**
  * 문제지 등록 관련 상태 관리 커스텀 훅
@@ -23,7 +23,7 @@ import type { Exam } from "@/types/exam";
 export function useExamSheetRegistration() {
   // 문제지 정보 상태
   const [examName, setExamName] = useState<string>("");
-  const [selectedGrade, setSelectedGrade] = useState<string>("중1");
+  const [selectedGrade, setSelectedGrade] = useState<string>("1");
 
   // 선택된 문제 상태
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(
@@ -164,14 +164,16 @@ export function useExamSheetRegistration() {
    */
   const selectedObjectiveCount = useMemo(() => {
     return Array.from(selectedProblems).filter((problemId) => {
-      const problem = findProblemInTree(problemId);
+      // TODO: 서버 API에서 문제 데이터를 가져오도록 수정 필요
+      const problem = { type: "objective" } as any; // findProblemInTree(problemId);
       return problem?.type === "objective";
     }).length;
   }, [selectedProblems]);
 
   const selectedSubjectiveCount = useMemo(() => {
     return Array.from(selectedProblems).filter((problemId) => {
-      const problem = findProblemInTree(problemId);
+      // TODO: 서버 API에서 문제 데이터를 가져오도록 수정 필요
+      const problem = { type: "objective" } as any; // findProblemInTree(problemId);
       return problem?.type === "subjective";
     }).length;
   }, [selectedProblems]);
@@ -197,7 +199,14 @@ export function useExamSheetRegistration() {
     > = {};
 
     Array.from(selectedProblems).forEach((problemId) => {
-      const hierarchy = findProblemHierarchy(problemId);
+      // TODO: 서버 API에서 문제 계층 정보를 가져오도록 수정 필요
+      const hierarchy = {
+        unit: "",
+        subunit: "",
+        chapter: "",
+        detail: "",
+        count: 1,
+      } as any; // findProblemHierarchy(problemId);
       if (hierarchy) {
         const detailKey = `${hierarchy.unit}-${hierarchy.subunit}-${hierarchy.detail}`;
         if (!problemGroups[detailKey]) {
@@ -233,7 +242,8 @@ export function useExamSheetRegistration() {
         : Array.from(selectedProblems);
 
     orderedProblemIds.forEach((problemId) => {
-      const problemData = generateProblemData(problemId);
+      // TODO: 서버 API에서 문제 데이터를 생성하도록 수정 필요
+      const problemData = { id: problemId, name: "", type: "objective" } as any; // generateProblemData(problemId);
       if (problemData) {
         problems.push({
           ...problemData,
@@ -251,7 +261,8 @@ export function useExamSheetRegistration() {
    * @param problemId 문제 ID
    */
   const handleProblemDetail = useCallback((problemId: string) => {
-    const problemData = generateProblemData(problemId);
+    // TODO: 서버 API에서 문제 데이터를 생성하도록 수정 필요
+    const problemData = { id: problemId, name: "", type: "objective" } as any; // generateProblemData(problemId);
     if (problemData) {
       setSelectedProblemForDetail({
         ...problemData,
@@ -302,16 +313,13 @@ export function useExamSheetRegistration() {
       | "totalParticipants"
       | "actualParticipants"
     > = {
-      unitName: `${selectedGrade} 수학 - 문제지`,
+      // TODO: unitName 속성이 서버 타입에 없음 - 서버 API 구조에 맞게 수정 필요
+      // unitName: `${selectedGrade} 수학 - 문제지`,
       examName,
-      questionCount: totalQuestionCount,
-      questionLevel:
-        totalQuestionCount > 25
-          ? "심화"
-          : totalQuestionCount > 20
-            ? "보통"
-            : "기초",
-      status: "승인대기",
+      content: `${selectedGrade} 수학 시험지`,
+      grade: parseInt(selectedGrade.replace("중", ""), 10) || 1,
+      qrCodeUrl: null,
+      examSheetInfo: null,
     };
 
     console.log("문제지 생성 완료:", {

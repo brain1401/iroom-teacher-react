@@ -3,7 +3,6 @@
  */
 
 export * from "./ExamSheetListTab";
-export * from "./ExamSheetRegistrationTab";
 export * from "./ExamSheetTable";
 export * from "./PrintOptionsModal";
 export * from "./ProblemListTab";

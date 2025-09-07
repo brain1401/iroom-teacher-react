@@ -1,7 +1,10 @@
 import { createRouter as createTanstackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import * as TanstackQuery from "./integrations/tanstack-query/root-provider";
-import { QueryClientAtomProvider } from "jotai-tanstack-query/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Provider } from "jotai";
+import { useHydrateAtoms } from "jotai/utils";
+import { queryClientAtom } from "jotai-tanstack-query";
 
 /**
  * TanStack Router가 자동 생성한 라우트 트리
@@ -20,6 +23,21 @@ import { NotFound } from "@/components/errors/NotFound";
  *
  * @returns 설정이 완료된 TanStack Router 인스턴스
  */
+/**
+ * Jotai와 TanStack Query 하이드레이션 컴포넌트
+ * QueryClientAtomProvider 대신 수동 조합으로 안정성 향상
+ */
+const HydrateQueryClient = ({ 
+  children, 
+  queryClient 
+}: { 
+  children: React.ReactNode; 
+  queryClient: any 
+}) => {
+  useHydrateAtoms([[queryClientAtom, queryClient]]);
+  return children;
+};
+
 export const createRouter = () => {
   // React Query 컨텍스트 가져오기 (QueryClient 포함)
   const rqContext = TanstackQuery.getContext();
@@ -41,10 +59,14 @@ export const createRouter = () => {
     // 전체 애플리케이션을 감싸는 래퍼 컴포넌트
     Wrap: (props: { children: React.ReactNode }) => {
       return (
-        // Jotai와 React Query를 연결하는 프로바이더
-        <QueryClientAtomProvider client={rqContext.queryClient}>
-          {props.children}
-        </QueryClientAtomProvider>
+        // 수동 조합: QueryClientProvider + Jotai Provider + HydrateQueryClient
+        <QueryClientProvider client={rqContext.queryClient}>
+          <Provider>
+            <HydrateQueryClient queryClient={rqContext.queryClient}>
+              {props.children}
+            </HydrateQueryClient>
+          </Provider>
+        </QueryClientProvider>
       );
     },
   });

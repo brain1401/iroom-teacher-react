@@ -1,13 +1,25 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useLayoutEffect } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useHydrateAtoms } from "jotai/utils";
 import { ExamDetailTable } from "./ExamDetailTable";
 import { Badge } from "@/components/ui/badge";
-import { examSubmissionMockData } from "@/data/student-mock-data";
-import {
-  getExamSubmissionData,
-  dashboardExamSubmissions,
-} from "@/data/exam-submission-dashboard";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
+import type { ServerRecentSubmission } from "@/types/server-exam";
+
 import { AnswerSheetCheckModal } from "./AnswerSheetResult";
+import { mapRecentSubmissionToStatusDetail } from "@/utils/exam";
+import { useRouter } from "@tanstack/react-router";
+import {
+  selectedStudentIdAtom,
+  studentAnswerDetailDataAtom,
+  studentAnswerLoadingAtom,
+  studentAnswerErrorAtom,
+} from "@/atoms/examAnswers";
+import { selectedExamIdAtom, selectExamAtom } from "@/atoms/exam";
+import {
+  selectedExamDetailAtom,
+  selectedExamSubmissionStatusAtom,
+} from "@/atoms/examDetail";
 
 /**
  * 시험 문항 답안 정보 타입
@@ -57,57 +69,72 @@ type ExamDetailProps = {
   examName?: string;
   /** 특정 시험 ID (선택적) */
   examId?: string;
+  /** SSR 데이터 로딩 에러 */
+  preloadedError?: string | null;
 };
 
 /**
  * 시험 제출 현황 상세 컴포넌트
- * @description 특정 시험의 학생별 제출 현황을 표시
+ * @description 특정 시험의 학생별 제출 현황을 표시 (SSR로 사전 로드된 데이터 사용)
  *
  * 주요 기능:
  * - 제출/미제출 통계 표시
  * - 학생별 제출 현황 테이블
  * - 답안 상세 확인 모달
  * - 뒤로가기 기능
- * - 가데이터 기반 제출 현황 표시
+ * - SSR 사전 로드된 서버 데이터 기반 제출 현황 표시
+ * - 로딩 상태 없는 즉시 렌더링 (SSR 장점 활용)
  */
-export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
-  // 제출 현황 데이터 (가데이터 기반)
-  const submissions = useMemo(() => {
-    if (examId) {
-      // 특정 시험의 제출 현황 데이터 가져오기
-      return getExamSubmissionData(examId);
-    }
-    // 전체 제출 현황 데이터 (기본값)
-    return examSubmissionMockData;
-  }, [examId]);
+export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
+  const router = useRouter();
 
-  // 선택된 항목 관리
+  // SSR 하이드레이션: examId로 selectedExamIdAtom 즉시 초기화
+  // 서버에서 프리로드된 QueryClient 데이터와 atom 상태 동기화
+  useHydrateAtoms([[selectedExamIdAtom, examId || null]] as const);
+
+  // 상태 관리
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedSubmission, setSelectedSubmission] =
     useState<ExamSubmitStatusDetail | null>(null);
-  const [selectedAnswers, setSelectedAnswers] = useState<QuestionAnswer[]>([]);
 
-  /**
-   * 제출 통계 계산
-   */
-  const submissionStats = useMemo(() => {
-    const total = submissions.length;
-    const submitted = submissions.filter(
-      (s) => s.submissionStatus === "제출완료",
-    ).length;
-    const notSubmitted = total - submitted;
+  // Atoms 가져오기
+  const selectExam = useSetAtom(selectExamAtom);
+  const setSelectedStudentId = useSetAtom(selectedStudentIdAtom);
+  const studentAnswerData = useAtomValue(studentAnswerDetailDataAtom);
+  const isLoadingAnswer = useAtomValue(studentAnswerLoadingAtom);
+  const answerError = useAtomValue(studentAnswerErrorAtom);
 
-    return {
-      total,
-      submitted,
-      notSubmitted,
-      submissionRate: total > 0 ? (submitted / total) * 100 : 0,
+  // 기존에 정의된 atoms 사용
+  const examDetailState = useAtomValue(selectedExamDetailAtom);
+  const submissionStatusState = useAtomValue(selectedExamSubmissionStatusAtom);
+
+  const examDetail = examDetailState.exam;
+  const submissionStatus = submissionStatusState.submissionStatus;
+
+  // examId가 변경될 때 selectedExamIdAtom 업데이트 (URL 변경 대응)
+  useLayoutEffect(() => {
+    if (examId) {
+      selectExam(examId);
+    }
+    return () => {
+      selectExam(null); // 컴포넌트 언마운트 시 정리
     };
-  }, [submissions]);
+  }, [examId, selectExam]);
 
-  /**
-   * 전체 선택/해제 핸들러
-   */
+  // 제출 현황 데이터 변환
+  const submissions: ExamSubmitStatusDetail[] = useMemo(() => {
+    if (!submissionStatus?.recentSubmissions) return [];
+
+    return submissionStatus.recentSubmissions.map(
+      (submission: ServerRecentSubmission) =>
+        mapRecentSubmissionToStatusDetail(
+          submission,
+          examDetail?.examName || "",
+        ),
+    );
+  }, [submissionStatus?.recentSubmissions, examDetail?.examName]);
+
+  // 전체 선택/해제 핸들러
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(submissions.map((s) => s.student.id)));
@@ -116,9 +143,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
     }
   };
 
-  /**
-   * 개별 선택/해제 핸들러
-   */
+  // 개별 선택/해제 핸들러
   const handleSelect = (id: string, checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -129,171 +154,146 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
   };
 
   /**
-   * 상세 보기 핸들러
+   * 학생 답안 상세 보기 핸들러
+   * @description "답안 확인" 버튼 클릭 시 서버 API를 통해 학생 답안 상세 정보를 조회
+   *
+   * 주요 기능:
+   * - examId와 studentId를 atoms에 설정하여 API 호출 트리거
+   * - 서버 데이터 구조에 맞춰 컴포넌트 상태 업데이트
+   * - 기존 mock 데이터 대신 실제 서버 응답 사용
    */
   const handleOpenDetail = (submission: ExamSubmitStatusDetail) => {
     setSelectedSubmission(submission);
 
-    // 가상 답안 데이터 생성 (실제로는 API에서 받아올 데이터)
-    const mockAnswers: QuestionAnswer[] = [
-      {
-        questionId: "q1",
-        questionText: "방정식 2x + 3 = 7의 해를 구하시오.",
-        studentAnswer: "x = 2",
-        correctAnswer: "x = 2",
-        isCorrect: true,
-        score: 5,
-        earnedScore: 5,
-      },
-      {
-        questionId: "q2",
-        questionText: "직선의 방정식을 구하시오.",
-        studentAnswer: "y = 3x + 1",
-        correctAnswer: "y = 2x + 1",
-        isCorrect: false,
-        score: 5,
-        earnedScore: 0,
-      },
-      {
-        questionId: "q3",
-        questionText: "이차함수 y = x² - 4x + 3의 꼭짓점을 구하시오.",
-        studentAnswer: "(2, -1)",
-        correctAnswer: "(2, -1)",
-        isCorrect: true,
-        score: 5,
-        earnedScore: 5,
-      },
-      {
-        questionId: "q4",
-        questionText: "다항식 (x+2)(x-3)을 전개하시오.",
-        studentAnswer: "x² - x - 6",
-        correctAnswer: "x² - x - 6",
-        isCorrect: true,
-        score: 5,
-        earnedScore: 5,
-      },
-      {
-        questionId: "q5",
-        questionText: "이차방정식 x² - 5x + 6 = 0의 해를 구하시오.",
-        studentAnswer: "x = 2, x = 3",
-        correctAnswer: "x = 2, x = 3",
-        isCorrect: true,
-        score: 5,
-        earnedScore: 5,
-      },
-    ];
-
-    setSelectedAnswers(mockAnswers);
+    // atoms에 examId와 studentId 설정하여 API 쿼리 트리거
+    // examId는 이미 useLayoutEffect에서 설정되므로 중복 설정 불필요
+    setSelectedStudentId(parseInt(submission.student.id));
   };
 
   /**
    * 모달 닫기 핸들러
+   * @description 답안 상세 모달을 닫고 관련 상태를 초기화
    */
   const handleClose = () => {
     setSelectedSubmission(null);
-    setSelectedAnswers([]);
+    // 학생 ID만 초기화 (시험 ID는 현재 페이지에 필요하므로 유지)
+    setSelectedStudentId(0);
   };
 
-  /**
-   * 뒤로가기 핸들러
-   */
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      // 기본 뒤로가기 (브라우저 히스토리)
-      window.history.back();
-    }
-  };
-
-  /**
-   * 총점 계산
-   */
-  const totalScore = useMemo(() => {
-    return selectedAnswers.reduce((sum, answer) => sum + answer.earnedScore, 0);
-  }, [selectedAnswers]);
-
-  /**
-   * 시험 정보 가져오기
-   */
-  const examInfo = useMemo(() => {
-    if (examId) {
-      return dashboardExamSubmissions.find((exam) => exam.id === examId);
-    }
-    return null;
-  }, [examId]);
-
-  return (
-    <div className="space-y-4 w-full">
-      {/* 헤더 영역 */}
-      <div className=" flex items-center gap-4">
-        <div className="flex-1">
-          <div className="text-[2.5rem] leading-none font-bold">
-            시험 제출 현황
-          </div>
-
-          {examName && <p className="text-lg text-gray-600 mt-1">{examName}</p>}
-          {examInfo && (
-            <div className="flex items-center gap-4 mt-2">
-              <Badge variant="outline" className="text-sm">
-                {examInfo.unitName}
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                {examInfo.status}
-              </Badge>
-              <span className="text-sm text-gray-500">
-                생성일: {examInfo.createdAt}
-              </span>
-            </div>
-          )}
+  // 로딩 상태 처리
+  if (examDetailState.isLoading || submissionStatusState.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">시험 정보를 불러오는 중...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* 제출 통계 */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-gray-900 text-white">전체</Badge>
-            <p className="text-sm font-medium">{submissionStats.total}명</p>
+  // 에러 상태 처리
+  if (examDetailState.isError || submissionStatusState.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">
+            시험 정보를 불러오는데 실패했습니다.
+          </p>
+          <button
+            onClick={() => router.history.back()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 시험 정보 섹션 */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {examDetail?.examName}
+          </h1>
+          <Badge variant="outline" className="text-sm">
+            {examDetail?.grade}학년
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span className="text-gray-500">총 문항:</span>
+            <span className="ml-2 font-medium">
+              {examDetail?.examSheetInfo?.totalQuestions || 0}문항
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-sky-500 text-white">제출완료</Badge>
-            <p className="text-sm font-medium">{submissionStats.submitted}명</p>
+          <div>
+            <span className="text-gray-500">총 배점:</span>
+            <span className="ml-2 font-medium">
+              {examDetail?.examSheetInfo?.totalPoints || 0}점
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-red-600 text-white">미제출</Badge>
-            <p className="text-sm font-medium">
-              {submissionStats.notSubmitted}명
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className="bg-green-500 text-white">제출률</Badge>
-            <p className="text-sm font-medium">
-              {submissionStats.submissionRate.toFixed(1)}%
-            </p>
+          <div>
+            <span className="text-gray-500">생성일:</span>
+            <span className="ml-2 font-medium">
+              {examDetail?.createdAt
+                ? new Date(examDetail.createdAt).toLocaleDateString()
+                : "-"}
+            </span>
           </div>
         </div>
 
-        {/* 시험별 추가 정보 */}
-        {examInfo && (
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              전체 대상:{" "}
-              <span className="font-medium">{examInfo.totalStudents}명</span>
-            </div>
-            <div className="text-sm text-gray-600">
-              제출률:{" "}
-              <span className="font-medium">
-                {examInfo.submissionRate.toFixed(1)}%
-              </span>
-            </div>
+        {examDetail?.content && (
+          <div className="mt-4 pt-4 border-t">
+            <span className="text-gray-500 text-sm">설명:</span>
+            <p className="mt-1 text-gray-700">{examDetail.content}</p>
           </div>
         )}
       </div>
 
+      {/* 제출 통계 섹션 */}
+      {submissionStatus && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            제출 현황
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {submissionStatus.submissionStats.totalExpectedStudents}
+              </div>
+              <div className="text-sm text-blue-600 mt-1">전체 학생</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {submissionStatus.submissionStats.actualSubmissions}
+              </div>
+              <div className="text-sm text-green-600 mt-1">제출 완료</div>
+            </div>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">
+                {submissionStatus.submissionStats.notSubmitted}
+              </div>
+              <div className="text-sm text-red-600 mt-1">미제출</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-700">
+                {Math.round(submissionStatus.submissionStats.submissionRate)}%
+              </div>
+              <div className="text-sm text-gray-600 mt-1">제출률</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 테이블 컴포넌트 */}
       <ExamDetailTable
-        submissions={submissions as ExamSubmitStatusDetail[]}
+        submissions={submissions}
         selectedIds={selectedIds}
         onSelectAll={handleSelectAll}
         onSelect={handleSelect}
@@ -303,9 +303,27 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps) {
       {/* 답안 확인 모달 */}
       <AnswerSheetCheckModal
         selectedSubmission={selectedSubmission}
-        selectedAnswers={selectedAnswers}
+        studentAnswerData={studentAnswerData}
         onClose={handleClose}
       />
+
+      {/* 로딩 오버레이 (답안 데이터 로딩 중) */}
+      {isLoadingAnswer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-gray-700">학생 답안을 불러오는 중...</span>
+          </div>
+        </div>
+      )}
+
+      {/* 답안 로딩 에러 처리 */}
+      {answerError && (
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <strong className="font-bold">오류: </strong>
+          <span>답안 데이터를 불러오는데 실패했습니다.</span>
+        </div>
+      )}
     </div>
   );
 }
