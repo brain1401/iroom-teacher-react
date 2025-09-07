@@ -12,40 +12,51 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { getExamSheetsList } from "@/api/exam-sheet/api";
 import type { ExamSheet } from "@/types/exam-sheet";
 
 /**
  * 시험 출제 탭 컴포넌트
  * @description 시험명 입력과 문제지 선택을 통해 시험을 출제하는 화면
+ *
+ * 주요 기능:
+ * - 실제 API를 통한 문제지 목록 조회
+ * - 시험명 입력 및 문제지 선택
+ * - 선택된 문제지 정보 미리보기
+ * - 시험 출제 처리
+ * - 로딩 상태 및 에러 처리
  */
 export function ExamCreationTab() {
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     examName: "",
     selectedExamSheetId: "",
   });
   const [examSheets, setExamSheets] = useState<ExamSheet[]>([]);
 
-  // 문제지 목록 로드
+  // 문제지 목록 로드 (실제 API 사용)
   useEffect(() => {
-    const loadExamSheets = () => {
+    const loadExamSheets = async () => {
       try {
-        // SSR 호환성: 브라우저 환경에서만 localStorage 접근
-        if (typeof window === "undefined") {
-          setExamSheets([]);
-          return;
-        }
+        setIsLoading(true);
         
-        // localStorage에서 새로 생성된 문제지들 불러오기
-        const newSheets = JSON.parse(
-          localStorage.getItem("newExamSheets") || "[]",
-        );
-        // 서버 API에서 문제지 데이터를 가져올 예정
-        const allSheets = [...newSheets]; // TODO: Add server API call
-        setExamSheets(allSheets);
+        // 실제 API 호출로 문제지 목록 조회
+        const response = await getExamSheetsList({
+          page: 0,
+          size: 100, // 모든 문제지를 가져오기 위해 큰 값 설정
+          sort: "createdAt",
+          direction: "desc",
+        });
+
+        // 응답에서 content 배열 추출
+        setExamSheets(response.content || []);
       } catch (error) {
         console.error("문제지 목록 로드 실패:", error);
         toast.error("문제지 목록을 불러오는데 실패했습니다.");
+        setExamSheets([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -72,17 +83,24 @@ export function ExamCreationTab() {
     setIsCreating(true);
 
     try {
-      // 시험 출제 로직 (실제로는 API 호출)
+      // TODO: 실제 시험 출제 API 호출
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 성공 메시지 표시
       toast.success("시험이 성공적으로 출제되었습니다!");
 
-      // 시험 목록 탭으로 이동
+      // 폼 초기화
+      setFormData({
+        examName: "",
+        selectedExamSheetId: "",
+      });
+
+      // 시험 목록 탭으로 이동 (실제로는 router를 사용해야 함)
       setTimeout(() => {
         window.location.href = "/main/exam-management";
       }, 1500);
-    } catch {
+    } catch (error) {
+      console.error("시험 출제 실패:", error);
       toast.error("시험 출제에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsCreating(false);
@@ -118,6 +136,7 @@ export function ExamCreationTab() {
               }
               placeholder="시험명을 입력하세요"
               className="h-12"
+              disabled={isLoading || isCreating}
             />
           </div>
 
@@ -131,9 +150,18 @@ export function ExamCreationTab() {
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, selectedExamSheetId: value }))
               }
+              disabled={isLoading || isCreating}
             >
               <SelectTrigger className="h-12">
-                <SelectValue placeholder="문제지를 선택하세요" />
+                <SelectValue 
+                  placeholder={
+                    isLoading 
+                      ? "문제지를 불러오는 중..." 
+                      : examSheets.length === 0
+                      ? "등록된 문제지가 없습니다"
+                      : "문제지를 선택하세요"
+                  } 
+                />
               </SelectTrigger>
               <SelectContent>
                 {examSheets.map((sheet) => (
@@ -148,6 +176,11 @@ export function ExamCreationTab() {
                 ))}
               </SelectContent>
             </Select>
+            {!isLoading && examSheets.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                등록된 문제지가 없습니다. 먼저 문제지를 등록해주세요.
+              </p>
+            )}
           </div>
 
           {/* 선택된 문제지 정보 */}
@@ -162,6 +195,10 @@ export function ExamCreationTab() {
                   <span>{selectedExamSheet.examName}</span>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span className="font-medium">학년:</span>
+                  <span>{selectedExamSheet.grade}학년</span>
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="font-medium">단원:</span>
                   <span className="truncate max-w-xs">
                     {selectedExamSheet.unitSummary.unitDetails[0]?.unitName || '단원 정보 없음'}
@@ -169,15 +206,22 @@ export function ExamCreationTab() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-medium">문항 수:</span>
-                  <span>{selectedExamSheet.totalQuestions}문항</span>
+                  <div className="flex items-center gap-2">
+                    <span>{selectedExamSheet.totalQuestions}문항</span>
+                    <div className="text-xs text-muted-foreground">
+                      (객관식: {selectedExamSheet.multipleChoiceCount}, 주관식: {selectedExamSheet.subjectiveCount})
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">총 배점:</span>
+                  <span>{selectedExamSheet.totalPoints}점</span>
                 </div>
                 {selectedExamSheet.createdAt && (
                   <div className="flex items-center justify-between">
                     <span className="font-medium">생성일:</span>
                     <span>
-                      {new Date(
-                        selectedExamSheet.createdAt,
-                      ).toLocaleDateString()}
+                      {new Date(selectedExamSheet.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 )}
@@ -192,12 +236,19 @@ export function ExamCreationTab() {
               className="w-full max-w-md h-12 text-lg font-semibold"
               onClick={handleCreateExam}
               disabled={
+                isLoading ||
                 isCreating ||
                 !formData.examName.trim() ||
-                !formData.selectedExamSheetId
+                !formData.selectedExamSheetId ||
+                examSheets.length === 0
               }
             >
-              {isCreating ? "출제 중..." : "시험 출제"}
+              {isCreating 
+                ? "출제 중..." 
+                : isLoading 
+                ? "로딩 중..." 
+                : "시험 출제"
+              }
             </Button>
           </div>
         </CardContent>
@@ -205,5 +256,3 @@ export function ExamCreationTab() {
     </div>
   );
 }
-
-// Mock data removed - will use server API

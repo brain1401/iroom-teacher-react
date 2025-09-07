@@ -5,24 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Eye,
   FileText,
-  Users,
   Target,
   BookOpen,
   Calculator,
 } from "lucide-react";
-import { useExamList } from "@/hooks/exam/useExamList";
-import type { Exam } from "@/types/exam";
 import {
   UnitsTreeProblemSelector,
   SelectedProblemsPanel,
@@ -88,31 +78,54 @@ import {
  * ```
  */
 export function ExamSheetRegistrationTab() {
-  const { addNewExam } = useExamList();
   const stats = useAtomValue(selectedProblemsStatsAtom);
   const selectedProblemsDetail = useAtomValue(selectedProblemsDetailAtom);
-
-  // 상태 관리
-  const [selectedGrade, setSelectedGrade] = useState<string>("1");
-  const [studentCount, setStudentCount] = useState<string>("20");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [examName, setExamName] = useState<string>("");
 
-  // 학생 수 옵션
-  const studentCountOptions = [
-    { value: "10", label: "10" },
-    { value: "15", label: "15" },
-    { value: "20", label: "20" },
-    { value: "25", label: "25" },
-    { value: "30", label: "30" },
-  ];
+  /**
+   * 선택된 문제들에서 학년 자동 추출
+   * @description 선택된 문제들이 속한 단원의 학년 정보를 자동으로 추출
+   * 모든 문제는 동일한 학년이어야 함
+   */
+  const extractGradeFromProblems = (): number => {
+    // 여기서는 일단 기본값 1을 반환 (나중에 문제 데이터에서 학년 정보 추출)
+    // TODO: 실제 구현 시 문제 데이터에서 학년 정보 추출
+    return 1;
+  };
 
   /**
-   * 시험 출제 처리 핸들러
+   * 선택된 문제들을 API 요청 형식으로 변환
+   * @description selectedProblemsDetail의 데이터를 API 요청 형식에 맞게 변환
+   */
+  const prepareQuestionsForAPI = () => {
+    const questions: Array<{
+      questionId: string;
+      questionOrder: number;
+      points: number;
+    }> = [];
+
+    let questionOrder = 1;
+    selectedProblemsDetail.forEach((unit) => {
+      unit.problems.forEach((problem) => {
+        questions.push({
+          questionId: problem.id,
+          questionOrder: questionOrder++,
+          points: problem.points || 10, // 기본 배점 10점
+        });
+      });
+    });
+
+    return questions;
+  };
+
+  /**
+   * 시험지 생성 처리 핸들러
    * @description 입력된 정보와 선택된 문제들로 시험지 생성
    */
-  const handleSubmit = () => {
-    if (!selectedGrade || !studentCount || !examName) {
-      alert("모든 필드를 입력해주세요");
+  const handleSubmit = async () => {
+    if (!examName.trim()) {
+      alert("시험지명을 입력해주세요");
       return;
     }
 
@@ -121,113 +134,69 @@ export function ExamSheetRegistrationTab() {
       return;
     }
 
-    // 새로운 시험 정보 생성
-    const newExam: Omit<
-      Exam,
-      | "id"
-      | "createdAt"
-      | "updatedAt"
-      | "totalParticipants"
-      | "actualParticipants"
-    > = {
-      examName,
-      content: `${selectedGrade}학년 수학 시험지`,
-      grade: parseInt(selectedGrade, 10),
-      qrCodeUrl: null,
-      examSheetInfo: {
-        totalQuestions: stats.totalCount,
-        objectiveCount: stats.objectiveCount,
-        subjectiveCount: stats.subjectiveCount,
-        totalPoints: stats.totalPoints,
-        selectedProblems: selectedProblemsDetail,
-      },
-    };
+    setIsSubmitting(true);
 
-    console.log("시험 출제 데이터:", {
-      grade: selectedGrade,
-      studentCount,
-      examName,
-      stats,
-      newExam,
-    });
+    try {
+      const { createExamSheet } = await import("@/api/exam-sheet/api");
+      
+      const requestData = {
+        examName: examName.trim(),
+        grade: extractGradeFromProblems(),
+        questions: prepareQuestionsForAPI(),
+      };
 
-    // 시험 목록에 추가
-    addNewExam(newExam);
+      console.log("시험지 생성 요청 데이터:", requestData);
 
-    alert("시험이 성공적으로 출제되었습니다! 시험 목록으로 이동합니다.");
-
-    // 시험 목록 탭으로 이동
-    window.location.href = "/main/exam/sheet/manage?tab=list";
+      const result = await createExamSheet(requestData);
+      
+      console.log("시험지 생성 성공:", result);
+      alert("시험지가 성공적으로 생성되었습니다!");
+      
+      // 시험지 목록 페이지로 이동
+      window.location.href = "/main/exam/sheet/manage?tab=list";
+    } catch (error) {
+      console.error("시험지 생성 실패:", error);
+      
+      // 에러 메시지 처리
+      let errorMessage = "시험지 생성에 실패했습니다.";
+      if (error instanceof Error) {
+        errorMessage += ` (${error.message})`;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="w-full space-y-6">
       {/* 헤더 */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">시험지 등록</h1>
+        <h1 className="text-2xl font-bold">문제지 등록</h1>
         <p className="text-sm text-muted-foreground">
-          학년, 학생 수, 시험명을 입력하고 문제를 선택하여 시험지를 생성할 수
-          있습니다.
+          문제를 선택하여 새로운 시험지를 생성할 수 있습니다.
         </p>
       </div>
 
-      {/* 시험 정보 입력 섹션 */}
+      {/* 시험지명 입력 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sky-600">시험 정보 입력</CardTitle>
+          <CardTitle className="text-sky-600">시험지 정보</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 학년 선택 */}
-            <div className="space-y-2">
-              <Label htmlFor="grade-select" className="text-base font-medium">
-                학년 선택
-              </Label>
-              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1학년</SelectItem>
-                  <SelectItem value="2">2학년</SelectItem>
-                  <SelectItem value="3">3학년</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 학생 수 선택 */}
-            <div className="space-y-2">
-              <Label htmlFor="student-count" className="text-base font-medium">
-                학생 수
-              </Label>
-              <Select value={studentCount} onValueChange={setStudentCount}>
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {studentCountOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}명
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 시험명 입력 */}
-            <div className="space-y-2">
-              <Label htmlFor="exam-name" className="text-base font-medium">
-                시험명
-              </Label>
-              <Input
-                id="exam-name"
-                type="text"
-                placeholder="예: 2025-1학기 중간고사"
-                value={examName}
-                onChange={(e) => setExamName(e.target.value)}
-                className="h-12"
-              />
-            </div>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="exam-name" className="text-base font-medium">
+              시험지명
+            </Label>
+            <Input
+              id="exam-name"
+              type="text"
+              placeholder="예: 2025-1학기 중간고사"
+              value={examName}
+              onChange={(e) => setExamName(e.target.value)}
+              className="h-12 max-w-md"
+            />
           </div>
         </CardContent>
       </Card>
@@ -263,34 +232,26 @@ export function ExamSheetRegistrationTab() {
           <CardHeader>
             <CardTitle className="text-sky-600 flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              시험 정보 요약
+              시험지 정보 요약
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {/* 기본 정보 */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <FileText className="h-5 w-5 text-sky-600" />
                   <div>
-                    <div className="text-sm text-gray-600">시험명</div>
+                    <div className="text-sm text-gray-600">시험지명</div>
                     <div className="font-semibold">{examName || "미입력"}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                  <Users className="h-5 w-5 text-sky-600" />
-                  <div>
-                    <div className="text-sm text-gray-600">대상 학년</div>
-                    <div className="font-semibold">{selectedGrade}학년</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <Target className="h-5 w-5 text-sky-600" />
                   <div>
-                    <div className="text-sm text-gray-600">학생 수</div>
-                    <div className="font-semibold">{studentCount}명</div>
+                    <div className="text-sm text-gray-600">총 문항</div>
+                    <div className="font-semibold">{stats.totalCount}문항</div>
                   </div>
                 </div>
 
@@ -376,19 +337,18 @@ export function ExamSheetRegistrationTab() {
         </Card>
       )}
 
-      {/* 시험 출제 버튼 */}
+      {/* 시험지 생성 버튼 */}
       <div className="flex justify-center pt-6">
         <Button
           className="w-full max-w-md h-12 text-lg font-semibold bg-sky-500 hover:bg-sky-600"
           onClick={handleSubmit}
           disabled={
-            !selectedGrade ||
-            !studentCount ||
-            !examName ||
-            stats.totalCount === 0
+            !examName.trim() ||
+            stats.totalCount === 0 ||
+            isSubmitting
           }
         >
-          시험지 생성
+          {isSubmitting ? "생성 중..." : "시험지 생성"}
         </Button>
       </div>
     </div>

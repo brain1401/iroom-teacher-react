@@ -169,3 +169,73 @@ export async function getExamSheetsList(
     })
     .then((response) => response.data);
 }
+
+/**
+ * 시험지를 생성하는 함수
+ * @description 선택한 문제들로 새로운 시험지를 생성하는 함수
+ *
+ * 주요 기능:
+ * - 문제 ID들의 존재 여부 및 학년 일치성 검증
+ * - 문제 순서 연속성 검증 (1, 2, 3, ...)
+ * - 시험지명 중복 검증 (같은 학년 내)
+ * - 시험지 및 문제 매핑 정보 저장
+ * - httpOnly 쿠키를 통한 자동 인증 처리
+ * - AbortController를 통한 요청 취소 지원
+ * - 백엔드 표준 응답 형식 자동 처리
+ *
+ * 주의사항:
+ * - 모든 문제는 요청한 학년과 일치해야 함
+ * - 문제 순서는 1부터 연속해서 설정해야 함
+ * - 같은 학년에서 시험지명 중복 불가
+ *
+ * @example
+ * ```typescript
+ * // 시험지 생성
+ * const newExamSheet = await createExamSheet({
+ *   examName: "2025-1학기 중간고사",
+ *   grade: 2,
+ *   questions: [
+ *     { questionId: "uuid-1", questionOrder: 1, points: 10 },
+ *     { questionId: "uuid-2", questionOrder: 2, points: 15 },
+ *     { questionId: "uuid-3", questionOrder: 3, points: 20 }
+ *   ]
+ * });
+ * 
+ * // 요청 취소 기능 포함
+ * const controller = new AbortController();
+ * const newExamSheet = await createExamSheet(data, { signal: controller.signal });
+ * ```
+ *
+ * @param data 시험지 생성 요청 데이터
+ * @param data.examName 시험지 이름 (최대 100자)
+ * @param data.grade 학년 (1, 2, 3)
+ * @param data.questions 문제 목록 (최대 50문제)
+ * @param options 추가 옵션
+ * @param options.signal 요청 취소를 위한 AbortSignal
+ * @returns 생성된 시험지 정보
+ * @throws {ApiResponseError} 백엔드에서 에러 응답을 반환한 경우 (검증 실패, 중복 등)
+ * @throws {ApiError} 네트워크 오류 또는 인증 실패
+ * @throws {Error} 기타 예상치 못한 오류
+ */
+export async function createExamSheet(
+  data: {
+    examName: string;
+    grade: number;
+    questions: Array<{
+      questionId: string;
+      questionOrder: number;
+      points: number;
+    }>;
+  },
+  options?: Pick<AxiosRequestConfig, "signal">,
+): Promise<any> {
+  // POST /exam-sheets 엔드포인트 사용
+  return apiClient
+    .request({
+      method: "POST",
+      url: "/exam-sheets",
+      data,
+      signal: options?.signal,
+    })
+    .then((response) => response.data);
+}

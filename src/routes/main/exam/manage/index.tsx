@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { Route as ParentRoute } from "./route";
 import {
   EnhancedExamSheetListTab,
-  ExamSheetRegistrationTab,
+  ExamCreationTab,
 } from "@/components/exam";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import {
@@ -99,7 +98,7 @@ export const Route = createFileRoute("/main/exam/manage/")({
     }
   },
   component: RouteComponent,
-});;
+});
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
@@ -203,7 +202,7 @@ function RouteComponent() {
   }, [activeTab]);
 
   /**
-   * 시험지 페이지 컴포넌트
+   * 시험 관리 페이지 컴포넌트
    * @description 탭 전환 및 하단 밑줄 애니메이션 제공
    *
    * 주요 기능:
@@ -223,7 +222,7 @@ function RouteComponent() {
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">
-        <ExamSheetRegistrationTab />
+        <ExamCreationTab />
       </TabsContent>
     </>
   );
