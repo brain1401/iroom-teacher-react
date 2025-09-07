@@ -5,9 +5,7 @@ import type {
   UnitsTreeResponse,
   UnitsTreeQueryParams,
 } from "@/types/units-tree";
-import type {
-  BackendUnitsTreeResponse,
-} from "@/types/units-tree-backend";
+import type { BackendUnitsTreeResponse } from "@/types/units-tree-backend";
 import { convertBackendResponseToUnitsTree } from "@/utils/unitsTreeAdapter";
 
 /**
@@ -126,7 +124,7 @@ export async function fetchUnitsTree(
   return convertBackendResponseToUnitsTree(
     backendResponse,
     params?.grade,
-    params?.includeQuestions || false
+    params?.includeQuestions || false,
   );
 }
 

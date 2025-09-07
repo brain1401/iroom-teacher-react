@@ -4,10 +4,7 @@
  */
 
 // API 함수들
-export {
-  fetchUnitWrongAnswerRates,
-  fetchScoreDistribution,
-} from "./api";
+export { fetchUnitWrongAnswerRates, fetchScoreDistribution } from "./api";
 
 // React Query 옵션들
 export {

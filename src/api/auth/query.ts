@@ -29,7 +29,7 @@ export const authKeys = {
  * ```typescript
  * // Jotai와 함께 사용
  * const currentUserQueryAtom = atomWithQuery(() => currentUserQueryOptions());
- * 
+ *
  * // 컴포넌트에서 사용
  * const { data: user, isLoading, error } = useQuery(currentUserQueryOptions());
  * ```

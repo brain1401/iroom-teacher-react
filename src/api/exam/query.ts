@@ -14,11 +14,13 @@ import {
   fetchExamDetail,
   fetchSubmissionStatus,
   fetchExamStatistics,
+  fetchExamAttendees,
 } from "./api";
 import type {
   ExamListFilters,
   ExamStatisticsParams,
 } from "@/types/server-exam";
+import type { ExamAttendeesParams } from "./types";
 import logger from "@/utils/logger";
 
 /**
@@ -43,6 +45,12 @@ export const examKeys = {
   submissions: () => [...examKeys.all, "submission"] as const,
   /** 특정 시험의 제출 현황 */
   submission: (examId: string) => [...examKeys.submissions(), examId] as const,
+
+  /** 응시자 목록 쿼리들 */
+  attendees: () => [...examKeys.all, "attendees"] as const,
+  /** 특정 시험의 응시자 목록 */
+  attendee: (examId: string, params?: ExamAttendeesParams) =>
+    [...examKeys.attendees(), examId, params] as const,
 
   /** 통계 쿼리들 */
   statistics: () => [...examKeys.all, "statistics"] as const,
@@ -99,6 +107,30 @@ export const submissionStatusQueryOptions = (examId: string) =>
     retry: 3, // 실패 시 3회 재시도
     enabled: !!examId, // examId가 있을 때만 쿼리 실행
   });
+/**
+ * 시험 응시자 목록 쿼리 옵션
+ * @description 특정 시험의 응시자 목록을 페이지네이션하여 조회
+ *
+ * 캐싱 전략:
+ * - staleTime: 2분 (응시자 정보는 자주 변경되지 않음)
+ * - gcTime: 5분 (캐시 유지 시간)
+ *
+ * @param examId 시험 고유 ID
+ * @param params 페이지네이션 및 정렬 파라미터
+ * @returns TanStack Query 옵션 객체
+ */
+export const examAttendeesQueryOptions = (
+  examId: string,
+  params: ExamAttendeesParams = {},
+) => ({
+  queryKey: examKeys.attendee(examId, params),
+  queryFn: () => fetchExamAttendees(examId, params),
+  staleTime: 2 * 60 * 1000, // 2분
+  gcTime: 5 * 60 * 1000, // 5분
+  retry: 2,
+  retryDelay: (attemptIndex: number) =>
+    Math.min(1000 * 2 ** attemptIndex, 30000),
+});
 
 /**
  * 시험 통계 쿼리 옵션
@@ -159,3 +191,17 @@ export const examPreloadQueries = {
     submissionStatusQueryOptions(examId),
   ],
 };
+/**
+ * 시험 생성 mutation 옵션
+ * @description 새로운 시험을 생성하는 mutation
+ *
+ * 주요 기능:
+ * - 시험 생성 후 목록 자동 갱신
+ * - 에러 처리 및 재시도
+ * - 성공/실패 메시지 처리
+ */
+export const createExamMutationOptions = () => ({
+  mutationKey: ["createExam"],
+  retry: 2, // 실패 시 2회 재시도
+  retryDelay: 1000, // 1초 후 재시도
+});

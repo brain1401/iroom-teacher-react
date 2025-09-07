@@ -11,8 +11,8 @@ export type ExamSubmissionInfo = {
   examName: string;
   /** 생성일 */
   createdAt: string;
-  /** 전체 예상 제출 인원 */
-  totalExpected: number;
+  /** 최대 학생 수 */
+  maxStudent: number;
   /** 실제 제출 인원 */
   actualSubmissions: number;
   /** 제출률 (%) */

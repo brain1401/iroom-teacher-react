@@ -7,7 +7,7 @@ import { examSheetListQueryOptions } from "@/api/exam-sheet";
 /**
  * 시험지 관리 페이지 필터링 상태 atoms
  * @description 시험지 목록 페이지에서 사용되는 모든 필터링 및 UI 상태 관리
- * 
+ *
  * 상태 분류:
  * - 필터링: 검색어, 학년, 페이징, 정렬
  * - UI 상태: 사이드바, 선택 상태
@@ -62,13 +62,19 @@ export const sheetSortDirectionAtom = atom<"desc" | "asc">("desc");
  * 필터 사이드바 표시 여부 atom
  * @description 필터 사이드바의 표시/숨김 상태
  */
-export const showSheetFilterSidebarAtom = atomWithStorage("sheet-show-filter-sidebar", true);
+export const showSheetFilterSidebarAtom = atomWithStorage(
+  "sheet-show-filter-sidebar",
+  true,
+);
 
 /**
  * 필터 사이드바 접힘 상태 atom
  * @description 필터 사이드바의 확장/축소 상태
  */
-export const collapsedSheetFilterSidebarAtom = atomWithStorage("sheet-collapsed-filter-sidebar", false);
+export const collapsedSheetFilterSidebarAtom = atomWithStorage(
+  "sheet-collapsed-filter-sidebar",
+  false,
+);
 
 // ========================================
 // 파생 atoms (derived atoms)
@@ -99,7 +105,7 @@ export const sheetListQueryParamsAtom = atom((get) => {
 /**
  * 시험지 목록 쿼리 atom (atomWithQuery)
  * @description 서버 상태와 클라이언트 필터링 상태를 연결
- * 
+ *
  * 주요 기능:
  * - 필터링 상태 변경 시 자동으로 API 재호출
  * - TanStack Query의 캐싱, 로딩, 에러 상태 제공
@@ -124,7 +130,7 @@ export const setSheetSearchKeywordAtom = atom(
     set(sheetSearchKeywordAtom, newKeyword);
     // 검색어 변경 시 페이지를 1로 리셋
     set(sheetPageAtom, 0);
-  }
+  },
 );
 
 /**
@@ -137,19 +143,16 @@ export const setSelectedSheetGradeAtom = atom(
     set(selectedSheetGradeAtom, newGrade);
     // 학년 변경 시 페이지를 1로 리셋
     set(sheetPageAtom, 0);
-  }
+  },
 );
 
 /**
  * 페이지 설정 atom (쓰기 전용)
  * @description 페이지 변경 전용
  */
-export const setSheetPageAtom = atom(
-  null,
-  (get, set, newPage: number) => {
-    set(sheetPageAtom, newPage);
-  }
-);
+export const setSheetPageAtom = atom(null, (get, set, newPage: number) => {
+  set(sheetPageAtom, newPage);
+});
 
 /**
  * 정렬 설정 atom (쓰기 전용)
@@ -163,19 +166,20 @@ export const setSheetSortAtom = atom(
 
     // 필드 설정
     set(sheetSortAtom, field);
-    
+
     // 방향 설정 (명시적으로 전달되지 않은 경우 토글)
     if (direction) {
       set(sheetSortDirectionAtom, direction);
     } else {
       // 같은 필드 클릭 시 방향 토글, 다른 필드 클릭 시 asc로 시작
-      const newDirection = (currentField === field && currentDirection === "asc") ? "desc" : "asc";
+      const newDirection =
+        currentField === field && currentDirection === "asc" ? "desc" : "asc";
       set(sheetSortDirectionAtom, newDirection);
     }
 
     // 정렬 변경 시 페이지를 1로 리셋
     set(sheetPageAtom, 0);
-  }
+  },
 );
 
 // ========================================

@@ -1,7 +1,11 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { atomWithQuery } from "jotai-tanstack-query";
-import { login as loginApi, logout as logoutApi, currentUserQueryOptions } from "@/api/auth";
+import {
+  login as loginApi,
+  logout as logoutApi,
+  currentUserQueryOptions,
+} from "@/api/auth";
 import type { User, LoginRequest } from "@/api/auth";
 
 /**
@@ -28,7 +32,7 @@ import type { User, LoginRequest } from "@/api/auth";
  * ```typescript
  * // 로그인 상태 확인
  * const isAuthenticated = useAtomValue(isAuthenticatedAtom);
- * 
+ *
  * // 로그인 상태 변경
  * const setIsAuthenticated = useSetAtom(isAuthenticatedAtom);
  * setIsAuthenticated(true); // 로그인 처리
@@ -50,7 +54,7 @@ export const isAuthenticatedAtom = atomWithStorage("isAuthenticated", false);
  * // 사용자 정보 조회
  * const user = useAtomValue(userAtom);
  * console.log(`안녕하세요, ${user.name}님!`);
- * 
+ *
  * // 사용자 정보 설정
  * const setUser = useSetAtom(userAtom);
  * setUser(serverUserData);
@@ -78,7 +82,7 @@ export const userAtom = atomWithStorage<Partial<User>>("user", {
  * @example
  * ```typescript
  * const { data: user, isLoading, error } = useAtomValue(currentUserQueryAtom);
- * 
+ *
  * if (isLoading) return <Loading />;
  * if (error) return <LoginRedirect />;
  * return <UserProfile user={user} />;
@@ -100,7 +104,7 @@ export const currentUserQueryAtom = atomWithQuery(() => {
  * @example
  * ```typescript
  * const login = useSetAtom(loginAtom);
- * 
+ *
  * const handleLogin = async (credentials) => {
  *   try {
  *     const result = await login(credentials);
@@ -119,11 +123,11 @@ export const loginAtom = atom(
     try {
       // 서버 API를 통한 로그인 처리
       const response = await loginApi(credentials);
-      
+
       // 로그인 성공 시 상태 업데이트
       set(userAtom, response.user);
       set(isAuthenticatedAtom, true);
-      
+
       return {
         success: true,
         user: response.user,
@@ -140,10 +144,10 @@ export const loginAtom = atom(
         lastLoginAt: "",
       });
       set(isAuthenticatedAtom, false);
-      
+
       throw error; // 컴포넌트에서 에러 처리할 수 있도록 재발생
     }
-  }
+  },
 );
 
 /**
@@ -158,7 +162,7 @@ export const loginAtom = atom(
  * @example
  * ```typescript
  * const logout = useSetAtom(logoutAtom);
- * 
+ *
  * const handleLogout = async () => {
  *   try {
  *     await logout();
@@ -170,30 +174,27 @@ export const loginAtom = atom(
  * };
  * ```
  */
-export const logoutAtom = atom(
-  null,
-  async (get, set) => {
-    try {
-      // 서버 API를 통한 로그아웃 처리
-      await logoutApi();
-    } catch (error) {
-      console.error("서버 로그아웃 에러:", error);
-      // 서버 에러가 발생해도 클라이언트 상태는 정리
-    } finally {
-      // 클라이언트 상태 완전 초기화
-      set(userAtom, {
-        id: 0,
-        username: "",
-        email: "",
-        name: "",
-        role: "teacher",
-        createdAt: "",
-        lastLoginAt: "",
-      });
-      set(isAuthenticatedAtom, false);
-    }
+export const logoutAtom = atom(null, async (get, set) => {
+  try {
+    // 서버 API를 통한 로그아웃 처리
+    await logoutApi();
+  } catch (error) {
+    console.error("서버 로그아웃 에러:", error);
+    // 서버 에러가 발생해도 클라이언트 상태는 정리
+  } finally {
+    // 클라이언트 상태 완전 초기화
+    set(userAtom, {
+      id: 0,
+      username: "",
+      email: "",
+      name: "",
+      role: "teacher",
+      createdAt: "",
+      lastLoginAt: "",
+    });
+    set(isAuthenticatedAtom, false);
   }
-);
+});
 
 /**
  * 인증 상태 확인 atom (derived)
@@ -202,7 +203,7 @@ export const logoutAtom = atom(
  * @example
  * ```typescript
  * const authStatus = useAtomValue(authStatusAtom);
- * 
+ *
  * if (authStatus.isLoading) return <Spinner />;
  * if (!authStatus.isAuthenticated) return <LoginForm />;
  * return <AuthenticatedApp user={authStatus.user} />;
@@ -215,7 +216,7 @@ export const authStatusAtom = atom((get) => {
 
   return {
     isAuthenticated,
-    user: isAuthenticated ? (currentUser || user) : null,
+    user: isAuthenticated ? currentUser || user : null,
     isLoading: isAuthenticated ? isLoading : false,
     error: isAuthenticated ? error : null,
     hasValidSession: isAuthenticated && !error,

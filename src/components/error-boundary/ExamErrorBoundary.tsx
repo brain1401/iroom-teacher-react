@@ -212,7 +212,7 @@ export class ExamErrorBoundary extends React.Component<
       return;
     }
 
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       hasError: false,
       error: null,
       errorInfo: null,
@@ -270,7 +270,12 @@ export class ExamErrorBoundary extends React.Component<
     const errorClassification = error ? this.classifyError(error) : null;
 
     return (
-      <div className={cn("w-full h-full flex items-center justify-center p-8", className)}>
+      <div
+        className={cn(
+          "w-full h-full flex items-center justify-center p-8",
+          className,
+        )}
+      >
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <div className="flex items-center gap-3">

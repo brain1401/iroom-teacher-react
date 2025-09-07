@@ -518,9 +518,7 @@ export function ExamSheetTable({
                 }}
               />
             </TableHead>
-            <TableHead className={tableStyles.headerCell}>
-              단원정보
-            </TableHead>
+            <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <SortableHeader
               field="examName"
               label="시험지명"
@@ -564,20 +562,19 @@ export function ExamSheetTable({
               </TableCell>
               <TableCell className={tableStyles.cellMedium}>
                 <div className="flex flex-wrap gap-1">
-                  {sheet.unitSummary.unitDetails.slice(0, 3).map((unit, index) => (
-                    <Badge 
-                      key={unit.unitId} 
-                      variant="secondary" 
-                      className="text-xs"
-                    >
-                      {unit.unitName}
-                    </Badge>
-                  ))}
+                  {sheet.unitSummary.unitDetails
+                    .slice(0, 3)
+                    .map((unit, index) => (
+                      <Badge
+                        key={unit.unitId}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {unit.unitName}
+                      </Badge>
+                    ))}
                   {sheet.unitSummary.unitDetails.length > 3 && (
-                    <Badge 
-                      variant="outline" 
-                      className="text-xs"
-                    >
+                    <Badge variant="outline" className="text-xs">
                       +{sheet.unitSummary.unitDetails.length - 3}개
                     </Badge>
                   )}

@@ -217,7 +217,10 @@ export function useExamListWithFilters() {
    * 시험 삭제 핸들러 (TODO: 실제 API 연동 필요)
    */
   const handleDeleteSelected = useCallback(() => {
-    console.warn("[TODO] 선택된 시험 삭제 API 연동 필요:", Array.from(selectedIds));
+    console.warn(
+      "[TODO] 선택된 시험 삭제 API 연동 필요:",
+      Array.from(selectedIds),
+    );
     // TODO: 실제 삭제 API 호출
     // await deleteExams(Array.from(selectedIds));
     setSelectedIds(new Set());
@@ -266,7 +269,8 @@ export function useExamListWithFilters() {
       isFetching: examListData.isFetching,
       error: examListData.error,
       isEmpty: !examListData.isLoading && examListData.exams.length === 0,
-      isFiltered: filterSummary.hasSearchKeyword || filterSummary.hasGradeFilter,
+      isFiltered:
+        filterSummary.hasSearchKeyword || filterSummary.hasGradeFilter,
     };
   }, [examListData, filterSummary]);
 

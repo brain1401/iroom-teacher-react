@@ -5,7 +5,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { CategoryNode, SubcategoryNode, UnitNode } from "@/types/units-tree";
+import type {
+  CategoryNode,
+  SubcategoryNode,
+  UnitNode,
+} from "@/types/units-tree";
 import {
   unitsTreeWithProblemsAtom,
   selectedProblemIdsAtom,
@@ -63,11 +67,11 @@ export function UnitsTreeProblemSelector() {
    */
   const getUnitSelectionState = (unit: UnitNode): "all" | "some" | "none" => {
     if (!unit.problems || unit.problems.length === 0) return "none";
-    
-    const selectedCount = unit.problems.filter((p) => 
-      selectedProblemIds.has(p.id)
+
+    const selectedCount = unit.problems.filter((p) =>
+      selectedProblemIds.has(p.id),
     ).length;
-    
+
     if (selectedCount === 0) return "none";
     if (selectedCount === unit.problems.length) return "all";
     return "some";
@@ -76,18 +80,22 @@ export function UnitsTreeProblemSelector() {
   /**
    * 중분류의 선택 상태 계산
    */
-  const getSubcategorySelectionState = (subcategory: SubcategoryNode): "all" | "some" | "none" => {
+  const getSubcategorySelectionState = (
+    subcategory: SubcategoryNode,
+  ): "all" | "some" | "none" => {
     const allProblems: string[] = [];
     subcategory.children.forEach((unit) => {
       if (unit.problems) {
         unit.problems.forEach((p) => allProblems.push(p.id));
       }
     });
-    
+
     if (allProblems.length === 0) return "none";
-    
-    const selectedCount = allProblems.filter((id) => selectedProblemIds.has(id)).length;
-    
+
+    const selectedCount = allProblems.filter((id) =>
+      selectedProblemIds.has(id),
+    ).length;
+
     if (selectedCount === 0) return "none";
     if (selectedCount === allProblems.length) return "all";
     return "some";
@@ -96,7 +104,9 @@ export function UnitsTreeProblemSelector() {
   /**
    * 대분류의 선택 상태 계산
    */
-  const getCategorySelectionState = (category: CategoryNode): "all" | "some" | "none" => {
+  const getCategorySelectionState = (
+    category: CategoryNode,
+  ): "all" | "some" | "none" => {
     const allProblems: string[] = [];
     category.children.forEach((subcategory) => {
       subcategory.children.forEach((unit) => {
@@ -105,11 +115,13 @@ export function UnitsTreeProblemSelector() {
         }
       });
     });
-    
+
     if (allProblems.length === 0) return "none";
-    
-    const selectedCount = allProblems.filter((id) => selectedProblemIds.has(id)).length;
-    
+
+    const selectedCount = allProblems.filter((id) =>
+      selectedProblemIds.has(id),
+    ).length;
+
     if (selectedCount === 0) return "none";
     if (selectedCount === allProblems.length) return "all";
     return "some";
@@ -118,14 +130,25 @@ export function UnitsTreeProblemSelector() {
   /**
    * 문제 수 계산
    */
-  const getProblemCount = (node: CategoryNode | SubcategoryNode | UnitNode): number => {
+  const getProblemCount = (
+    node: CategoryNode | SubcategoryNode | UnitNode,
+  ): number => {
     if (node.type === "unit") {
       return node.problems?.length || 0;
     } else if (node.type === "subcategory") {
-      return node.children.reduce((sum, unit) => sum + (unit.problems?.length || 0), 0);
+      return node.children.reduce(
+        (sum, unit) => sum + (unit.problems?.length || 0),
+        0,
+      );
     } else {
-      return node.children.reduce((sum, sub) => 
-        sum + sub.children.reduce((unitSum, unit) => unitSum + (unit.problems?.length || 0), 0), 0
+      return node.children.reduce(
+        (sum, sub) =>
+          sum +
+          sub.children.reduce(
+            (unitSum, unit) => unitSum + (unit.problems?.length || 0),
+            0,
+          ),
+        0,
       );
     }
   };
@@ -141,17 +164,19 @@ export function UnitsTreeProblemSelector() {
           return (
             <div key={category.id} className="mb-2">
               {/* 대분류 */}
-              <div 
+              <div
                 className="flex items-center gap-2 py-2 hover:bg-muted/50 rounded-md px-2 cursor-pointer"
                 onClick={(e) => {
                   // 버튼이나 체크박스를 직접 클릭한 경우 중복 실행 방지
-                  if ((e.target as HTMLElement).closest('button') || 
-                      (e.target as HTMLElement).closest('button[role="checkbox"]')) {
+                  if (
+                    (e.target as HTMLElement).closest("button") ||
+                    (e.target as HTMLElement).closest('button[role="checkbox"]')
+                  ) {
                     return;
                   }
-                  toggleAllInCategory({ 
-                    categoryId: category.id, 
-                    categoryNode: category 
+                  toggleAllInCategory({
+                    categoryId: category.id,
+                    categoryNode: category,
                   });
                 }}
               >
@@ -167,16 +192,24 @@ export function UnitsTreeProblemSelector() {
                     <ChevronRight className="h-4 w-4" />
                   )}
                 </Button>
-                
+
                 <Checkbox
-                  checked={categorySelection === "all" || categorySelection === "some"}
-                  onCheckedChange={() => toggleAllInCategory({ 
-                    categoryId: category.id, 
-                    categoryNode: category 
-                  })}
-                  className={categorySelection === "some" ? "data-[state=checked]:bg-primary/50" : ""}
+                  checked={
+                    categorySelection === "all" || categorySelection === "some"
+                  }
+                  onCheckedChange={() =>
+                    toggleAllInCategory({
+                      categoryId: category.id,
+                      categoryNode: category,
+                    })
+                  }
+                  className={
+                    categorySelection === "some"
+                      ? "data-[state=checked]:bg-primary/50"
+                      : ""
+                  }
                 />
-                
+
                 <span className="font-semibold flex-1">{category.name}</span>
                 <Badge variant="secondary" className="ml-auto">
                   {categoryProblemCount}문제
@@ -187,23 +220,31 @@ export function UnitsTreeProblemSelector() {
               {categoryExpanded && (
                 <div className="ml-6">
                   {category.children.map((subcategory) => {
-                    const subcategoryExpanded = expandedNodeIds.has(subcategory.id);
-                    const subcategorySelection = getSubcategorySelectionState(subcategory);
-                    const subcategoryProblemCount = getProblemCount(subcategory);
+                    const subcategoryExpanded = expandedNodeIds.has(
+                      subcategory.id,
+                    );
+                    const subcategorySelection =
+                      getSubcategorySelectionState(subcategory);
+                    const subcategoryProblemCount =
+                      getProblemCount(subcategory);
 
                     return (
                       <div key={subcategory.id} className="mb-1">
-                        <div 
+                        <div
                           className="flex items-center gap-2 py-1.5 hover:bg-muted/50 rounded-md px-2 cursor-pointer"
                           onClick={(e) => {
                             // 버튼이나 체크박스를 직접 클릭한 경우 중복 실행 방지
-                            if ((e.target as HTMLElement).closest('button') || 
-                                (e.target as HTMLElement).closest('button[role="checkbox"]')) {
+                            if (
+                              (e.target as HTMLElement).closest("button") ||
+                              (e.target as HTMLElement).closest(
+                                'button[role="checkbox"]',
+                              )
+                            ) {
                               return;
                             }
-                            toggleAllInSubcategory({ 
-                              subcategoryId: subcategory.id, 
-                              subcategoryNode: subcategory 
+                            toggleAllInSubcategory({
+                              subcategoryId: subcategory.id,
+                              subcategoryNode: subcategory,
                             });
                           }}
                         >
@@ -219,17 +260,29 @@ export function UnitsTreeProblemSelector() {
                               <ChevronRight className="h-3 w-3" />
                             )}
                           </Button>
-                          
+
                           <Checkbox
-                            checked={subcategorySelection === "all" || subcategorySelection === "some"}
-                            onCheckedChange={() => toggleAllInSubcategory({ 
-                              subcategoryId: subcategory.id, 
-                              subcategoryNode: subcategory 
-                            })}
-                            className={cn("h-4 w-4", subcategorySelection === "some" ? "data-[state=checked]:bg-primary/50" : "")}
+                            checked={
+                              subcategorySelection === "all" ||
+                              subcategorySelection === "some"
+                            }
+                            onCheckedChange={() =>
+                              toggleAllInSubcategory({
+                                subcategoryId: subcategory.id,
+                                subcategoryNode: subcategory,
+                              })
+                            }
+                            className={cn(
+                              "h-4 w-4",
+                              subcategorySelection === "some"
+                                ? "data-[state=checked]:bg-primary/50"
+                                : "",
+                            )}
                           />
-                          
-                          <span className="text-sm flex-1">{subcategory.name}</span>
+
+                          <span className="text-sm flex-1">
+                            {subcategory.name}
+                          </span>
                           <Badge variant="outline" className="text-xs">
                             {subcategoryProblemCount}
                           </Badge>
@@ -241,22 +294,29 @@ export function UnitsTreeProblemSelector() {
                             {subcategory.children.map((unit) => {
                               const unitExpanded = expandedNodeIds.has(unit.id);
                               const unitSelection = getUnitSelectionState(unit);
-                              const unitProblemCount = unit.problems?.length || 0;
+                              const unitProblemCount =
+                                unit.problems?.length || 0;
 
                               return (
                                 <div key={unit.id} className="mb-1">
-                                  <div 
+                                  <div
                                     className="flex items-center gap-2 py-1 hover:bg-muted/50 rounded-md px-2 cursor-pointer"
                                     onClick={(e) => {
                                       // 버튼이나 체크박스를 직접 클릭한 경우 중복 실행 방지
-                                      if ((e.target as HTMLElement).closest('button') || 
-                                          (e.target as HTMLElement).closest('button[role="checkbox"]')) {
+                                      if (
+                                        (e.target as HTMLElement).closest(
+                                          "button",
+                                        ) ||
+                                        (e.target as HTMLElement).closest(
+                                          'button[role="checkbox"]',
+                                        )
+                                      ) {
                                         return;
                                       }
                                       if (unitProblemCount > 0) {
-                                        toggleAllInUnit({ 
-                                          unitId: unit.id, 
-                                          unitNode: unit 
+                                        toggleAllInUnit({
+                                          unitId: unit.id,
+                                          unitNode: unit,
                                         });
                                       }
                                     }}
@@ -274,19 +334,34 @@ export function UnitsTreeProblemSelector() {
                                         <ChevronRight className="h-3 w-3" />
                                       )}
                                     </Button>
-                                    
+
                                     <Checkbox
-                                      checked={unitSelection === "all" || unitSelection === "some"}
-                                      onCheckedChange={() => toggleAllInUnit({ 
-                                        unitId: unit.id, 
-                                        unitNode: unit 
-                                      })}
+                                      checked={
+                                        unitSelection === "all" ||
+                                        unitSelection === "some"
+                                      }
+                                      onCheckedChange={() =>
+                                        toggleAllInUnit({
+                                          unitId: unit.id,
+                                          unitNode: unit,
+                                        })
+                                      }
                                       disabled={unitProblemCount === 0}
-                                      className={cn("h-3.5 w-3.5", unitSelection === "some" ? "data-[state=checked]:bg-primary/50" : "")}
+                                      className={cn(
+                                        "h-3.5 w-3.5",
+                                        unitSelection === "some"
+                                          ? "data-[state=checked]:bg-primary/50"
+                                          : "",
+                                      )}
                                     />
-                                    
-                                    <span className="text-xs flex-1">{unit.name}</span>
-                                    <Badge variant="outline" className="text-xs h-5">
+
+                                    <span className="text-xs flex-1">
+                                      {unit.name}
+                                    </span>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs h-5"
+                                    >
                                       {unitProblemCount}
                                     </Badge>
                                   </div>
@@ -295,40 +370,49 @@ export function UnitsTreeProblemSelector() {
                                   {unitExpanded && unit.problems && (
                                     <div className="ml-8 space-y-1 mt-1">
                                       {unit.problems.map((problem) => {
-                                        const isSelected = selectedProblemIds.has(problem.id);
-                                        
+                                        const isSelected =
+                                          selectedProblemIds.has(problem.id);
+
                                         return (
                                           <div
                                             key={problem.id}
                                             className={cn(
                                               "flex items-center gap-2 py-0.5 px-2 rounded-md text-xs cursor-pointer",
                                               "hover:bg-muted/30",
-                                              isSelected && "bg-primary/5"
+                                              isSelected && "bg-primary/5",
                                             )}
                                             onClick={(e) => {
                                               // 체크박스 자체를 클릭한 경우 중복 실행 방지
-                                              if ((e.target as HTMLElement).closest('button[role="checkbox"]')) {
+                                              if (
+                                                (
+                                                  e.target as HTMLElement
+                                                ).closest(
+                                                  'button[role="checkbox"]',
+                                                )
+                                              ) {
                                                 return;
                                               }
-                                              toggleProblem({ 
-                                                type: "problem", 
-                                                id: problem.id 
+                                              toggleProblem({
+                                                type: "problem",
+                                                id: problem.id,
                                               });
                                             }}
                                           >
                                             <Checkbox
                                               checked={isSelected}
-                                              onCheckedChange={() => toggleProblem({ 
-                                                type: "problem", 
-                                                id: problem.id 
-                                              })}
+                                              onCheckedChange={() =>
+                                                toggleProblem({
+                                                  type: "problem",
+                                                  id: problem.id,
+                                                })
+                                              }
                                               className="h-3 w-3"
                                             />
-                                            
+
                                             <span className="flex-1">
                                               {problem.number}. {problem.title}
                                             </span>
-                                            
+
                                             <span className="text-muted-foreground">
                                               ({problem.points}점)
                                             </span>

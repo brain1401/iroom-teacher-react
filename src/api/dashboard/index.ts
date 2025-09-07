@@ -4,7 +4,11 @@
  */
 
 // API 함수들
-export { fetchRecentExamsStatus, fetchScoreDistribution, fetchStudentAnswerDetail } from "./api";
+export {
+  fetchRecentExamsStatus,
+  fetchScoreDistribution,
+  fetchStudentAnswerDetail,
+} from "./api";
 
 // React Query 옵션들
 export {
@@ -22,7 +26,7 @@ export type {
   ExamSubmissionInfo,
   ScoreDistribution,
   ScoreStatistics,
-  
+
   // 요청 파라미터 타입
   RecentExamsStatusParams,
   ScoreDistributionParams,

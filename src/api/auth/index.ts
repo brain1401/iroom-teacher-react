@@ -17,8 +17,8 @@ export type {
 } from "./types";
 
 // React Query 옵션들
-export { 
-  authKeys, 
-  currentUserQueryOptions, 
-  userProfileQueryOptions 
+export {
+  authKeys,
+  currentUserQueryOptions,
+  userProfileQueryOptions,
 } from "./query";

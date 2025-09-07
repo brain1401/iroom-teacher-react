@@ -286,7 +286,7 @@ function RouteComponent() {
                   key={exam.examId}
                   examName={exam.examName}
                   actualSubmissions={exam.actualSubmissions}
-                  totalExpected={exam.totalExpected}
+                  maxStudent={exam.maxStudent}
                   submissionRate={Math.round(exam.submissionRate * 10) / 10}
                   onClick={() => handleExamSubmissionClick(exam)}
                   className="cursor-pointer hover:shadow-lg transition-shadow"

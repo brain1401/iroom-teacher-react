@@ -41,14 +41,14 @@ export const statisticsScoreDistributionQueryAtom = atomWithQuery((get) => {
 export const examAverageScoresAtom = atom((get) => {
   const grade = get(selectedGradeAtom);
   const scoreData = get(statisticsScoreDistributionQueryAtom);
-  
+
   // 서버에서 시험별 데이터가 없으므로 현재 평균점수 기반으로 임시 데이터 생성
   if (scoreData.isPending || scoreData.isError || !scoreData.data) {
     return [];
   }
 
   const currentAverage = scoreData.data.averageScore;
-  
+
   // 학년별 임시 시험 데이터 (실제 API 대기)
   const examsByGrade = {
     1: [
@@ -84,8 +84,12 @@ export const examAverageScoresAtom = atom((get) => {
  */
 export const unitWrongAnswerChartDataAtom = atom((get) => {
   const wrongAnswerData = get(unitWrongAnswerRatesQueryAtom);
-  
-  if (wrongAnswerData.isPending || wrongAnswerData.isError || !wrongAnswerData.data) {
+
+  if (
+    wrongAnswerData.isPending ||
+    wrongAnswerData.isError ||
+    !wrongAnswerData.data
+  ) {
     return [];
   }
 
@@ -105,7 +109,7 @@ export const unitWrongAnswerChartDataAtom = atom((get) => {
 export const statisticsLoadingAtom = atom((get) => {
   const wrongAnswerQuery = get(unitWrongAnswerRatesQueryAtom);
   const scoreQuery = get(statisticsScoreDistributionQueryAtom);
-  
+
   return wrongAnswerQuery.isPending || scoreQuery.isPending;
 });
 
@@ -116,9 +120,9 @@ export const statisticsLoadingAtom = atom((get) => {
 export const statisticsErrorAtom = atom((get) => {
   const wrongAnswerQuery = get(unitWrongAnswerRatesQueryAtom);
   const scoreQuery = get(statisticsScoreDistributionQueryAtom);
-  
+
   const hasError = wrongAnswerQuery.isError || scoreQuery.isError;
   const error = wrongAnswerQuery.error || scoreQuery.error;
-  
+
   return { hasError, error };
 });

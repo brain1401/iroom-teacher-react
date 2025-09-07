@@ -8,6 +8,7 @@ import { z } from "zod";
 import { useExamList } from "@/hooks/exam/useExamList";
 import { ExamErrorBoundary } from "@/components/error-boundary/ExamErrorBoundary";
 import { LoadingSpinner } from "@/components/loading/ExamLoadingStates";
+import { ExamTabProvider } from "@/contexts/ExamTabContext";
 
 // 검색 파라미터 스키마 정의 - 네비게이션 파라미터만 포함
 const searchSchema = z.object({
@@ -89,7 +90,7 @@ function RouteComponent() {
           </div>
         )}
 
-        {/* 제어형 탭 구성 */}
+        {/* 제어형 탭 구성 - context로 activeTab과 setActiveTab 전달 */}
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -139,7 +140,12 @@ function RouteComponent() {
               shouldShowHomeButton={false}
               shouldShowBackButton={false}
             >
-              <Outlet />
+              <ExamTabProvider
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              >
+                <Outlet />
+              </ExamTabProvider>
             </ExamErrorBoundary>
           </div>
         </Tabs>

@@ -59,7 +59,7 @@ type CustomBarChartProps = {
  *     color: "hsl(var(--chart-1))"
  *   },
  *   profit: {
- *     label: "순이익", 
+ *     label: "순이익",
  *     color: "hsl(var(--chart-2))"
  *   }
  * };

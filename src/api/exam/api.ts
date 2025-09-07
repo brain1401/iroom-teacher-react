@@ -50,6 +50,44 @@ import type {
  * });
  * ```
  */
+import type {
+  CreateExamRequest,
+  CreateExamResponse,
+  ExamAttendeesParams,
+  ExamAttendeesResponse,
+} from "./types";
+
+/**
+ * 시험 생성 API
+ * @description 새로운 시험을 생성하는 API
+ *
+ * @param data 시험 생성 요청 데이터
+ * @returns 생성된 시험 정보
+ *
+ * @example
+ * ```typescript
+ * const newExam = await createExam({
+ *   examName: "2025년 1학기 중간고사",
+ *   examSheetId: "01990de9-efc4-75a4-8077-45bb51771722",
+ *   description: "1학년 수학 중간고사입니다",
+ *   startDate: "2025-10-15T09:00:00",
+ *   endDate: "2025-10-15T11:00:00",
+ *   duration: 120
+ * });
+ * ```
+ */
+export async function createExam(
+  data: CreateExamRequest,
+): Promise<CreateExamResponse> {
+  try {
+    const response = await apiClient.post<CreateExamResponse>("/exams", data);
+    return response.data;
+  } catch (error) {
+    console.error("시험 생성 실패:", error);
+    throw error;
+  }
+}
+
 export async function fetchExamList(
   filters: ExamListFilters = {},
 ): Promise<PageResponse<ServerExam>> {
@@ -186,6 +224,59 @@ export async function fetchExamStatistics(
     return response.data;
   } catch (error) {
     console.error("시험 통계 조회 실패:", error);
+    throw error;
+  }
+}
+
+/**
+ * 시험 응시자 목록 조회
+ * @description 특정 시험의 응시자 목록을 페이지네이션하여 조회
+ *
+ * 지원 정렬:
+ * - submittedAt,desc: 제출 시간 최신순 (기본값)
+ * - submittedAt,asc: 제출 시간 오래된순
+ * - studentName,asc: 학생 이름 가나다순
+ * - studentName,desc: 학생 이름 가나다 역순
+ *
+ * @param examId 시험 고유 ID
+ * @param params 페이지네이션 및 정렬 파라미터
+ * @returns 페이지네이션된 응시자 목록
+ *
+ * @example
+ * ```typescript
+ * // 기본 조회 (최신순, 20개)
+ * const attendees = await fetchExamAttendees("01990dea-1349-7dc7");
+ *
+ * // 이름순 정렬, 50개씩 조회
+ * const attendees = await fetchExamAttendees("01990dea-1349-7dc7", {
+ *   page: 0,
+ *   size: 50,
+ *   sort: "studentName,asc"
+ * });
+ * ```
+ */
+export async function fetchExamAttendees(
+  examId: string,
+  params: ExamAttendeesParams = {},
+): Promise<ExamAttendeesResponse> {
+  const queryParams = new URLSearchParams();
+
+  // 기본값 설정
+  const page = params.page ?? 0;
+  const size = params.size ?? 10;
+  const sort = params.sort ?? "submittedAt,desc";
+
+  queryParams.append("page", page.toString());
+  queryParams.append("size", size.toString());
+  queryParams.append("sort", sort);
+
+  try {
+    const response = await apiClient.get<ExamAttendeesResponse>(
+      `/exams/${examId}/attendees?${queryParams.toString()}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`응시자 목록 조회 실패 (Exam ID: ${examId}):`, error);
     throw error;
   }
 }

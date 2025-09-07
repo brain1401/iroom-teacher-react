@@ -77,7 +77,9 @@ function convertUnitToTreeNode(unit: UnitNode): UnitTreeNode {
  * @param subcategory 중분류 노드 데이터
  * @returns 변환된 UnitTreeNode
  */
-function convertSubcategoryToTreeNode(subcategory: SubcategoryNode): UnitTreeNode {
+function convertSubcategoryToTreeNode(
+  subcategory: SubcategoryNode,
+): UnitTreeNode {
   return {
     id: subcategory.id,
     name: subcategory.name,
@@ -105,7 +107,9 @@ function convertCategoryToTreeNode(category: CategoryNode): UnitTreeNode {
  * @param categories API에서 받은 대분류 노드 배열
  * @returns UnitTreeItem에서 사용 가능한 트리 노드 배열
  */
-export function convertUnitsTreeForComponent(categories: CategoryNode[]): UnitTreeNode[] {
+export function convertUnitsTreeForComponent(
+  categories: CategoryNode[],
+): UnitTreeNode[] {
   return categories.map(convertCategoryToTreeNode);
 }
 
@@ -116,20 +120,20 @@ export function convertUnitsTreeForComponent(categories: CategoryNode[]): UnitTr
  * @returns 찾은 문제 노드 (없으면 undefined)
  */
 export function findProblemInTree(
-  treeNodes: UnitTreeNode[], 
-  problemId: string
+  treeNodes: UnitTreeNode[],
+  problemId: string,
 ): UnitTreeNode | undefined {
   for (const node of treeNodes) {
     if (node.id === problemId && node.originalType === "problem") {
       return node;
     }
-    
+
     if (node.children) {
       const found = findProblemInTree(node.children, problemId);
       if (found) return found;
     }
   }
-  
+
   return undefined;
 }
 
@@ -141,23 +145,23 @@ export function findProblemInTree(
  * @returns 문제의 계층 경로 배열 (없으면 빈 배열)
  */
 export function findProblemPath(
-  treeNodes: UnitTreeNode[], 
-  problemId: string, 
-  path: string[] = []
+  treeNodes: UnitTreeNode[],
+  problemId: string,
+  path: string[] = [],
 ): string[] {
   for (const node of treeNodes) {
     const currentPath = [...path, node.name];
-    
+
     if (node.id === problemId && node.originalType === "problem") {
       return currentPath;
     }
-    
+
     if (node.children) {
       const found = findProblemPath(node.children, problemId, currentPath);
       if (found.length > 0) return found;
     }
   }
-  
+
   return [];
 }
 
@@ -169,7 +173,7 @@ export function findProblemPath(
  */
 export function groupSelectedProblemsByUnit(
   treeNodes: UnitTreeNode[],
-  selectedProblemIds: Set<string>
+  selectedProblemIds: Set<string>,
 ): Array<{
   unitId: string;
   unitName: string;
@@ -197,15 +201,19 @@ export function groupSelectedProblemsByUnit(
   function traverseTree(nodes: UnitTreeNode[], parentPath: string[] = []) {
     for (const node of nodes) {
       const currentPath = [...parentPath, node.name];
-      
+
       if (node.originalType === "unit" && node.children) {
         // 단원 레벨에서 선택된 문제들 수집
         const unitProblems = node.children
-          .filter(child => child.originalType === "problem" && selectedProblemIds.has(child.id))
-          .map(problem => ({
+          .filter(
+            (child) =>
+              child.originalType === "problem" &&
+              selectedProblemIds.has(child.id),
+          )
+          .map((problem) => ({
             id: problem.id,
             name: problem.name,
-            type: problem.type || "objective" as const,
+            type: problem.type || ("objective" as const),
             difficulty: problem.difficulty || "medium",
             path: [...currentPath, problem.name],
           }));
@@ -218,7 +226,7 @@ export function groupSelectedProblemsByUnit(
           });
         }
       }
-      
+
       if (node.children) {
         traverseTree(node.children, currentPath);
       }
@@ -232,15 +240,23 @@ export function groupSelectedProblemsByUnit(
 /**
  * 백엔드 문제를 프론트엔드 문제 타입으로 변환
  */
-function convertBackendQuestionToProblem(question: BackendQuestion, index: number = 0): Problem {
+function convertBackendQuestionToProblem(
+  question: BackendQuestion,
+  index: number = 0,
+): Problem {
   return {
     id: question.id,
     number: index + 1, // 문제 번호 추가
     title: question.questionPreview,
     content: question.questionPreview, // 미리보기를 내용으로 사용
-    type: question.questionType === "MULTIPLE_CHOICE" ? "objective" : "subjective",
-    difficulty: question.difficulty === "하" ? "low" : 
-                question.difficulty === "중" ? "medium" : "high",
+    type:
+      question.questionType === "MULTIPLE_CHOICE" ? "objective" : "subjective",
+    difficulty:
+      question.difficulty === "하"
+        ? "low"
+        : question.difficulty === "중"
+          ? "medium"
+          : "high",
     points: question.points,
     unitName: "", // 상위 단원에서 설정 필요
     // 선택적 필드들
@@ -254,7 +270,7 @@ function convertBackendQuestionToProblem(question: BackendQuestion, index: numbe
  */
 function convertBackendNodeToFrontend(
   node: BackendTreeNode,
-  parentId?: string
+  parentId?: string,
 ): CategoryNode | SubcategoryNode | UnitNode | null {
   const baseNode = {
     id: node.id,
@@ -271,9 +287,10 @@ function convertBackendNodeToFrontend(
         type: "category" as const,
         description: node.description || undefined,
         children: node.children
-          .map(child => convertBackendNodeToFrontend(child, node.id))
-          .filter((child): child is SubcategoryNode => 
-            child !== null && child.type === "subcategory"
+          .map((child) => convertBackendNodeToFrontend(child, node.id))
+          .filter(
+            (child): child is SubcategoryNode =>
+              child !== null && child.type === "subcategory",
           ),
       } as CategoryNode;
 
@@ -284,9 +301,10 @@ function convertBackendNodeToFrontend(
         parentCategoryId: parentId || "",
         description: node.description || undefined,
         children: node.children
-          .map(child => convertBackendNodeToFrontend(child, node.id))
-          .filter((child): child is UnitNode => 
-            child !== null && child.type === "unit"
+          .map((child) => convertBackendNodeToFrontend(child, node.id))
+          .filter(
+            (child): child is UnitNode =>
+              child !== null && child.type === "unit",
           ),
       } as SubcategoryNode;
 
@@ -321,41 +339,51 @@ function convertBackendNodeToFrontend(
  * @description 백엔드의 평면적인 구조를 계층적인 프론트엔드 타입으로 변환
  */
 export function convertBackendResponseToUnitsTree(
-  backendData: BackendUnitsTreeResponse | { result: string; message: string; data: BackendUnitsTreeResponse },
+  backendData:
+    | BackendUnitsTreeResponse
+    | { result: string; message: string; data: BackendUnitsTreeResponse },
   grade?: Grade,
-  includeQuestions: boolean = false
+  includeQuestions: boolean = false,
 ): UnitsTreeResponse {
   // 백엔드 응답이 래핑된 경우와 아닌 경우를 모두 처리
   let treeData: BackendUnitsTreeResponse;
-  
+
   // 응답이 { result, message, data } 형태인지 확인
-  if (backendData && typeof backendData === 'object' && 'result' in backendData && 'data' in backendData) {
+  if (
+    backendData &&
+    typeof backendData === "object" &&
+    "result" in backendData &&
+    "data" in backendData
+  ) {
     // 래핑된 응답에서 data 추출
     treeData = (backendData as any).data;
-    console.log('백엔드 응답 래핑 감지, data 추출:', { result: (backendData as any).result, hasData: !!treeData });
+    console.log("백엔드 응답 래핑 감지, data 추출:", {
+      result: (backendData as any).result,
+      hasData: !!treeData,
+    });
   } else if (Array.isArray(backendData)) {
     // 이미 배열 형태인 경우
     treeData = backendData;
   } else {
     // 예상치 못한 형태인 경우
-    console.error('예상치 못한 백엔드 응답 형태:', backendData);
-    throw new Error('잘못된 백엔드 응답 형태입니다.');
+    console.error("예상치 못한 백엔드 응답 형태:", backendData);
+    throw new Error("잘못된 백엔드 응답 형태입니다.");
   }
 
   // 배열이 아닌 경우 에러 처리
   if (!Array.isArray(treeData)) {
-    console.error('treeData가 배열이 아닙니다:', treeData);
-    throw new Error('단원 트리 데이터는 배열 형태여야 합니다.');
+    console.error("treeData가 배열이 아닙니다:", treeData);
+    throw new Error("단원 트리 데이터는 배열 형태여야 합니다.");
   }
 
   // 백엔드 응답에서 최상위 카테고리 노드들만 추출 (type === "CATEGORY")
-  const categoryNodes = treeData.filter(node => node.type === "CATEGORY");
-  
+  const categoryNodes = treeData.filter((node) => node.type === "CATEGORY");
+
   // 각 카테고리 노드를 프론트엔드 타입으로 변환
   const categories = categoryNodes
-    .map(node => convertBackendNodeToFrontend(node))
-    .filter((node): node is CategoryNode => 
-      node !== null && node.type === "category"
+    .map((node) => convertBackendNodeToFrontend(node))
+    .filter(
+      (node): node is CategoryNode => node !== null && node.type === "category",
     )
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
@@ -403,7 +431,7 @@ export function convertBackendResponseToUnitsTree(
  * @description ApiResponse<T> 형태의 백엔드 응답에서 data 부분만 추출
  */
 export function extractBackendResponseData(
-  response: BackendApiResponse<BackendUnitsTreeResponse>
+  response: BackendApiResponse<BackendUnitsTreeResponse>,
 ): BackendUnitsTreeResponse {
   if (response.result !== "SUCCESS") {
     throw new Error(`API 응답 실패: ${response.message}`);

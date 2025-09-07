@@ -36,7 +36,7 @@ import { examSheetListQueryOptions } from "@/api/exam-sheet";
 const sheetManageSearchSchema = z.object({
   /** 활성 탭 */
   tab: z.enum(["list", "register"]).optional().catch("list").default("list"),
-  
+
   // 기본 필터링 파라미터들 - 시험지 목록 페이지 전용
   page: z.number().int().min(0).optional(),
   size: z.number().int().min(1).max(100).optional(),

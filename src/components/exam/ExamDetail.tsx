@@ -1,7 +1,8 @@
 import { useState, useMemo, useLayoutEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { ExamDetailTable } from "./ExamDetailTable";
+
+import { ExamAttendeesTable } from "./ExamAttendeesTable";
 import { Badge } from "@/components/ui/badge";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
 import type { ServerRecentSubmission } from "@/types/server-exam";
@@ -93,7 +94,6 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
   useHydrateAtoms([[selectedExamIdAtom, examId || null]] as const);
 
   // 상태 관리
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedSubmission, setSelectedSubmission] =
     useState<ExamSubmitStatusDetail | null>(null);
 
@@ -121,37 +121,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
     };
   }, [examId, selectExam]);
 
-  // 제출 현황 데이터 변환
-  const submissions: ExamSubmitStatusDetail[] = useMemo(() => {
-    if (!submissionStatus?.recentSubmissions) return [];
-
-    return submissionStatus.recentSubmissions.map(
-      (submission: ServerRecentSubmission) =>
-        mapRecentSubmissionToStatusDetail(
-          submission,
-          examDetail?.examName || "",
-        ),
-    );
-  }, [submissionStatus?.recentSubmissions, examDetail?.examName]);
-
-  // 전체 선택/해제 핸들러
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(submissions.map((s) => s.student.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
-  // 개별 선택/해제 핸들러
-  const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  };
+  // 제출 현황 데이터는 이제 ExamAttendeesTable에서 별도로 로드
 
   /**
    * 학생 답안 상세 보기 핸들러
@@ -265,7 +235,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {submissionStatus.submissionStats.totalExpectedStudents}
+                {submissionStatus.submissionStats.maxStudent}
               </div>
               <div className="text-sm text-blue-600 mt-1">전체 학생</div>
             </div>
@@ -291,13 +261,31 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
         </div>
       )}
 
-      {/* 테이블 컴포넌트 */}
-      <ExamDetailTable
-        submissions={submissions}
-        selectedIds={selectedIds}
-        onSelectAll={handleSelectAll}
-        onSelect={handleSelect}
-        onOpenDetail={handleOpenDetail}
+      {/* 응시자 테이블 컴포넌트 - 별도 API에서 데이터 로드 */}
+      <ExamAttendeesTable
+        examId={examId || ""}
+        onOpenDetail={(attendee) => {
+          // 응시자 정보를 ExamSubmitStatusDetail 타입으로 변환
+          const submission: ExamSubmitStatusDetail = {
+            id: attendee.submissionId,
+            student: {
+              id: attendee.studentId.toString(),
+              name: attendee.studentName,
+            },
+            examName: attendee.examName,
+            submissionDate: new Date(attendee.submittedAt).toLocaleDateString(
+              "ko-KR",
+            ),
+            submittedAt: attendee.submittedAt,
+            score: null, // 점수는 별도 API에서 가져와야 함
+            totalScore: 0, // 총점도 별도로 가져와야 함
+            status: "submitted",
+            submissionStatus: "제출완료",
+            correctAnswerCount: 0,
+            wrongAnswerCount: 0,
+          };
+          handleOpenDetail(submission);
+        }}
       />
 
       {/* 답안 확인 모달 */}

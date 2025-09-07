@@ -122,7 +122,7 @@ export const unitsTreeWithProblemsQueryOptions = (grade: Grade) =>
     refetchOnWindowFocus: false, // 창 포커스 시 재요청 비활성화
     refetchOnMount: false, // 컴포넌트 마운트 시 재요청 비활성화
     refetchOnReconnect: false, // 네트워크 재연결 시 재요청 비활성화
-  });;
+  });
 
 /**
  * 기본 단원 트리 쿼리 옵션

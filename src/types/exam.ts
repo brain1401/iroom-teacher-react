@@ -21,9 +21,7 @@ export type {
   Pageable,
 } from "@/types/server-exam";
 
-export type {
-  ExamListFilters as ServerExamListParams,
-} from "@/types/server-exam";
+export type { ExamListFilters as ServerExamListParams } from "@/types/server-exam";
 
 /**
  * UI 전용 검색 범위 타입

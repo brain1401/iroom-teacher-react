@@ -107,7 +107,9 @@ export function SelectedProblemsPanel() {
                 {/* 단원 헤더 */}
                 <div className="mb-2">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-medium text-sm">{unitGroup.unitName}</h4>
+                    <h4 className="font-medium text-sm">
+                      {unitGroup.unitName}
+                    </h4>
                     <Badge variant="secondary" className="text-xs">
                       {unitGroup.problemCount}문제 / {unitGroup.totalPoints}점
                     </Badge>
@@ -129,7 +131,7 @@ export function SelectedProblemsPanel() {
                       key={problem.id}
                       className={cn(
                         "flex items-center gap-2 p-1.5 rounded-md",
-                        "hover:bg-muted/50 group transition-colors"
+                        "hover:bg-muted/50 group transition-colors",
                       )}
                     >
                       <span className="text-xs text-muted-foreground w-8">
@@ -139,7 +141,9 @@ export function SelectedProblemsPanel() {
                         {problem.title}
                       </span>
                       <Badge
-                        variant={problem.type === "objective" ? "default" : "secondary"}
+                        variant={
+                          problem.type === "objective" ? "default" : "secondary"
+                        }
                         className="text-xs h-5"
                       >
                         {problem.type === "objective" ? "객관식" : "주관식"}
@@ -150,7 +154,9 @@ export function SelectedProblemsPanel() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleProblem({ type: "problem", id: problem.id })}
+                        onClick={() =>
+                          toggleProblem({ type: "problem", id: problem.id })
+                        }
                         className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />

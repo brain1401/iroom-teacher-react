@@ -46,7 +46,7 @@ function createSafeErrorInfo(error: unknown): Record<string, unknown> {
     if (typeof error === "object") {
       // 객체인 경우 안전한 속성만 추출
       const safeObject: Record<string, unknown> = { type: "object" };
-      
+
       for (const [key, value] of Object.entries(error)) {
         try {
           // AbortSignal이나 기타 직렬화 불가능한 객체는 건너뛰기
@@ -54,7 +54,11 @@ function createSafeErrorInfo(error: unknown): Record<string, unknown> {
             safeObject[key] = "[AbortSignal - 직렬화 불가]";
           } else if (typeof value === "function") {
             safeObject[key] = "[Function]";
-          } else if (value && typeof value === "object" && value.constructor?.name === "AbortController") {
+          } else if (
+            value &&
+            typeof value === "object" &&
+            value.constructor?.name === "AbortController"
+          ) {
             safeObject[key] = "[AbortController - 직렬화 불가]";
           } else {
             // 기본 타입이거나 안전한 객체인 경우만 포함
@@ -64,7 +68,7 @@ function createSafeErrorInfo(error: unknown): Record<string, unknown> {
           safeObject[key] = "[직렬화 불가능한 값]";
         }
       }
-      
+
       return safeObject;
     }
 
@@ -74,7 +78,8 @@ function createSafeErrorInfo(error: unknown): Record<string, unknown> {
     return {
       type: "safe_error_processing_failed",
       originalType: typeof error,
-      safeErrorMessage: safeError instanceof Error ? safeError.message : String(safeError),
+      safeErrorMessage:
+        safeError instanceof Error ? safeError.message : String(safeError),
     };
   }
 }

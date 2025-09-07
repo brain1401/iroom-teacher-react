@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Eye,
-  FileText,
-  Target,
-  BookOpen,
-  Calculator,
-} from "lucide-react";
+import { Eye, FileText, Target, BookOpen, Calculator } from "lucide-react";
 import {
   UnitsTreeProblemSelector,
   SelectedProblemsPanel,
@@ -138,7 +132,7 @@ export function ExamSheetRegistrationTab() {
 
     try {
       const { createExamSheet } = await import("@/api/exam-sheet/api");
-      
+
       const requestData = {
         examName: examName.trim(),
         grade: extractGradeFromProblems(),
@@ -148,21 +142,21 @@ export function ExamSheetRegistrationTab() {
       console.log("시험지 생성 요청 데이터:", requestData);
 
       const result = await createExamSheet(requestData);
-      
+
       console.log("시험지 생성 성공:", result);
       alert("시험지가 성공적으로 생성되었습니다!");
-      
+
       // 시험지 목록 페이지로 이동
       window.location.href = "/main/exam/sheet/manage?tab=list";
     } catch (error) {
       console.error("시험지 생성 실패:", error);
-      
+
       // 에러 메시지 처리
       let errorMessage = "시험지 생성에 실패했습니다.";
       if (error instanceof Error) {
         errorMessage += ` (${error.message})`;
       }
-      
+
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -342,11 +336,7 @@ export function ExamSheetRegistrationTab() {
         <Button
           className="w-full max-w-md h-12 text-lg font-semibold bg-sky-500 hover:bg-sky-600"
           onClick={handleSubmit}
-          disabled={
-            !examName.trim() ||
-            stats.totalCount === 0 ||
-            isSubmitting
-          }
+          disabled={!examName.trim() || stats.totalCount === 0 || isSubmitting}
         >
           {isSubmitting ? "생성 중..." : "시험지 생성"}
         </Button>

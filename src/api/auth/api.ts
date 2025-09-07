@@ -1,10 +1,10 @@
 import { apiClient } from "@/api/client";
-import type { 
-  LoginRequest, 
-  LoginResponse, 
-  LogoutResponse, 
+import type {
+  LoginRequest,
+  LoginResponse,
+  LogoutResponse,
   CurrentUserResponse,
-  User
+  User,
 } from "./types";
 
 /**
@@ -34,7 +34,7 @@ import type {
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   // TODO: 실제 서버 엔드포인트로 교체 필요
   // 현재는 mock 구현으로 서버 API 패턴 준수
-  
+
   // 임시 인증 로직 (개발용)
   if (credentials.username === "admin" && credentials.password === "1234") {
     const mockUser: User = {
@@ -52,11 +52,14 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
       accessToken: "mock-token-12345",
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24시간 후
     };
-  } else if (credentials.username === "teacher" && credentials.password === "1234") {
+  } else if (
+    credentials.username === "teacher" &&
+    credentials.password === "1234"
+  ) {
     const mockUser: User = {
       id: 2,
       username: "teacher",
-      email: "teacher@iroom.com", 
+      email: "teacher@iroom.com",
       name: "김교사",
       role: "teacher",
       createdAt: "2024-01-01T00:00:00Z",
@@ -72,7 +75,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
     // 실제 서버 에러 형태로 에러 발생
     throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.");
   }
-  
+
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
   // return await apiClient.post<LoginResponse>("/api/auth/login", credentials);
 }
@@ -103,12 +106,12 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
 export async function logout(): Promise<LogoutResponse> {
   // TODO: 실제 서버 엔드포인트로 교체 필요
   // 현재는 mock 구현으로 성공 응답 반환
-  
+
   return {
     success: true,
     message: "로그아웃되었습니다.",
   };
-  
+
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
   // return await apiClient.post<LogoutResponse>("/api/auth/logout");
 }
@@ -140,22 +143,22 @@ export async function logout(): Promise<LogoutResponse> {
 export async function getCurrentUser(): Promise<CurrentUserResponse> {
   // TODO: 실제 서버 엔드포인트로 교체 필요
   // 현재는 localStorage의 사용자 정보 반환 (임시)
-  
+
   // SSR 호환성: 브라우저 환경에서만 localStorage 접근
   if (typeof window === "undefined") {
     throw new Error("서버 환경에서는 사용자 정보를 사용할 수 없습니다.");
   }
-  
+
   const storedUser = localStorage.getItem("user");
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-  
+
   if (!isAuthenticated || !storedUser) {
     throw new Error("인증되지 않은 사용자입니다.");
   }
-  
+
   try {
     const user = JSON.parse(storedUser);
-    
+
     // 서버 응답 형태로 변환
     return {
       id: parseInt(user.id || "0"),
@@ -169,8 +172,8 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
   } catch (error) {
     throw new Error("사용자 정보를 불러올 수 없습니다.");
   }
-  
-  // 실제 서버 연동 시 사용할 코드 (주석 처리)  
+
+  // 실제 서버 연동 시 사용할 코드 (주석 처리)
   // return await apiClient.get<CurrentUserResponse>("/api/auth/me");
 }
 
@@ -183,10 +186,12 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
  * @throws {ApiResponseError} 서버 에러 또는 권한 없음
  * @throws {ApiError} 네트워크 에러
  */
-export async function updateProfile(updates: Partial<Pick<User, "name" | "email">>): Promise<User> {
+export async function updateProfile(
+  updates: Partial<Pick<User, "name" | "email">>,
+): Promise<User> {
   // TODO: 실제 서버 엔드포인트로 교체 필요
   throw new Error("프로필 업데이트 기능은 아직 구현되지 않았습니다.");
-  
+
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
   // return await apiClient.put<User>("/api/auth/profile", updates);
 }

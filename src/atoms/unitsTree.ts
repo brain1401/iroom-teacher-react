@@ -79,7 +79,7 @@ export const selectedGradeForUnitsTreeAtom = atom<Grade>("1");
 export const unitsTreeWithProblemsAtom = atomWithQuery((get) => {
   const selectedGrade = get(selectedGradeForUnitsTreeAtom);
   return unitsTreeWithProblemsQueryOptions(selectedGrade);
-});;
+});
 
 /**
  * 기본 단원 트리 조회 atom (빠른 로딩용)
@@ -198,12 +198,12 @@ export const toggleAllProblemsInUnitAtom = atom(
   (get, set, params: { unitId: string; unitNode?: UnitNode }) => {
     const currentState = get(unitSelectionStateAtom);
     const { data } = get(unitsTreeWithProblemsAtom);
-    
+
     if (!data) return;
 
     // unitNode가 제공되지 않은 경우 트리에서 찾기
     let targetUnit: UnitNode | undefined = params.unitNode;
-    
+
     if (!targetUnit) {
       data.categories.forEach((category: CategoryNode) => {
         category.children.forEach((subcategory: SubcategoryNode) => {
@@ -215,23 +215,29 @@ export const toggleAllProblemsInUnitAtom = atom(
         });
       });
     }
-    
-    if (!targetUnit || !targetUnit.problems || targetUnit.problems.length === 0) {
+
+    if (
+      !targetUnit ||
+      !targetUnit.problems ||
+      targetUnit.problems.length === 0
+    ) {
       return;
     }
 
     const unitProblemIds = targetUnit.problems.map((p: Problem) => p.id);
     const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
-    
+
     // 이 단원의 모든 문제가 이미 선택되어 있는지 확인
-    const allSelected = unitProblemIds.every(id => newSelectedProblemIds.has(id));
-    
+    const allSelected = unitProblemIds.every((id) =>
+      newSelectedProblemIds.has(id),
+    );
+
     if (allSelected) {
       // 모두 선택되어 있으면 모두 해제
-      unitProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+      unitProblemIds.forEach((id) => newSelectedProblemIds.delete(id));
     } else {
       // 하나라도 선택되지 않았으면 모두 선택
-      unitProblemIds.forEach(id => newSelectedProblemIds.add(id));
+      unitProblemIds.forEach((id) => newSelectedProblemIds.add(id));
     }
 
     set(unitSelectionStateAtom, {
@@ -247,14 +253,18 @@ export const toggleAllProblemsInUnitAtom = atom(
  */
 export const toggleAllProblemsInSubcategoryAtom = atom(
   null,
-  (get, set, params: { subcategoryId: string; subcategoryNode?: SubcategoryNode }) => {
+  (
+    get,
+    set,
+    params: { subcategoryId: string; subcategoryNode?: SubcategoryNode },
+  ) => {
     const currentState = get(unitSelectionStateAtom);
     const { data } = get(unitsTreeWithProblemsAtom);
-    
+
     if (!data) return;
 
     let targetSubcategory: SubcategoryNode | undefined = params.subcategoryNode;
-    
+
     if (!targetSubcategory) {
       data.categories.forEach((category: CategoryNode) => {
         category.children.forEach((subcategory: SubcategoryNode) => {
@@ -264,7 +274,7 @@ export const toggleAllProblemsInSubcategoryAtom = atom(
         });
       });
     }
-    
+
     if (!targetSubcategory) return;
 
     const allProblemIds: string[] = [];
@@ -279,12 +289,14 @@ export const toggleAllProblemsInSubcategoryAtom = atom(
     if (allProblemIds.length === 0) return;
 
     const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
-    const allSelected = allProblemIds.every(id => newSelectedProblemIds.has(id));
-    
+    const allSelected = allProblemIds.every((id) =>
+      newSelectedProblemIds.has(id),
+    );
+
     if (allSelected) {
-      allProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+      allProblemIds.forEach((id) => newSelectedProblemIds.delete(id));
     } else {
-      allProblemIds.forEach(id => newSelectedProblemIds.add(id));
+      allProblemIds.forEach((id) => newSelectedProblemIds.add(id));
     }
 
     set(unitSelectionStateAtom, {
@@ -303,15 +315,17 @@ export const toggleAllProblemsInCategoryAtom = atom(
   (get, set, params: { categoryId: string; categoryNode?: CategoryNode }) => {
     const currentState = get(unitSelectionStateAtom);
     const { data } = get(unitsTreeWithProblemsAtom);
-    
+
     if (!data) return;
 
     let targetCategory: CategoryNode | undefined = params.categoryNode;
-    
+
     if (!targetCategory) {
-      targetCategory = data.categories.find((cat: CategoryNode) => cat.id === params.categoryId);
+      targetCategory = data.categories.find(
+        (cat: CategoryNode) => cat.id === params.categoryId,
+      );
     }
-    
+
     if (!targetCategory) return;
 
     const allProblemIds: string[] = [];
@@ -328,12 +342,14 @@ export const toggleAllProblemsInCategoryAtom = atom(
     if (allProblemIds.length === 0) return;
 
     const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
-    const allSelected = allProblemIds.every(id => newSelectedProblemIds.has(id));
-    
+    const allSelected = allProblemIds.every((id) =>
+      newSelectedProblemIds.has(id),
+    );
+
     if (allSelected) {
-      allProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+      allProblemIds.forEach((id) => newSelectedProblemIds.delete(id));
     } else {
-      allProblemIds.forEach(id => newSelectedProblemIds.add(id));
+      allProblemIds.forEach((id) => newSelectedProblemIds.add(id));
     }
 
     set(unitSelectionStateAtom, {
@@ -372,10 +388,10 @@ export const selectedProblemsDetailAtom = atom((get) => {
     category.children.forEach((subcategory: SubcategoryNode) => {
       subcategory.children.forEach((unit: UnitNode) => {
         if (unit.problems) {
-          const selectedProblemsInUnit = unit.problems.filter((problem: Problem) =>
-            selectedProblemIds.has(problem.id)
+          const selectedProblemsInUnit = unit.problems.filter(
+            (problem: Problem) => selectedProblemIds.has(problem.id),
           );
-          
+
           if (selectedProblemsInUnit.length > 0) {
             unitsWithProblems.push({
               unitId: unit.id,
@@ -384,7 +400,10 @@ export const selectedProblemsDetailAtom = atom((get) => {
               categoryName: category.name,
               subcategoryName: subcategory.name,
               problems: selectedProblemsInUnit,
-              totalPoints: selectedProblemsInUnit.reduce((sum, p) => sum + (p.points || 0), 0),
+              totalPoints: selectedProblemsInUnit.reduce(
+                (sum, p) => sum + (p.points || 0),
+                0,
+              ),
               problemCount: selectedProblemsInUnit.length,
             });
           }
@@ -477,7 +496,7 @@ export const filteredUnitsTreeAtom = atom((get) => {
     error,
     filteredCategories,
   };
-});;
+});
 
 /**
  * 선택된 문제 통계 atom (읽기 전용)
@@ -543,7 +562,7 @@ export const selectedProblemsStatsAtom = atom((get) => {
       ({ problem }: { problem: Problem }) => problem,
     ),
   };
-});;
+});
 
 /**
  * 단원 트리 초기화 액션 atom (쓰기 전용)

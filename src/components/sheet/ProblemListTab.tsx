@@ -315,39 +315,53 @@ export function ProblemListTab({
         examName,
         grade: 1, // 기본값 1학년
         totalQuestions: problems.length,
-        multipleChoiceCount: problems.filter(p => p.type === "objective").length,
-        subjectiveCount: problems.filter(p => p.type === "subjective").length,
+        multipleChoiceCount: problems.filter((p) => p.type === "objective")
+          .length,
+        subjectiveCount: problems.filter((p) => p.type === "subjective").length,
         totalPoints: problems.reduce((sum, p) => sum + p.points, 0),
-        averagePointsPerQuestion: problems.length > 0 ? problems.reduce((sum, p) => sum + p.points, 0) / problems.length : 0,
+        averagePointsPerQuestion:
+          problems.length > 0
+            ? problems.reduce((sum, p) => sum + p.points, 0) / problems.length
+            : 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         questions: problems,
         unitSummary: {
-          totalUnits: new Set(problems.map(p => p.unitName)).size,
-          unitDetails: Array.from(new Set(problems.map(p => p.unitName))).map((unitName, index) => ({
-            unitId: `unit-${index}`,
-            unitName,
-            unitCode: `UC${index + 1}`,
-            subcategoryName: unitName,
-            categoryName: "수학",
-            questionCount: problems.filter(p => p.unitName === unitName).length,
-            totalPoints: problems.filter(p => p.unitName === unitName).reduce((sum, p) => sum + p.points, 0)
-          })),
+          totalUnits: new Set(problems.map((p) => p.unitName)).size,
+          unitDetails: Array.from(new Set(problems.map((p) => p.unitName))).map(
+            (unitName, index) => ({
+              unitId: `unit-${index}`,
+              unitName,
+              unitCode: `UC${index + 1}`,
+              subcategoryName: unitName,
+              categoryName: "수학",
+              questionCount: problems.filter((p) => p.unitName === unitName)
+                .length,
+              totalPoints: problems
+                .filter((p) => p.unitName === unitName)
+                .reduce((sum, p) => sum + p.points, 0),
+            }),
+          ),
           categoryDistribution: [
             {
               categoryName: "객관식",
-              questionCount: problems.filter(p => p.type === "objective").length
+              questionCount: problems.filter((p) => p.type === "objective")
+                .length,
             },
             {
-              categoryName: "주관식", 
-              questionCount: problems.filter(p => p.type === "subjective").length
-            }
+              categoryName: "주관식",
+              questionCount: problems.filter((p) => p.type === "subjective")
+                .length,
+            },
           ],
-          subcategoryDistribution: Array.from(new Set(problems.map(p => p.unitName))).map((unitName) => ({
+          subcategoryDistribution: Array.from(
+            new Set(problems.map((p) => p.unitName)),
+          ).map((unitName) => ({
             subcategoryName: unitName,
-            questionCount: problems.filter(p => p.unitName === unitName).length
-          }))
-        }
+            questionCount: problems.filter((p) => p.unitName === unitName)
+              .length,
+          })),
+        },
       };
 
       // SSR 호환성: 브라우저 환경에서만 localStorage 접근

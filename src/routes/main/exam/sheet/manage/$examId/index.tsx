@@ -11,7 +11,7 @@ import { z } from "zod";
 const examSheetSearchSchema = z.object({
   /** 활성 탭 */
   tab: z.enum(["list", "register"]).optional().catch("list").default("list"),
-  
+
   /** 현재 페이지 (0부터 시작) */
   page: z.number().int().min(0).catch(0).default(0),
   /** 페이지당 항목 수 */
@@ -24,7 +24,7 @@ const examSheetSearchSchema = z.object({
   grade: z.string().catch("1").default("1"),
   /** 검색 키워드 */
   search: z.string().optional(),
-});;
+});
 
 export const Route = createFileRoute("/main/exam/sheet/manage/$examId/")({
   validateSearch: examSheetSearchSchema,
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/main/exam/sheet/manage/$examId/")({
 
 function RouteComponent() {
   const searchParams = Route.useSearch();
-  
+
   /** URL 기반 활성 탭 */
   const activeTab = searchParams.tab || "list";
 

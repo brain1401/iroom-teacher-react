@@ -27,12 +27,12 @@ import { NotFound } from "@/components/errors/NotFound";
  * Jotai와 TanStack Query 하이드레이션 컴포넌트
  * QueryClientAtomProvider 대신 수동 조합으로 안정성 향상
  */
-const HydrateQueryClient = ({ 
-  children, 
-  queryClient 
-}: { 
-  children: React.ReactNode; 
-  queryClient: any 
+const HydrateQueryClient = ({
+  children,
+  queryClient,
+}: {
+  children: React.ReactNode;
+  queryClient: any;
 }) => {
   useHydrateAtoms([[queryClientAtom, queryClient]]);
   return children;

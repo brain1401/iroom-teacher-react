@@ -9,6 +9,7 @@ export {
   fetchExamDetail,
   fetchSubmissionStatus,
   fetchExamStatistics,
+  createExam,
 } from "./api";
 
 // TanStack Query 옵션들
@@ -21,6 +22,7 @@ export {
   defaultExamStatisticsQueryOptions,
   examQueryInvalidation,
   examPreloadQueries,
+  createExamMutationOptions,
 } from "./query";
 
 // 서버 응답 타입들은 src/types/server-exam.ts에서 re-export

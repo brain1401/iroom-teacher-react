@@ -4,10 +4,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import {
-  fetchUnitWrongAnswerRates,
-  fetchScoreDistribution,
-} from "./api";
+import { fetchUnitWrongAnswerRates, fetchScoreDistribution } from "./api";
 import type {
   UnitWrongAnswerRatesResponse,
   ScoreDistributionResponse,
@@ -21,15 +18,17 @@ import type {
 export const statisticsKeys = {
   /** 모든 통계 관련 쿼리 */
   all: ["statistics"] as const,
-  
+
   /** 단원별 오답률 관련 쿼리들 */
-  unitWrongAnswers: () => [...statisticsKeys.all, "unit-wrong-answers"] as const,
-  unitWrongAnswer: (params: StatisticsParams) => 
+  unitWrongAnswers: () =>
+    [...statisticsKeys.all, "unit-wrong-answers"] as const,
+  unitWrongAnswer: (params: StatisticsParams) =>
     [...statisticsKeys.unitWrongAnswers(), params] as const,
-    
+
   /** 성적 분포 관련 쿼리들 */
-  scoreDistributions: () => [...statisticsKeys.all, "score-distributions"] as const,
-  scoreDistribution: (params: StatisticsParams) => 
+  scoreDistributions: () =>
+    [...statisticsKeys.all, "score-distributions"] as const,
+  scoreDistribution: (params: StatisticsParams) =>
     [...statisticsKeys.scoreDistributions(), params] as const,
 };
 
@@ -40,16 +39,15 @@ export const statisticsKeys = {
  * @param params 쿼리 파라미터
  * @returns TanStack Query 옵션 객체
  */
-export const unitWrongAnswerRatesQueryOptions = (
-  params: StatisticsParams,
-) => queryOptions({
-  queryKey: statisticsKeys.unitWrongAnswer(params),
-  queryFn: () => fetchUnitWrongAnswerRates(params),
-  staleTime: 5 * 60 * 1000, // 5분간 fresh 상태 유지
-  gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
-  retry: 2, // 2회 재시도
-  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-});
+export const unitWrongAnswerRatesQueryOptions = (params: StatisticsParams) =>
+  queryOptions({
+    queryKey: statisticsKeys.unitWrongAnswer(params),
+    queryFn: () => fetchUnitWrongAnswerRates(params),
+    staleTime: 5 * 60 * 1000, // 5분간 fresh 상태 유지
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    retry: 2, // 2회 재시도
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
 /**
  * 성적 분포도 쿼리 옵션
@@ -58,13 +56,12 @@ export const unitWrongAnswerRatesQueryOptions = (
  * @param params 쿼리 파라미터
  * @returns TanStack Query 옵션 객체
  */
-export const scoreDistributionQueryOptions = (
-  params: StatisticsParams,
-) => queryOptions({
-  queryKey: statisticsKeys.scoreDistribution(params),
-  queryFn: () => fetchScoreDistribution(params),
-  staleTime: 5 * 60 * 1000, // 5분간 fresh 상태 유지
-  gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
-  retry: 2, // 2회 재시도
-  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-});
+export const scoreDistributionQueryOptions = (params: StatisticsParams) =>
+  queryOptions({
+    queryKey: statisticsKeys.scoreDistribution(params),
+    queryFn: () => fetchScoreDistribution(params),
+    staleTime: 5 * 60 * 1000, // 5분간 fresh 상태 유지
+    gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+    retry: 2, // 2회 재시도
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });

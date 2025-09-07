@@ -11,7 +11,15 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Loader2, Clock, CheckCircle, X, FileText, Users, Download } from "lucide-react";
+import {
+  Loader2,
+  Clock,
+  CheckCircle,
+  X,
+  FileText,
+  Users,
+  Download,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -54,7 +62,7 @@ export function LoadingSpinner({
     : "items-center space-x-2";
 
   return (
-    <div 
+    <div
       className={cn("flex", containerClasses, className)}
       role="status"
       aria-live="polite"
@@ -87,7 +95,11 @@ export function ExamListLoadingSkeleton({
   className,
 }: ExamListLoadingProps) {
   return (
-    <div className={cn("space-y-4", className)} role="status" aria-label="시험 목록 로딩 중">
+    <div
+      className={cn("space-y-4", className)}
+      role="status"
+      aria-label="시험 목록 로딩 중"
+    >
       {/* 헤더 스켈레톤 */}
       {isShowHeader && (
         <div className="flex items-center justify-between">
@@ -118,23 +130,23 @@ export function ExamListLoadingSkeleton({
           {Array.from({ length: itemCount }).map(() => {
             const key = Math.random().toString(36).substr(2, 9);
             return (
-            <div
-              key={`skeleton-item-${key}`}
-              className="flex items-center p-4 border-b last:border-b-0"
-            >
-              <Skeleton className="h-4 w-4 mr-4" />
-              <div className="flex-1 space-y-1 mr-8">
-                <Skeleton className="h-4 w-full max-w-64" />
-                <Skeleton className="h-3 w-32" />
+              <div
+                key={`skeleton-item-${key}`}
+                className="flex items-center p-4 border-b last:border-b-0"
+              >
+                <Skeleton className="h-4 w-4 mr-4" />
+                <div className="flex-1 space-y-1 mr-8">
+                  <Skeleton className="h-4 w-full max-w-64" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <Skeleton className="h-6 w-16 mr-8" />
+                <Skeleton className="h-4 w-20 mr-8" />
+                <div className="flex space-x-1">
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
               </div>
-              <Skeleton className="h-6 w-16 mr-8" />
-              <Skeleton className="h-4 w-20 mr-8" />
-              <div className="flex space-x-1">
-                <Skeleton className="h-8 w-8" />
-                <Skeleton className="h-8 w-8" />
-                <Skeleton className="h-8 w-8" />
-              </div>
-            </div>
             );
           })}
         </CardContent>
@@ -178,7 +190,7 @@ export function ExamDetailLoading({
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setElapsed(prev => prev + 1);
+      setElapsed((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
@@ -203,7 +215,7 @@ export function ExamDetailLoading({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-3">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -273,7 +285,7 @@ export function ProgressLoading({
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
@@ -284,9 +296,7 @@ export function ProgressLoading({
         </div>
 
         {description && (
-          <div className="text-sm text-muted-foreground">
-            {description}
-          </div>
+          <div className="text-sm text-muted-foreground">{description}</div>
         )}
 
         {isCancellable && onCancel && (
@@ -341,13 +351,15 @@ export function SubmissionStatusLoading({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="flex items-center justify-center py-6">
           <div className="text-center space-y-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
             <div className="space-y-1">
-              <div className="text-sm font-medium">실시간 데이터 수집 중...</div>
+              <div className="text-sm font-medium">
+                실시간 데이터 수집 중...
+              </div>
               <div className="text-xs text-muted-foreground">
                 최신 제출 현황과 통계를 가져오고 있습니다
               </div>
@@ -421,12 +433,16 @@ export function FullPageLoading({
   className,
 }: FullPageLoadingProps) {
   return (
-    <div className={cn(
-      "fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm",
-      className
-    )}>
+    <div
+      className={cn(
+        "fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm",
+        className,
+      )}
+    >
       <div className="text-center space-y-4 max-w-sm">
-        {icon || <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />}
+        {icon || (
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+        )}
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">{title}</h2>
           <p className="text-muted-foreground">{description}</p>

@@ -53,8 +53,8 @@ type ExamSubmissionStatusProps = {
   examName: string;
   /** 실제 제출 인원 수 (서버 필드명: actualSubmissions) */
   actualSubmissions: number;
-  /** 전체 예상 제출 인원 (서버 필드명: totalExpected) */
-  totalExpected: number;
+  /** 최대 학생 수 (서버 필드명: maxStudent) */
+  maxStudent: number;
   /** 제출률 (0-100 퍼센트) */
   submissionRate: number;
   /** 카드 스타일 변형 */
@@ -100,7 +100,7 @@ type ExamSubmissionStatusProps = {
  * <ExamSubmissionStatus
  *   examName="수학 단원 평가: 연립방정식"
  *   actualSubmissions={23}
- *   totalExpected={28}
+ *   maxStudent={28}
  *   submissionRate={82}
  *   onClick={() => handleCardClick()}
  * />
@@ -109,7 +109,7 @@ type ExamSubmissionStatusProps = {
  * <ExamSubmissionStatus
  *   examName="영어 단원 평가: 현재완료시제"
  *   actualSubmissions={15}
- *   totalExpected={20}
+ *   maxStudent={20}
  *   submissionRate={75}
  *   variant="compact"
  *   size="sm"
@@ -121,7 +121,7 @@ type ExamSubmissionStatusProps = {
  * <ExamSubmissionStatus
  *   examName="과학 단원 평가: 화학반응"
  *   actualSubmissions={30}
- *   totalExpected={32}
+ *   maxStudent={32}
  *   submissionRate={94}
  * >
  *   <div>추가 정보나 액션 버튼들</div>
@@ -132,7 +132,7 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
   ({
     examName,
     actualSubmissions,
-    totalExpected,
+    maxStudent,
     submissionRate,
     variant = "default",
     size = "md",
@@ -146,7 +146,7 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
   }) => {
     // 표시용 텍스트 생성 (서버 데이터 필드명 사용)
     const submissionRateText = `제출률 ${submissionRate}%`;
-    const submissionCountText = `${actualSubmissions}/${totalExpected}`;
+    const submissionCountText = `${actualSubmissions}/${maxStudent}`;
 
     /**
      * 키보드 이벤트 핸들러
@@ -187,7 +187,7 @@ export const ExamSubmissionStatus = React.memo<ExamSubmissionStatusProps>(
         onKeyDown={handleKeyDown}
         aria-label={
           onClick
-            ? `${examName}, ${submissionRateText}, 총 ${totalExpected}명 중 ${actualSubmissions}명 제출`
+            ? `${examName}, ${submissionRateText}, 총 ${maxStudent}명 중 ${actualSubmissions}명 제출`
             : undefined
         }
         {...props}

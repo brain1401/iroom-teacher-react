@@ -33,7 +33,6 @@ export async function fetchRecentExamsStatus(
   try {
     // 요청 파라미터 검증
 
-
     const response = await apiClient.get<RecentExamsStatusResponse>(
       "/teacher/dashboard/recent-exams-status",
       {
@@ -50,7 +49,6 @@ export async function fetchRecentExamsStatus(
 
     return response.data;
   } catch (error) {
-
     console.error(
       `[Dashboard API] 최근 시험 제출 현황 조회 실패 - Grade: ${params.grade}`,
       error,
@@ -88,7 +86,6 @@ export async function fetchScoreDistribution(
   try {
     // 요청 파라미터 검증
 
-
     const response = await apiClient.get<ScoreDistributionResponse>(
       "/teacher/dashboard/score-distribution",
       {
@@ -100,7 +97,6 @@ export async function fetchScoreDistribution(
 
     return response.data;
   } catch (error) {
-
     console.error(
       `[Dashboard API] 성적 분포도 조회 실패 - Grade: ${params.grade}`,
       error,

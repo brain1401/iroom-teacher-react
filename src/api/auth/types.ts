@@ -66,7 +66,11 @@ export type CurrentUserResponse = User;
  */
 export type AuthError = {
   /** 에러 코드 */
-  code: "INVALID_CREDENTIALS" | "ACCOUNT_LOCKED" | "SESSION_EXPIRED" | "UNAUTHORIZED";
+  code:
+    | "INVALID_CREDENTIALS"
+    | "ACCOUNT_LOCKED"
+    | "SESSION_EXPIRED"
+    | "UNAUTHORIZED";
   /** 에러 메시지 */
   message: string;
   /** 추가 정보 */

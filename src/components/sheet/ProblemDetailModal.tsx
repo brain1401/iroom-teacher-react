@@ -334,7 +334,7 @@ export function ProblemDetailModal({
               <div className="space-y-2">
                 {problem.options?.map((option, optionIndex) => (
                   <div
-                    key={`option-${option}-${problem.id || 'unknown'}`}
+                    key={`option-${option}-${problem.id || "unknown"}`}
                     className="flex items-center gap-2 p-2 rounded border"
                   >
                     <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-sm font-medium">

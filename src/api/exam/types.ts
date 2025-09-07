@@ -254,6 +254,118 @@ export type ServerExamStatisticsResponse = {
  * 시험 목록 조회 필터 파라미터 타입
  * @description API 요청 시 사용하는 쿼리 파라미터
  */
+/**
+ * 시험 생성 요청 타입
+ * @description POST /api/exams 요청 body
+ */
+export type CreateExamRequest = {
+  /** 시험명 (필수, 최대 100자) */
+  examName: string;
+  /** 시험지 ID (필수, UUID) */
+  examSheetId: string;
+  /** 시험 설명 (선택, 최대 500자) */
+  description?: string;
+  /** 시험 시작일시 (선택, ISO 8601 형식) */
+  startDate?: string;
+  /** 시험 종료일시 (선택, ISO 8601 형식) */
+  endDate?: string;
+  /** 시험 제한시간 (선택, 분 단위) */
+  duration?: number;
+};
+
+/**
+ * 시험 생성 응답 타입
+ * @description POST /api/exams 성공 응답
+ */
+export type CreateExamResponse = {
+  /** 생성된 시험 ID */
+  examId: string;
+  /** 시험명 */
+  examName: string;
+  /** 시험지 ID */
+  examSheetId: string;
+  /** 시험지명 */
+  examSheetName: string;
+  /** 학년 */
+  grade: number;
+  /** 총 문제 수 */
+  totalQuestions: number;
+  /** 총점 */
+  totalPoints: number;
+  /** 시험 상태 (항상 "CREATED") */
+  status: "CREATED";
+  /** 시험 설명 */
+  description?: string;
+  /** 시험 시작일시 */
+  startDate?: string;
+  /** 시험 종료일시 */
+  endDate?: string;
+  /** 시험 제한시간 (분) */
+  duration?: number;
+  /** 생성일시 */
+  createdAt: string;
+};
+
+/**
+ * 시험 응시자 정보 타입
+ * @description 시험에 제출한 학생의 상세 정보
+ */
+export type ExamAttendee = {
+  /** 제출 ID (UUID) */
+  submissionId: string;
+  /** 학생 ID */
+  studentId: number;
+  /** 학생 이름 */
+  studentName: string;
+  /** 학생 전화번호 */
+  studentPhone: string;
+  /** 학생 생년월일 (YYYY-MM-DD) */
+  studentBirthDate: string;
+  /** 제출 일시 (ISO 8601) */
+  submittedAt: string;
+  /** 시험 ID (UUID) */
+  examId: string;
+  /** 시험명 */
+  examName: string;
+};
+
+/**
+ * 시험 응시자 목록 응답 타입
+ * @description 페이지네이션된 응시자 목록 응답
+ */
+export type ExamAttendeesResponse = {
+  /** 응시자 목록 */
+  content: ExamAttendee[];
+  /** 페이지 정보 */
+  pageable: ServerPageable;
+  /** 전체 응시자 수 */
+  totalElements: number;
+  /** 전체 페이지 수 */
+  totalPages: number;
+  /** 현재 페이지 번호 */
+  pageNumber: number;
+  /** 페이지당 항목 수 */
+  pageSize: number;
+  /** 첫 페이지 여부 */
+  first: boolean;
+  /** 마지막 페이지 여부 */
+  last: boolean;
+  /** 현재 페이지 요소 수 */
+  numberOfElements: number;
+};
+
+/**
+ * 응시자 목록 조회 파라미터 타입
+ * @description 응시자 목록 조회 시 사용하는 쿼리 파라미터
+ */
+export type ExamAttendeesParams = {
+  /** 페이지 번호 (0부터 시작) */
+  page?: number;
+  /** 페이지당 항목 수 (기본 20, 최대 100) */
+  size?: number;
+  /** 정렬 기준 (submittedAt,desc | submittedAt,asc | studentName,asc | studentName,desc) */
+  sort?: string;
+};
 export type ServerExamListParams = {
   /** 학년 (1, 2, 3) */
   grade?: number;

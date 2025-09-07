@@ -35,18 +35,18 @@ export type ExamSheetListParams = {
 /**
  * 시험지 목록 조회 쿼리 옵션
  * @description Jotai atomWithQuery 또는 useQuery에서 공유 사용
- * 
+ *
  * 주요 기능:
  * - 필터링 파라미터 기반 시험지 목록 조회
  * - TanStack Query 캐싱 최적화
  * - SSR 지원을 위한 사전 로드 가능
  * - 검색어/필터 변경 시 자동 새로고침
- * 
+ *
  * 캐싱 전략:
  * - staleTime: 5분 (서버 데이터가 자주 변경되지 않음)
  * - gcTime: 10분 (메모리 효율성과 성능의 균형)
  * - 재시도: 3회 (네트워크 불안정성 대비)
- * 
+ *
  * @example
  * ```typescript
  * // 기본 사용법
@@ -56,7 +56,7 @@ export type ExamSheetListParams = {
  *   sort: "createdAt",
  *   direction: "DESC"
  * });
- * 
+ *
  * // 필터링과 함께
  * const options = examSheetListQueryOptions({
  *   page: 0,
@@ -67,7 +67,7 @@ export type ExamSheetListParams = {
  *   search: "수학"
  * });
  * ```
- * 
+ *
  * @param params 시험지 목록 조회 파라미터
  * @returns TanStack Query queryOptions 객체
  */

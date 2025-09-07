@@ -114,19 +114,22 @@ export function ExamSheetListTab() {
   );
 
   // 이벤트 핸들러들
-  const handleSelectAll = useCallback((checked: boolean) => {
-    const currentPageIds = sheets.map((sheet: ExamSheet) => sheet.id);
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      const currentPageIds = sheets.map((sheet: ExamSheet) => sheet.id);
 
-    if (checked) {
-      setSelectedIds((prev) => new Set([...prev, ...currentPageIds]));
-    } else {
-      setSelectedIds((prev) => {
-        const newSet = new Set(prev);
-        currentPageIds.forEach((id) => newSet.delete(id));
-        return newSet;
-      });
-    }
-  }, [sheets]);
+      if (checked) {
+        setSelectedIds((prev) => new Set([...prev, ...currentPageIds]));
+      } else {
+        setSelectedIds((prev) => {
+          const newSet = new Set(prev);
+          currentPageIds.forEach((id) => newSet.delete(id));
+          return newSet;
+        });
+      }
+    },
+    [sheets],
+  );
 
   const handleSelect = useCallback((id: string, checked: boolean) => {
     setSelectedIds((prev) => {
@@ -163,8 +166,12 @@ export function ExamSheetListTab() {
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
 
-    const selectedSheets = sheets.filter((sheet: ExamSheet) => selectedIds.has(sheet.id));
-    const sheetNames = selectedSheets.map((sheet: ExamSheet) => sheet.examName).join(", ");
+    const selectedSheets = sheets.filter((sheet: ExamSheet) =>
+      selectedIds.has(sheet.id),
+    );
+    const sheetNames = selectedSheets
+      .map((sheet: ExamSheet) => sheet.examName)
+      .join(", ");
 
     if (
       confirm(
@@ -177,48 +184,57 @@ export function ExamSheetListTab() {
   }, [sheets, selectedIds]);
 
   // TanStack Router navigate를 사용한 정렬 처리 함수
-  const handleSort = useCallback((field: "examName" | "createdAt") => {
-    const currentDirection = sortDirection;
-    const newDirection =
-      sortField === field
-        ? currentDirection === "asc"
-          ? "desc"
-          : "asc"
-        : "asc";
+  const handleSort = useCallback(
+    (field: "examName" | "createdAt") => {
+      const currentDirection = sortDirection;
+      const newDirection =
+        sortField === field
+          ? currentDirection === "asc"
+            ? "desc"
+            : "asc"
+          : "asc";
 
-    navigate({
-      to: ".",
-      search: (prev) => ({
-        ...prev,
-        sort: field,
-        direction: newDirection,
-        page: 0, // 정렬 변경 시 첫 페이지로 이동
-      }),
-    });
-  }, [navigate, sortField, sortDirection]);
+      navigate({
+        to: ".",
+        search: (prev) => ({
+          ...prev,
+          sort: field,
+          direction: newDirection,
+          page: 0, // 정렬 변경 시 첫 페이지로 이동
+        }),
+      });
+    },
+    [navigate, sortField, sortDirection],
+  );
 
   // TanStack Router navigate를 사용한 페이지 변경 처리 함수
-  const handlePageChange = useCallback((newPage: number) => {
-    navigate({
-      to: ".",
-      search: (prev) => ({
-        ...prev,
-        page: newPage - 1, // 1-based를 0-based로 변환
-      }),
-    });
-  }, [navigate]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      navigate({
+        to: ".",
+        search: (prev) => ({
+          ...prev,
+          page: newPage - 1, // 1-based를 0-based로 변환
+        }),
+      });
+    },
+    [navigate],
+  );
 
   // TanStack Router navigate를 사용한 검색 처리 함수
-  const handleSearchChange = useCallback((value: string) => {
-    navigate({
-      to: ".",
-      search: (prev) => ({
-        ...prev,
-        search: value.trim() || undefined,
-        page: 0, // 검색어 변경 시 첫 페이지로 이동
-      }),
-    });
-  }, [navigate]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      navigate({
+        to: ".",
+        search: (prev) => ({
+          ...prev,
+          search: value.trim() || undefined,
+          page: 0, // 검색어 변경 시 첫 페이지로 이동
+        }),
+      });
+    },
+    [navigate],
+  );
 
   // 현재 페이지의 전체 선택 상태 계산
   const currentPageIds = sheets.map((sheet: ExamSheet) => sheet.id);
@@ -337,7 +353,9 @@ export function ExamSheetListTab() {
           onOpenProblemModal={handleOpenProblemModal}
           onOpenAnswerModal={handleOpenAnswerModal}
           sortField={sortField as "examName" | "createdAt" | undefined}
-          sortOrder={(sortDirection?.toLowerCase?.() || "desc") as "asc" | "desc"}
+          sortOrder={
+            (sortDirection?.toLowerCase?.() || "desc") as "asc" | "desc"
+          }
           onSort={handleSort}
           isAllSelected={isAllSelected}
           isIndeterminate={isIndeterminate}

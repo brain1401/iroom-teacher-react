@@ -16,7 +16,7 @@ export const Route = createFileRoute("/main/exam/sheet/manage")({
 function RouteComponent() {
   const navigate = useNavigate();
   const searchParams = Route.useSearch();
-  
+
   /** URL 기반 활성 탭 값 */
   const activeTab = searchParams.tab;
 
@@ -24,17 +24,20 @@ function RouteComponent() {
    * 탭 변경 핸들러
    * @description TanStack Router navigate를 사용한 URL 기반 탭 전환
    */
-  const handleTabChange = useCallback((newTab: string) => {
-    if (newTab === "list" || newTab === "register") {
-      navigate({
-        to: ".",
-        search: (prev) => ({
-          ...prev,
-          tab: newTab,
-        }),
-      });
-    }
-  }, [navigate]);
+  const handleTabChange = useCallback(
+    (newTab: string) => {
+      if (newTab === "list" || newTab === "register") {
+        navigate({
+          to: ".",
+          search: (prev) => ({
+            ...prev,
+            tab: newTab,
+          }),
+        });
+      }
+    },
+    [navigate],
+  );
 
   return (
     <Card className="w-full h-full p-8 flex flex-col">

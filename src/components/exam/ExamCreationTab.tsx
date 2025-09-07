@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -12,11 +13,17 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
-import { sheetListQueryAtom, sheetPageSizeAtom } from "@/atoms/sheetFilters";
+import { sheetListQueryAtom } from "@/atoms/sheetFilters";
+import { createExam, examKeys, createExamMutationOptions } from "@/api/exam";
+import type { CreateExamRequest } from "@/api/exam/types";
+import { getErrorMessage } from "@/utils/errorHandling";
 import logger from "@/utils/logger";
-import { useHydrateAtoms } from "jotai/utils";
+import { refreshExamListAtom } from "@/atoms/exam";
+import { useExamTab } from "@/contexts/ExamTabContext";
 
 /**
  * 시험 출제 탭 컴포넌트
@@ -26,27 +33,92 @@ import { useHydrateAtoms } from "jotai/utils";
  * - 실제 API를 통한 문제지 목록 조회
  * - 시험명 입력 및 문제지 선택
  * - 선택된 문제지 정보 미리보기
- * - 시험 출제 처리
+ * - 시험 출제 처리 (실제 API 연동)
  * - 로딩 상태 및 에러 처리
+ * - 시작/종료 날짜 자동 설정 (현재 날짜 ~ +7일)
+ * - 컨텍스트를 통한 탭 전환 지원
  */
 export function ExamCreationTab() {
-  const [isCreating, setIsCreating] = useState(false);
+  const queryClient = useQueryClient();
+  const refreshExamList = useSetAtom(refreshExamListAtom);
+
+  // 탭 컨텍스트에서 setActiveTab 가져오기 (옵셔널 - 컨텍스트가 없을 수도 있음)
+  let setActiveTab: ((tab: string) => void) | undefined;
+  try {
+    const tabContext = useExamTab();
+    setActiveTab = tabContext.setActiveTab;
+  } catch {
+    // 컨텍스트가 없는 경우 무시
+  }
+
   const [formData, setFormData] = useState({
     examName: "",
     selectedExamSheetId: "",
+    description: "",
+    duration: 120, // 기본 2시간
   });
 
   const { data } = useAtomValue(sheetListQueryAtom);
+
+  // 시험 생성 mutation
+  const createExamMutation = useMutation({
+    ...createExamMutationOptions(),
+    mutationFn: createExam,
+    onSuccess: async (data) => {
+      // 성공 메시지
+      toast.success(`시험 "${data.examName}"이(가) 성공적으로 출제되었습니다!`);
+
+      // 시험 목록 캐시 무효화 - 더 넓은 범위로 무효화
+      // examKeys.all을 사용하여 모든 exam 관련 쿼리 무효화
+      await queryClient.invalidateQueries({
+        queryKey: examKeys.all,
+        refetchType: "active", // 활성 쿼리만 리페치
+      });
+
+      // 추가로 정확한 리페치 보장
+      await queryClient.refetchQueries({
+        queryKey: examKeys.lists(),
+        type: "active",
+      });
+
+      // Jotai atom 강제 리프레시 - 페이지를 0으로 리셋
+      refreshExamList();
+
+      // 폼 초기화
+      setFormData({
+        examName: "",
+        selectedExamSheetId: "",
+        description: "",
+        duration: 120,
+      });
+
+      // 시험 목록 탭으로 이동 (약간의 딜레이 후)
+      setTimeout(() => {
+        if (setActiveTab) {
+          setActiveTab("list");
+        } else {
+          // Fallback: DOM 조작 (권장하지 않음)
+          const tabElement = document.querySelector(
+            '[value="list"]',
+          ) as HTMLElement;
+          if (tabElement) {
+            tabElement.click();
+          }
+        }
+      }, 500);
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
+      logger.error("시험 생성 실패:", error);
+    },
+  });
 
   if (!data) {
     return <div>Loading...</div>;
   }
 
-  logger.info("data (데이터)", data);
-
   const examSheets = data.content;
-
-  logger.info("examSheets (문제지 목록)", examSheets);
 
   // 선택된 문제지 정보
   const selectedExamSheet = examSheets.find(
@@ -54,7 +126,7 @@ export function ExamCreationTab() {
   );
 
   // 시험 출제 핸들러
-  const handleCreateExam = async () => {
+  const handleCreateExam = () => {
     if (!formData.examName.trim()) {
       toast.error("시험명을 입력해주세요.");
       return;
@@ -65,31 +137,27 @@ export function ExamCreationTab() {
       return;
     }
 
-    setIsCreating(true);
+    // 현재 날짜와 7일 후 날짜 자동 설정
+    const now = new Date();
+    const startDate = now.toISOString();
+    const endDate = new Date(
+      now.getTime() + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
-    try {
-      // TODO: 실제 시험 출제 API 호출
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // API 요청 데이터 구성
+    const requestData: CreateExamRequest = {
+      examName: formData.examName.trim(),
+      examSheetId: formData.selectedExamSheetId,
+      description: formData.description.trim() || undefined,
+      startDate,
+      endDate,
+      duration: formData.duration,
+    };
 
-      // 성공 메시지 표시
-      toast.success("시험이 성공적으로 출제되었습니다!");
+    logger.info("시험 생성 요청:", requestData);
 
-      // 폼 초기화
-      setFormData({
-        examName: "",
-        selectedExamSheetId: "",
-      });
-
-      // 시험 목록 탭으로 이동 (실제로는 router를 사용해야 함)
-      setTimeout(() => {
-        window.location.href = "/main/exam-management";
-      }, 1500);
-    } catch (error) {
-      console.error("시험 출제 실패:", error);
-      toast.error("시험 출제에 실패했습니다. 다시 시도해주세요.");
-    } finally {
-      setIsCreating(false);
-    }
+    // 시험 생성 API 호출
+    createExamMutation.mutate(requestData);
   };
 
   return (
@@ -121,7 +189,7 @@ export function ExamCreationTab() {
               }
               placeholder="시험명을 입력하세요"
               className="h-12"
-              disabled={isCreating}
+              disabled={createExamMutation.isPending}
             />
           </div>
 
@@ -135,13 +203,13 @@ export function ExamCreationTab() {
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, selectedExamSheetId: value }))
               }
-              disabled={isCreating}
+              disabled={createExamMutation.isPending}
             >
               <SelectTrigger className="h-12">
                 <SelectValue
                   placeholder={
-                    isCreating
-                      ? "문제지를 불러오는 중..."
+                    createExamMutation.isPending
+                      ? "처리 중..."
                       : examSheets.length === 0
                         ? "등록된 문제지가 없습니다"
                         : "문제지를 선택하세요"
@@ -161,11 +229,35 @@ export function ExamCreationTab() {
                 ))}
               </SelectContent>
             </Select>
-            {!isCreating && examSheets.length === 0 && (
+            {!createExamMutation.isPending && examSheets.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 등록된 문제지가 없습니다. 먼저 문제지를 등록해주세요.
               </p>
             )}
+          </div>
+
+          {/* 시험 설명 입력 (선택사항) */}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-base font-medium">
+              시험 설명 (선택)
+            </Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder="시험에 대한 설명을 입력하세요 (최대 500자)"
+              className="min-h-[100px]"
+              maxLength={500}
+              disabled={createExamMutation.isPending}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {formData.description.length}/500
+            </p>
           </div>
 
           {/* 선택된 문제지 정보 */}
@@ -225,17 +317,20 @@ export function ExamCreationTab() {
               className="w-full max-w-md h-12 text-lg font-semibold"
               onClick={handleCreateExam}
               disabled={
-                isCreating ||
+                createExamMutation.isPending ||
                 !formData.examName.trim() ||
                 !formData.selectedExamSheetId ||
                 examSheets.length === 0
               }
             >
-              {isCreating
-                ? "출제 중..."
-                : isCreating
-                  ? "로딩 중..."
-                  : "시험 출제"}
+              {createExamMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  출제 중...
+                </>
+              ) : (
+                "시험 출제"
+              )}
             </Button>
           </div>
         </CardContent>

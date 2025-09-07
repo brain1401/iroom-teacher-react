@@ -1,7 +1,7 @@
 /**
  * 서버 API 응답 타입 정의
  * @description 실제 백엔드 API 응답 구조에 맞춘 타입 정의
- * 
+ *
  * API 엔드포인트:
  * - GET /exams: 시험 목록 조회 (페이지네이션, 필터링)
  * - GET /exams/{examId}: 시험 상세 정보
@@ -121,10 +121,10 @@ export type ServerExamDetailResponse = ApiResponse<ServerExam>;
  * 제출 통계 정보 타입
  */
 export type ServerSubmissionStats = {
-  /** 전체 예상 학생 수 */
-  totalExpectedStudents: number;
   /** 실제 제출 수 */
   actualSubmissions: number;
+  /** 최대 학생 수 */
+  maxStudent: number;
   /** 미제출 수 */
   notSubmitted: number;
   /** 제출률 (백분율) */
@@ -174,7 +174,8 @@ export type ServerSubmissionStatus = {
 /**
  * 제출 현황 응답 타입
  */
-export type ServerSubmissionStatusResponse = ApiResponse<ServerSubmissionStatus>;
+export type ServerSubmissionStatusResponse =
+  ApiResponse<ServerSubmissionStatus>;
 
 /**
  * 시험 통계 정보 타입
@@ -323,7 +324,8 @@ export type ServerStudentAnswerDetail = {
 /**
  * 학생 답안 상세 조회 응답 타입
  */
-export type ServerStudentAnswerDetailResponse = ApiResponse<ServerStudentAnswerDetail>;
+export type ServerStudentAnswerDetailResponse =
+  ApiResponse<ServerStudentAnswerDetail>;
 
 /**
  * 학생 답안 상세 조회 파라미터 타입

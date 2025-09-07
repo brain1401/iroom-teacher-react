@@ -9,7 +9,10 @@
  * - 타입 안전성 보장
  */
 
-import type { ExamSubmissionInfo, ScoreDistribution } from "@/api/dashboard/types";
+import type {
+  ExamSubmissionInfo,
+  ScoreDistribution,
+} from "@/api/dashboard/types";
 import type { DashboardExamSubmission, ExamStatus } from "@/types/exam";
 
 /**
@@ -48,15 +51,17 @@ export function transformExamSubmissions(
   examSubmissions: ExamSubmissionInfo[],
 ): DashboardExamSubmission[] {
   if (!Array.isArray(examSubmissions)) {
-    console.warn("[transformExamSubmissions] 유효하지 않은 입력 데이터:", examSubmissions);
+    console.warn(
+      "[transformExamSubmissions] 유효하지 않은 입력 데이터:",
+      examSubmissions,
+    );
     return [];
   }
 
   return examSubmissions.map((exam) => {
     // 제출률 계산 (0으로 나누기 방지)
-    const submissionRate = exam.totalExpected > 0 
-      ? exam.actualSubmissions / exam.totalExpected 
-      : 0;
+    const submissionRate =
+      exam.maxStudent > 0 ? exam.actualSubmissions / exam.maxStudent : 0;
 
     // 제출률 기반 상태 결정
     let status: "complete" | "partial" | "pending";
@@ -74,7 +79,7 @@ export function transformExamSubmissions(
       unitName: `단원 ${exam.examId}`,
       createdAt: exam.createdAt || "",
       submissionCount: exam.actualSubmissions || 0, // actualSubmissions -> submissionCount
-      totalStudents: exam.totalExpected || 0, // totalExpected -> totalStudents
+      totalStudents: exam.maxStudent || 0, // maxStudent -> totalStudents
       submissionRate: Math.round(submissionRate * 100 * 10) / 10, // 소수점 첫째 자리까지
       status: "승인완료" as ExamStatus, // status 타입 맞춤
     } satisfies DashboardExamSubmission;
@@ -117,31 +122,42 @@ export function transformScoreDistributionForChart(
   grade2: number;
   grade3: number;
 }> {
-  console.log("[transformScoreDistributionForChart] 입력 데이터:", { distributions, selectedGrade });
-  
+  console.log("[transformScoreDistributionForChart] 입력 데이터:", {
+    distributions,
+    selectedGrade,
+  });
+
   if (!Array.isArray(distributions)) {
-    console.warn("[transformScoreDistributionForChart] 유효하지 않은 점수 분포 데이터:", distributions);
+    console.warn(
+      "[transformScoreDistributionForChart] 유효하지 않은 점수 분포 데이터:",
+      distributions,
+    );
     return [];
   }
 
   // 서버에서 실제로 보내오는 distributions 내용 상세 확인
-  console.log("[transformScoreDistributionForChart] distributions 배열 상세:", distributions.map(d => ({
-    scoreRange: d.scoreRange,
-    studentCount: d.studentCount,
-    percentage: d.percentage
-  })));
+  console.log(
+    "[transformScoreDistributionForChart] distributions 배열 상세:",
+    distributions.map((d) => ({
+      scoreRange: d.scoreRange,
+      studentCount: d.studentCount,
+      percentage: d.percentage,
+    })),
+  );
 
   // 점수 구간별 학생 수 계산 (서버 형식에 맞춤)
   const getStudentCountForRange = (targetRange: string): number => {
     if (targetRange === "0-59") {
       // 0-39점과 40-59점을 합침
-      const range1 = distributions.find(d => d.scoreRange === "0-39점");
-      const range2 = distributions.find(d => d.scoreRange === "40-59점");
+      const range1 = distributions.find((d) => d.scoreRange === "0-39점");
+      const range2 = distributions.find((d) => d.scoreRange === "40-59점");
       return (range1?.studentCount || 0) + (range2?.studentCount || 0);
     } else {
       // 다른 구간들은 "점" 문자를 추가해서 찾기
-      const serverFormat = `${targetRange  }점`;
-      const distribution = distributions.find(d => d.scoreRange === serverFormat);
+      const serverFormat = `${targetRange}점`;
+      const distribution = distributions.find(
+        (d) => d.scoreRange === serverFormat,
+      );
       return distribution?.studentCount || 0;
     }
   };
@@ -151,13 +167,13 @@ export function transformScoreDistributionForChart(
 
   const result = scoreRanges.map((range) => {
     const studentCount = getStudentCountForRange(range);
-    
-    console.log(`[transformScoreDistributionForChart] ${range} 구간:`, { 
+
+    console.log(`[transformScoreDistributionForChart] ${range} 구간:`, {
       찾는형식: range,
-      서버형식: range === "0-59" ? "0-39점 + 40-59점" : `${range  }점`,
-      학생수: studentCount
+      서버형식: range === "0-59" ? "0-39점 + 40-59점" : `${range}점`,
+      학생수: studentCount,
     });
-    
+
     // 선택된 학년에 따라 올바른 속성에 데이터 할당
     const gradeData = {
       scoreRange: range,
@@ -165,10 +181,10 @@ export function transformScoreDistributionForChart(
       grade2: selectedGrade === 2 ? studentCount : 0,
       grade3: selectedGrade === 3 ? studentCount : 0,
     };
-    
+
     return gradeData;
   });
-  
+
   console.log("[transformScoreDistributionForChart] 최종 결과:", result);
   return result;
 }
@@ -237,8 +253,14 @@ export function extractScoreStatistics(
   });
 
   return {
-    averageScore: totalStudents > 0 ? Math.round((totalScore / totalStudents) * 10) / 10 : 0,
-    passRate: totalStudents > 0 ? Math.round((passedStudents / totalStudents) * 100) / 100 : 0,
+    averageScore:
+      totalStudents > 0
+        ? Math.round((totalScore / totalStudents) * 10) / 10
+        : 0,
+    passRate:
+      totalStudents > 0
+        ? Math.round((passedStudents / totalStudents) * 100) / 100
+        : 0,
     totalStudents,
   };
 }

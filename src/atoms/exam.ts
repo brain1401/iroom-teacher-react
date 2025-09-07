@@ -19,6 +19,7 @@ import {
   examServerParamsAtom,
   examPageAtom,
   selectedGradeAtom,
+  searchKeywordAtom,
 } from "./examFilters";
 
 /**
@@ -40,7 +41,6 @@ export const examListQueryAtom = atomWithQuery((get) => {
   return examListQueryOptions(serverParams);
 });
 
-
 /**
  * 시험 통계 쿼리 원자
  * @description 학년별 시험 분포 통계 조회
@@ -55,7 +55,7 @@ export const examStatisticsQueryAtom = atomWithQuery(() => {
  */
 export const currentExamListAtom = atom((get) => {
   const queryResult = get(examListQueryAtom);
-  
+
   return {
     exams: queryResult.data?.content || [],
     pagination: {
@@ -72,7 +72,6 @@ export const currentExamListAtom = atom((get) => {
     isFetching: queryResult.isFetching,
   };
 });
-
 
 /**
  * 시험 통계 파생 원자
@@ -115,11 +114,18 @@ export const clearSelectedExamAtom = atom(null, (_get, set) => {
  * 시험 목록 새로고침 액션 원자
  * @description 현재 필터로 시험 목록 다시 로드
  */
-export const refreshExamListAtom = atom(null, (get, set) => {
-  // 쿼리 무효화는 TanStack Query가 자동으로 처리
-  // 필터 상태가 변경되면 자동으로 새 쿼리 실행
-  const currentPage = get(examPageAtom);
-  set(examPageAtom, currentPage); // 현재 페이지로 리페칭 트리거
+export const refreshExamListAtom = atom(null, (_get, set) => {
+  // 페이지를 0으로 리셋하여 첫 페이지부터 다시 로드
+  // 이렇게 하면 examServerParamsAtom이 변경되고 쿼리가 다시 실행됨
+  set(examPageAtom, 0);
+
+  // 추가로 검색 필터를 임시로 변경했다가 복원하여 강제 리프레시
+  // 이는 서버 파라미터를 변경하여 쿼리를 강제로 다시 실행시킴
+  const currentSearch = _get(searchKeywordAtom);
+  set(searchKeywordAtom, `${currentSearch} `);
+  setTimeout(() => {
+    set(searchKeywordAtom, currentSearch);
+  }, 0);
 });
 
 /**
@@ -145,15 +151,13 @@ export const examSearchSummaryAtom = atom((get) => {
     totalPages: examList.pagination.totalPages,
     hasResults: examList.exams.length > 0,
     isFiltered: Boolean(
-      serverParams.search ||
-      serverParams.grade ||
-      serverParams.recent
+      serverParams.search || serverParams.grade || serverParams.recent,
     ),
     resultRange: {
       start: examList.pagination.currentPage * examList.pagination.size + 1,
       end: Math.min(
         (examList.pagination.currentPage + 1) * examList.pagination.size,
-        examList.pagination.totalElements
+        examList.pagination.totalElements,
       ),
     },
   };
