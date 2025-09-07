@@ -22,7 +22,7 @@ export function useExamList() {
   // 검색 및 필터 상태
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [searchScope, setSearchScope] = useState<SearchScope>("all");
-  const [selectedGrade, setSelectedGrade] = useState<string>("중1");
+  const [selectedGrade, setSelectedGrade] = useState<string>("1");
 
   // 선택된 항목 관리
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -41,26 +41,21 @@ export function useExamList() {
    * 새로운 시험 추가 함수
    * @description 시험 출제 완료 후 목록 상단에 새로운 시험을 추가
    */
-  const addNewExam = useCallback(
-    (
-      newExam: Omit<Exam, "id" | "createdAt">,
-    ) => {
-      const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 형식
-      const examId = `exam-${Date.now()}`; // 고유 ID 생성
+  const addNewExam = useCallback((newExam: Omit<Exam, "id" | "createdAt">) => {
+    const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 형식
+    const examId = `exam-${Date.now()}`; // 고유 ID 생성
 
-      const examToAdd: Exam = {
-        ...newExam,
-        id: examId,
-        createdAt: now,
-      };
+    const examToAdd: Exam = {
+      ...newExam,
+      id: examId,
+      createdAt: now,
+    };
 
-      // 목록 상단에 추가 (최신순)
-      setExamList((prev) => [examToAdd, ...prev]);
+    // 목록 상단에 추가 (최신순)
+    setExamList((prev) => [examToAdd, ...prev]);
 
-      return examId;
-    },
-    [],
-  );
+    return examId;
+  }, []);
 
   /**
    * localStorage에서 새로운 시험 로드
@@ -72,7 +67,7 @@ export function useExamList() {
       if (typeof window === "undefined") {
         return;
       }
-      
+
       const newExams = JSON.parse(localStorage.getItem("newExams") || "[]");
       if (newExams.length > 0) {
         // 새로운 시험들을 목록에 추가
@@ -104,10 +99,10 @@ export function useExamList() {
       const matchesKeyword =
         searchKeyword.trim() === "" ||
         (searchScope === "all" &&
-          (sheet.examName
-              .toLowerCase()
-              .includes(searchKeyword.toLowerCase()) ||
-            sheet.content?.toLowerCase().includes(searchKeyword.toLowerCase()))) ||
+          (sheet.examName.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            sheet.content
+              ?.toLowerCase()
+              .includes(searchKeyword.toLowerCase()))) ||
         (searchScope === "content" &&
           sheet.content?.toLowerCase().includes(searchKeyword.toLowerCase())) ||
         (searchScope === "examName" &&

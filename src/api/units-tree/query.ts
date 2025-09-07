@@ -4,7 +4,11 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import { fetchUnitsTree, fetchUnitsTreeWithProblems, fetchBasicUnitsTree } from "./api";
+import {
+  fetchUnitsTree,
+  fetchUnitsTreeWithProblems,
+  fetchBasicUnitsTree,
+} from "./api";
 import type { Grade } from "@/types/grade";
 import type { UnitsTreeQueryParams } from "@/types/units-tree";
 
@@ -15,22 +19,24 @@ import type { UnitsTreeQueryParams } from "@/types/units-tree";
 export const unitsTreeKeys = {
   /** 모든 단원 트리 관련 쿼리 */
   all: ["units-tree"] as const,
-  
+
   /** 단원 트리 목록들 */
   lists: () => [...unitsTreeKeys.all, "list"] as const,
-  
+
   /** 특정 파라미터로 필터링된 단원 트리 */
-  list: (params: UnitsTreeQueryParams) => [...unitsTreeKeys.lists(), params] as const,
-  
+  list: (params: UnitsTreeQueryParams) =>
+    [...unitsTreeKeys.lists(), params] as const,
+
   /** 문제 포함 단원 트리들 */
   withProblems: () => [...unitsTreeKeys.all, "with-problems"] as const,
-  
+
   /** 특정 학년의 문제 포함 단원 트리 */
-  withProblemsForGrade: (grade: Grade) => [...unitsTreeKeys.withProblems(), grade] as const,
-  
+  withProblemsForGrade: (grade: Grade) =>
+    [...unitsTreeKeys.withProblems(), grade] as const,
+
   /** 기본 단원 트리들 (문제 미포함) */
   basic: () => [...unitsTreeKeys.all, "basic"] as const,
-  
+
   /** 특정 학년의 기본 단원 트리 */
   basicForGrade: (grade: Grade) => [...unitsTreeKeys.basic(), grade] as const,
 } as const;
@@ -48,7 +54,7 @@ export const unitsTreeKeys = {
  * ```typescript
  * // useQuery 훅과 함께 사용
  * const { data, isLoading, error } = useQuery(
- *   unitsTreeQueryOptions({ grade: "중1", includeQuestions: false })
+ *   unitsTreeQueryOptions({ grade: "1", includeQuestions: false })
  * );
  *
  * // Jotai atomWithQuery와 함께 사용
@@ -88,7 +94,7 @@ export const unitsTreeQueryOptions = (params?: UnitsTreeQueryParams) =>
  * ```typescript
  * // 시험지 생성 페이지에서 사용
  * const { data: unitsWithProblems, isLoading, error } = useQuery(
- *   unitsTreeWithProblemsQueryOptions("중2")
+ *   unitsTreeWithProblemsQueryOptions("2")
  * );
  *
  * if (isLoading) {
@@ -109,11 +115,14 @@ export const unitsTreeWithProblemsQueryOptions = (grade: Grade) =>
   queryOptions({
     queryKey: unitsTreeKeys.withProblemsForGrade(grade),
     queryFn: ({ signal }) => fetchUnitsTreeWithProblems(grade, { signal }),
-    staleTime: 15 * 60 * 1000, // 15분간 fresh (문제 데이터는 더 오래 유지)
-    gcTime: 60 * 60 * 1000, // 1시간간 캐시 유지 (대용량 데이터이므로 더 오래)
-    retry: 2, // 대용량 데이터이므로 재시도 횟수 줄임
-    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 30000),
-  });
+    staleTime: 30 * 60 * 1000, // 30분간 fresh (대용량 데이터이므로 더 오래 유지)
+    gcTime: 60 * 60 * 1000, // 1시간간 캐시 유지
+    retry: 1, // 대용량 데이터이므로 재시도 횟수 최소화
+    retryDelay: 2000, // 고정 2초 대기
+    refetchOnWindowFocus: false, // 창 포커스 시 재요청 비활성화
+    refetchOnMount: false, // 컴포넌트 마운트 시 재요청 비활성화
+    refetchOnReconnect: false, // 네트워크 재연결 시 재요청 비활성화
+  });;
 
 /**
  * 기본 단원 트리 쿼리 옵션
@@ -134,7 +143,7 @@ export const unitsTreeWithProblemsQueryOptions = (grade: Grade) =>
  * // SSR loader에서 사용
  * export const loader = async ({ context }) => {
  *   await context.queryClient.prefetchQuery(
- *     basicUnitsTreeQueryOptions("중1")
+ *     basicUnitsTreeQueryOptions("1")
  *   );
  * };
  *
@@ -149,7 +158,9 @@ export const unitsTreeWithProblemsQueryOptions = (grade: Grade) =>
  */
 export const basicUnitsTreeQueryOptions = (grade?: Grade) =>
   queryOptions({
-    queryKey: grade ? unitsTreeKeys.basicForGrade(grade) : unitsTreeKeys.basic(),
+    queryKey: grade
+      ? unitsTreeKeys.basicForGrade(grade)
+      : unitsTreeKeys.basic(),
     queryFn: ({ signal }) => fetchBasicUnitsTree(grade, { signal }),
     staleTime: 20 * 60 * 1000, // 20분간 fresh (구조 정보는 더 오래 유지)
     gcTime: 2 * 60 * 60 * 1000, // 2시간간 캐시 유지 (가벼운 데이터이므로 더 오래)
@@ -163,13 +174,15 @@ export const basicUnitsTreeQueryOptions = (grade?: Grade) =>
  */
 export const invalidateUnitsTreeQueries = {
   /** 모든 단원 트리 쿼리 무효화 */
-  all: (queryClient: any) => 
+  all: (queryClient: any) =>
     queryClient.invalidateQueries({ queryKey: unitsTreeKeys.all }),
-    
+
   /** 특정 학년의 문제 포함 단원 트리만 무효화 */
   withProblemsForGrade: (queryClient: any, grade: Grade) =>
-    queryClient.invalidateQueries({ queryKey: unitsTreeKeys.withProblemsForGrade(grade) }),
-    
+    queryClient.invalidateQueries({
+      queryKey: unitsTreeKeys.withProblemsForGrade(grade),
+    }),
+
   /** 모든 기본 단원 트리 무효화 */
   allBasic: (queryClient: any) =>
     queryClient.invalidateQueries({ queryKey: unitsTreeKeys.basic() }),

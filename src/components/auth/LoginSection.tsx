@@ -33,20 +33,20 @@ export function LoginSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.username.trim() || !formData.password.trim()) {
       toast.error("아이디와 비밀번호를 모두 입력해주세요.");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
       const result = await login(formData);
-      
+
       if (result.success) {
         toast.success(`환영합니다, ${result.user?.name}님!`);
-        
+
         // 로그인 성공 시 메인 페이지로 이동
         // 약간의 지연으로 토스트 메시지를 사용자가 볼 수 있도록 함
         setTimeout(() => {
@@ -57,7 +57,7 @@ export function LoginSection() {
       // 구조화된 에러 메시지 처리
       const friendlyMessage = getErrorMessage(error);
       toast.error(friendlyMessage);
-      
+
       console.error("[LoginSection] 로그인 실패:", error);
     } finally {
       setIsLoading(false);
@@ -85,16 +85,6 @@ export function LoginSection() {
               관리자 로그인
             </h2>
             <p className="text-gray-600">시스템에 접근하려면 로그인하세요.</p>
-            
-            {/* 서버 API 연동 상태 표시 */}
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="text-sm text-blue-800">
-                <strong>🚀 서버 API 연동 준비 완료</strong>
-                <div className="mt-1 text-blue-600">
-                  실제 백엔드 연동시 즉시 적용 가능한 구조로 구현됨
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* 로그인 폼 */}
@@ -147,38 +137,6 @@ export function LoginSection() {
               )}
             </Button>
           </form>
-
-          {/* 개발용 테스트 계정 */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">
-              💡 테스트 계정 (개발용)
-            </h4>
-            <div className="space-y-2 text-sm">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin("admin", "1234")}
-                className="block w-full text-left p-2 rounded bg-white hover:bg-gray-50 border transition-colors"
-                disabled={isLoading}
-              >
-                <div className="font-medium text-purple-600">관리자 계정</div>
-                <div className="text-gray-500">admin / 1234</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin("teacher", "1234")}
-                className="block w-full text-left p-2 rounded bg-white hover:bg-gray-50 border transition-colors"
-                disabled={isLoading}
-              >
-                <div className="font-medium text-green-600">교사 계정</div>
-                <div className="text-gray-500">teacher / 1234</div>
-              </button>
-            </div>
-          </div>
-          
-          {/* 개발 상태 표시 */}
-          <div className="mt-4 text-xs text-gray-400 text-center">
-            현재 mock API로 구현됨. 실제 서버 연동시 즉시 전환 가능.
-          </div>
         </div>
       </div>
     </>

@@ -12,21 +12,25 @@
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import type { Grade } from "@/types/grade";
-import type { 
-  UnitsTreeResponse, 
+import type {
+  UnitsTreeResponse,
   UnitSelectionState,
-  UnitTreeNode 
+  UnitTreeNode,
+  CategoryNode,
+  SubcategoryNode,
+  UnitNode,
 } from "@/types/units-tree";
-import { 
+import type { Problem } from "@/types/exam-sheet";
+import {
   unitsTreeWithProblemsQueryOptions,
-  basicUnitsTreeQueryOptions 
-} from "@/api/units-tree";
+  basicUnitsTreeQueryOptions,
+} from "@/api/units-tree/query";
 
 /**
  * 선택된 학년 atom
  * @description 현재 단원 트리에서 필터링할 학년
  */
-export const selectedGradeForUnitsTreeAtom = atom<Grade>("중1");
+export const selectedGradeForUnitsTreeAtom = atom<Grade>("1");
 
 /**
  * 문제 포함 단원 트리 조회 atom (CSR 방식)
@@ -41,19 +45,41 @@ export const selectedGradeForUnitsTreeAtom = atom<Grade>("중1");
  * 사용 예시:
  * ```typescript
  * const { data, isPending, isError, error } = useAtomValue(unitsTreeWithProblemsAtom);
- * 
+ *
  * if (isPending) return <UnitsTreeLoadingSpinner />;
  * if (isError) return <ErrorDisplay error={error} />;
- * 
+ *
  * // data 사용
  * ```
  */
-export const /**
+/**
  * 문제 포함 단원 트리 조회 atom (grade를 매개변수로 받음)
  * @description 특정 학년의 문제가 포함된 단원 트리를 CSR로 조회하는 atom
  */
-export const unitsTreeWithProblemsAtom = (grade: Grade) => 
-  atomWithQuery(() => unitsTreeWithProblemsQueryOptions(grade));;
+/**
+ * 문제 포함 단원 트리 조회 atom (CSR 방식)
+ * @description 선택된 학년의 문제 포함 단원 트리를 CSR 방식으로 조회
+ *
+ * 특징:
+ * - 선택된 학년이 변경되면 자동으로 재조회
+ * - 대용량 데이터이므로 로딩 스피너 필요
+ * - 캐싱을 통한 성능 최적화
+ * - AbortController를 통한 자동 요청 취소
+ *
+ * 사용 예시:
+ * ```typescript
+ * const { data, isPending, isError, error } = useAtomValue(unitsTreeWithProblemsAtom);
+ *
+ * if (isPending) return <UnitsTreeLoadingSpinner />;
+ * if (isError) return <ErrorDisplay error={error} />;
+ *
+ * // data 사용
+ * ```
+ */
+export const unitsTreeWithProblemsAtom = atomWithQuery((get) => {
+  const selectedGrade = get(selectedGradeForUnitsTreeAtom);
+  return unitsTreeWithProblemsQueryOptions(selectedGrade);
+});;
 
 /**
  * 기본 단원 트리 조회 atom (빠른 로딩용)
@@ -91,7 +117,7 @@ export const selectedUnitIdsAtom = atom((get) => {
 });
 
 /**
- * 선택된 문제 ID들 atom (읽기 전용)  
+ * 선택된 문제 ID들 atom (읽기 전용)
  * @description 현재 선택된 문제 ID들만 추출하는 derived atom
  */
 export const selectedProblemIdsAtom = atom((get) => {
@@ -111,13 +137,13 @@ export const expandedNodeIdsAtom = atom(
   (get, set, nodeId: string) => {
     const currentState = get(unitSelectionStateAtom);
     const newExpandedIds = new Set(currentState.expandedNodeIds);
-    
+
     if (newExpandedIds.has(nodeId)) {
       newExpandedIds.delete(nodeId);
     } else {
       newExpandedIds.add(nodeId);
     }
-    
+
     set(unitSelectionStateAtom, {
       ...currentState,
       expandedNodeIds: newExpandedIds,
@@ -134,7 +160,7 @@ export const toggleUnitOrProblemAtom = atom(
   (get, set, params: { type: "unit" | "problem"; id: string }) => {
     const currentState = get(unitSelectionStateAtom);
     const { type, id } = params;
-    
+
     if (type === "unit") {
       const newSelectedUnitIds = new Set(currentState.selectedUnitIds);
       if (newSelectedUnitIds.has(id)) {
@@ -142,7 +168,7 @@ export const toggleUnitOrProblemAtom = atom(
       } else {
         newSelectedUnitIds.add(id);
       }
-      
+
       set(unitSelectionStateAtom, {
         ...currentState,
         selectedUnitIds: newSelectedUnitIds,
@@ -154,7 +180,7 @@ export const toggleUnitOrProblemAtom = atom(
       } else {
         newSelectedProblemIds.add(id);
       }
-      
+
       set(unitSelectionStateAtom, {
         ...currentState,
         selectedProblemIds: newSelectedProblemIds,
@@ -188,7 +214,7 @@ export const unitsTreeSearchKeywordAtom = atom(
 export const filteredUnitsTreeAtom = atom((get) => {
   const { data, isPending, isError, error } = get(unitsTreeWithProblemsAtom);
   const searchKeyword = get(unitsTreeSearchKeywordAtom);
-  
+
   if (isPending || isError || !data) {
     return {
       data: null,
@@ -198,7 +224,7 @@ export const filteredUnitsTreeAtom = atom((get) => {
       filteredCategories: [],
     };
   }
-  
+
   // 검색 키워드가 없으면 전체 데이터 반환
   if (!searchKeyword) {
     return {
@@ -209,37 +235,42 @@ export const filteredUnitsTreeAtom = atom((get) => {
       filteredCategories: data.categories,
     };
   }
-  
+
   // 검색 키워드로 필터링
   const keyword = searchKeyword.toLowerCase();
   const filteredCategories = data.categories
-    .map(category => ({
+    .map((category: CategoryNode) => ({
       ...category,
       children: category.children
-        .map(subcategory => ({
+        .map((subcategory: SubcategoryNode) => ({
           ...subcategory,
-          children: subcategory.children.filter(unit =>
-            unit.name.toLowerCase().includes(keyword) ||
-            unit.unitCode.toLowerCase().includes(keyword) ||
-            unit.description?.toLowerCase().includes(keyword) ||
-            (unit.problems && unit.problems.some(problem =>
-              problem.title.toLowerCase().includes(keyword) ||
-              problem.content.toLowerCase().includes(keyword)
-            ))
+          children: subcategory.children.filter(
+            (unit: UnitNode) =>
+              unit.name.toLowerCase().includes(keyword) ||
+              unit.unitCode.toLowerCase().includes(keyword) ||
+              unit.description?.toLowerCase().includes(keyword) ||
+              (unit.problems &&
+                unit.problems.some(
+                  (problem: Problem) =>
+                    problem.title.toLowerCase().includes(keyword) ||
+                    problem.content.toLowerCase().includes(keyword),
+                )),
           ),
         }))
-        .filter(subcategory => subcategory.children.length > 0),
+        .filter(
+          (subcategory: SubcategoryNode) => subcategory.children.length > 0,
+        ),
     }))
-    .filter(category => category.children.length > 0);
-  
+    .filter((category: CategoryNode) => category.children.length > 0);
+
   return {
     data,
     isPending,
-    isError, 
+    isError,
     error,
     filteredCategories,
   };
-});
+});;
 
 /**
  * 선택된 문제 통계 atom (읽기 전용)
@@ -248,7 +279,7 @@ export const filteredUnitsTreeAtom = atom((get) => {
 export const selectedProblemsStatsAtom = atom((get) => {
   const selectedProblemIds = get(selectedProblemIdsAtom);
   const { data } = get(unitsTreeWithProblemsAtom);
-  
+
   if (!data || selectedProblemIds.size === 0) {
     return {
       totalCount: 0,
@@ -259,15 +290,15 @@ export const selectedProblemsStatsAtom = atom((get) => {
       selectedProblems: [],
     };
   }
-  
+
   // 전체 문제 목록에서 선택된 문제들 찾기
-  const allProblems: Array<{ unitId: string; problem: any }> = [];
-  
-  data.categories.forEach(category => {
-    category.children.forEach(subcategory => {
-      subcategory.children.forEach(unit => {
+  const allProblems: Array<{ unitId: string; problem: Problem }> = [];
+
+  data.categories.forEach((category: CategoryNode) => {
+    category.children.forEach((subcategory: SubcategoryNode) => {
+      subcategory.children.forEach((unit: UnitNode) => {
         if (unit.problems) {
-          unit.problems.forEach(problem => {
+          unit.problems.forEach((problem: Problem) => {
             if (selectedProblemIds.has(problem.id)) {
               allProblems.push({ unitId: unit.id, problem });
             }
@@ -276,44 +307,47 @@ export const selectedProblemsStatsAtom = atom((get) => {
       });
     });
   });
-  
-  const objectiveCount = allProblems.filter(({ problem }) => 
-    problem.type === "objective"
+
+  const objectiveCount = allProblems.filter(
+    ({ problem }: { problem: Problem }) => problem.type === "objective",
   ).length;
-  
-  const subjectiveCount = allProblems.filter(({ problem }) => 
-    problem.type === "subjective"
+
+  const subjectiveCount = allProblems.filter(
+    ({ problem }: { problem: Problem }) => problem.type === "subjective",
   ).length;
-  
-  const totalPoints = allProblems.reduce((sum, { problem }) => 
-    sum + (problem.points || 0), 0
+
+  const totalPoints = allProblems.reduce(
+    (sum: number, { problem }: { problem: Problem }) =>
+      sum + (problem.points || 0),
+    0,
   );
-  
-  const unitIds = new Set(allProblems.map(({ unitId }) => unitId));
-  
+
+  const unitIds = new Set(
+    allProblems.map(({ unitId }: { unitId: string }) => unitId),
+  );
+
   return {
     totalCount: allProblems.length,
     objectiveCount,
     subjectiveCount,
     totalPoints,
     unitCount: unitIds.size,
-    selectedProblems: allProblems.map(({ problem }) => problem),
+    selectedProblems: allProblems.map(
+      ({ problem }: { problem: Problem }) => problem,
+    ),
   };
-});
+});;
 
 /**
  * 단원 트리 초기화 액션 atom (쓰기 전용)
  * @description 모든 선택 상태를 초기화하는 액션
  */
-export const resetUnitsTreeSelectionAtom = atom(
-  null,
-  (get, set) => {
-    set(unitSelectionStateAtom, {
-      selectedUnitIds: new Set<string>(),
-      selectedProblemIds: new Set<string>(),
-      expandedNodeIds: new Set<string>(),
-      searchKeyword: undefined,
-      filteredGrade: undefined,
-    });
-  },
-);
+export const resetUnitsTreeSelectionAtom = atom(null, (get, set) => {
+  set(unitSelectionStateAtom, {
+    selectedUnitIds: new Set<string>(),
+    selectedProblemIds: new Set<string>(),
+    expandedNodeIds: new Set<string>(),
+    searchKeyword: undefined,
+    filteredGrade: undefined,
+  });
+});

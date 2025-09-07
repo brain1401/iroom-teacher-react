@@ -150,11 +150,11 @@ export type FlattenedUnitTreeItem = {
  */
 export type UnitSelectionState = {
   /** 선택된 세부단원 ID들 */
-  selectedUnitIds: Set&lt;string&gt;;
+  selectedUnitIds: Set<string>;
   /** 선택된 문제 ID들 */
-  selectedProblemIds: Set&lt;string&gt;;
+  selectedProblemIds: Set<string>;
   /** 확장된 노드 ID들 (트리 UI에서 펼쳐진 노드) */
-  expandedNodeIds: Set&lt;string&gt;;
+  expandedNodeIds: Set<string>;
   /** 검색어 */
   searchKeyword?: string;
   /** 필터링된 학년 */
@@ -169,7 +169,7 @@ export type UnitsTreeSearchResult = {
   /** 검색어 */
   keyword: string;
   /** 매칭된 노드들 */
-  matchedNodes: Array&lt;{
+  matchedNodes: Array<{
     node: UnitTreeNode;
     /** 매칭된 부분 (하이라이트용) */
     matchType: "name" | "description" | "unitCode";
@@ -178,7 +178,7 @@ export type UnitsTreeSearchResult = {
       start: number;
       end: number;
     };
-  }&gt;;
+  }>;
   /** 총 매칭 개수 */
   totalMatches: number;
 };

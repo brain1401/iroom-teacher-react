@@ -7,7 +7,7 @@ import type { Grade } from "@/types/grade";
  * @description 통계/시험지 등 학년 기반 화면에서 공통 사용
  *
  * 주요 기능:
- * - 기본값: "중1"
+ * - 기본값: ""
  * - Select 컴포넌트와 양방향 바인딩
  *
  * Jotai 학년 상태 관리란?
@@ -23,7 +23,7 @@ import type { Grade } from "@/types/grade";
  *
  * 설계 원칙:
  * - 전역 상태: 여러 페이지/컴포넌트에서 공통 사용
- * - 기본값: "중1" (가장 일반적인 시작 학년)
+ * - 기본값: "1" (가장 일반적인 시작 학년)
  * - 타입 안전성: Grade 리터럴 타입으로 제한
  *
  * 주요 사용 사례:
@@ -36,12 +36,12 @@ import type { Grade } from "@/types/grade";
  * ```typescript
  * // ❌ 기존 방식 (각 컴포넌트마다 따로 관리)
  * function ExamSheetListPage() {
- *   const [selectedGrade, setSelectedGrade] = useState<Grade>("중1");
+ *   const [selectedGrade, setSelectedGrade] = useState<Grade>("1");
  *   // 다른 페이지로 이동하면 상태 소실됨
  * }
  *
  * function StatisticsPage() {
- *   const [selectedGrade, setSelectedGrade] = useState<Grade>("중1");
+ *   const [selectedGrade, setSelectedGrade] = useState<Grade>("1");
  *   // 시험지 페이지와 별개로 관리됨 - 일관성 문제
  * }
  *
@@ -73,9 +73,9 @@ import type { Grade } from "@/types/grade";
  *       value={selectedGrade}
  *       onValueChange={(value: Grade) => setSelectedGrade(value)}
  *     >
- *       <SelectItem value="중1">중학교 1학년</SelectItem>
- *       <SelectItem value="중2">중학교 2학년</SelectItem>
- *       <SelectItem value="중3">중학교 3학년</SelectItem>
+ *       <SelectItem value="1">중학교 1학년</SelectItem>
+ *       <SelectItem value="2">중학교 2학년</SelectItem>
+ *       <SelectItem value="3">중학교 3학년</SelectItem>
  *     </Select>
  *   );
  * }
@@ -98,7 +98,7 @@ import type { Grade } from "@/types/grade";
  * }
  * ```
  */
-export const selectedGradeAtom = atom<Grade>("중1");
+export const selectedGradeAtom = atom<Grade>("1");
 
 /**
  * 학년별 선호 설정을 영구 저장하는 atom
@@ -110,7 +110,7 @@ export const selectedGradeAtom = atom<Grade>("중1");
  * - 개인화: 사용자별 맞춤 설정
  *
  * 작동 방식:
- * 1. 최초 방문 시: "중1" 기본값 설정
+ * 1. 최초 방문 시: "1" 기본값 설정
  * 2. 학년 변경 시: localStorage에 자동 저장
  * 3. 재방문 시: 이전 선택 학년으로 자동 복구
  *
@@ -136,7 +136,7 @@ export const selectedGradeAtom = atom<Grade>("중1");
  */
 export const preferredGradeAtom = atomWithStorage<Grade>(
   "preferred-grade",
-  "중1",
+  "1",
 );
 
 /**
@@ -170,9 +170,9 @@ export const gradeDisplayNameAtom = atom((get) => {
   const grade = get(selectedGradeAtom);
 
   const gradeNames: Record<Grade, string> = {
-    중1: "중학교 1학년",
-    중2: "중학교 2학년",
-    중3: "중학교 3학년",
+    1: "중학교 1학년",
+    2: "중학교 2학년",
+    3: "중학교 3학년",
   };
 
   return gradeNames[grade];

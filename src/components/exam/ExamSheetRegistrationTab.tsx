@@ -27,7 +27,7 @@ import type { Exam, ExamStatus } from "@/types/exam";
  * - 시각적 피드백: 선택 상태에 따른 미리보기 및 상태 표시
  *
  * 주요 기능:
- * - 학년 선택 시스템 (중1, 중2, 중3) - Select 드롭다운
+ * - 학년 선택 시스템 (1, 2, 3) - Select 드롭다운
  * - 학생 수 선택 옵션 (10, 15, 20, 25, 30명) - 유연한 클래스 크기 지원
  * - 시험명 선택 드롭다운 (8가지 사전 정의된 시험 유형)
  * - 실시간 시험 정보 미리보기 (3개 문제지 샘플 표시)
@@ -43,7 +43,7 @@ import type { Exam, ExamStatus } from "@/types/exam";
  * 5. 시험 목록에 자동 추가 및 페이지 이동
  *
  * 상태 관리:
- * - selectedGrade: 현재 선택된 학년 ("중1", "중2", "중3")
+ * - selectedGrade: 현재 선택된 학년 ("1", "2", "3")
  * - studentCount: 선택된 학생 수 (string 타입으로 Select 컴포넌트와 호환)
  * - selectedExamName: 선택된 시험명 (examNameOptions에서 선택)
  *
@@ -74,7 +74,7 @@ export function ExamSheetRegistrationTab() {
   const { addNewExam } = useExamList();
 
   // 상태 관리
-  const [selectedGrade, setSelectedGrade] = useState<string>("중1");
+  const [selectedGrade, setSelectedGrade] = useState<string>("1");
   const [studentCount, setStudentCount] = useState<string>("20");
   const [selectedExamName, setSelectedExamName] = useState<string>("");
 
@@ -152,7 +152,7 @@ export function ExamSheetRegistrationTab() {
       // TODO: unitName 속성이 서버 타입에 없음 - 단원 정보는 별도 API로 관리
       examName: selectedExamName,
       content: `${selectedGrade} 수학 시험지`, // content 속성 사용
-      grade: parseInt(selectedGrade.replace('중', ''), 10) || 1,
+      grade: parseInt(selectedGrade.replace("중", ""), 10) || 1,
       qrCodeUrl: null,
       examSheetInfo: null,
     };
@@ -199,9 +199,9 @@ export function ExamSheetRegistrationTab() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="중1">중1</SelectItem>
-                <SelectItem value="중2">중2</SelectItem>
-                <SelectItem value="중3">중3</SelectItem>
+                <SelectItem value="1">1</SelectItem>
+                <SelectItem value="2">2</SelectItem>
+                <SelectItem value="3">3</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -49,7 +49,7 @@ async function examSheetApiRequest<T>(config: AxiosRequestConfig): Promise<T> {
  * @example
  * ```typescript
  * // 기본 사용법
- * const units = await getUnitsByGrade("중1");
+ * const units = await getUnitsByGrade("1");
  *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
@@ -62,7 +62,7 @@ async function examSheetApiRequest<T>(config: AxiosRequestConfig): Promise<T> {
  * });
  * ```
  *
- * @param grade 조회하고자 하는 학년 ("중1" ~ "중3", "고1" ~ "고3")
+ * @param grade 조회하고자 하는 학년 ("1" ~ "3")
  * @param options 추가 옵션
  * @param options.signal 요청 취소를 위한 AbortSignal
  * @returns 해당 학년의 단원 목록 데이터

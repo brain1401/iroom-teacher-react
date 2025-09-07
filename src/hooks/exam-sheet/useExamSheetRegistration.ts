@@ -23,7 +23,7 @@ type ProblemHierarchy = {
 export function useExamSheetRegistration() {
   // 문제지 정보 상태
   const [examName, setExamName] = useState<string>("");
-  const [selectedGrade, setSelectedGrade] = useState<string>("중1");
+  const [selectedGrade, setSelectedGrade] = useState<string>("1");
 
   // 선택된 문제 상태
   const [selectedProblems, setSelectedProblems] = useState<Set<string>>(
@@ -200,7 +200,13 @@ export function useExamSheetRegistration() {
 
     Array.from(selectedProblems).forEach((problemId) => {
       // TODO: 서버 API에서 문제 계층 정보를 가져오도록 수정 필요
-      const hierarchy = { unit: "", subunit: "", chapter: "", detail: "", count: 1 } as any; // findProblemHierarchy(problemId);
+      const hierarchy = {
+        unit: "",
+        subunit: "",
+        chapter: "",
+        detail: "",
+        count: 1,
+      } as any; // findProblemHierarchy(problemId);
       if (hierarchy) {
         const detailKey = `${hierarchy.unit}-${hierarchy.subunit}-${hierarchy.detail}`;
         if (!problemGroups[detailKey]) {
@@ -237,7 +243,7 @@ export function useExamSheetRegistration() {
 
     orderedProblemIds.forEach((problemId) => {
       // TODO: 서버 API에서 문제 데이터를 생성하도록 수정 필요
-    const problemData = { id: problemId, name: "", type: "objective" } as any; // generateProblemData(problemId);
+      const problemData = { id: problemId, name: "", type: "objective" } as any; // generateProblemData(problemId);
       if (problemData) {
         problems.push({
           ...problemData,
@@ -311,7 +317,7 @@ export function useExamSheetRegistration() {
       // unitName: `${selectedGrade} 수학 - 문제지`,
       examName,
       content: `${selectedGrade} 수학 시험지`,
-      grade: parseInt(selectedGrade.replace('중', ''), 10) || 1,
+      grade: parseInt(selectedGrade.replace("중", ""), 10) || 1,
       qrCodeUrl: null,
       examSheetInfo: null,
     };

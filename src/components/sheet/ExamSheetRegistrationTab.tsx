@@ -18,16 +18,20 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Circle, Square, GripVertical, Eye } from "lucide-react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { ProblemListTab } from "./ProblemListTab";
 import { ProblemDetailModal } from "./ProblemDetailModal";
 import { UnitTreeItem } from "./UnitTreeItem";
 import { UnitsTreeLoadingSpinner } from "@/components/units-tree/UnitsTreeLoadingSpinner";
 import { useExamSheetRegistration } from "@/hooks/exam-sheet/useExamSheetRegistration";
-import { unitsTreeWithProblemsAtom } from "@/atoms/unitsTree";
-import type { Grade } from "@/types/units-tree";
+import {
+  selectedGradeForUnitsTreeAtom,
+  filteredUnitsTreeAtom,
+} from "@/atoms/unitsTree";
+import { convertUnitsTreeForComponent } from "@/utils/unitsTreeAdapter";
+import type { Grade } from "@/types/grade";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 /**
  * 문제지 등록 탭 콘텐츠
  * @description 교사가 새로운 시험지를 생성하기 위한 종합적인 인터페이스를 제공하는 핵심 컴포넌트
@@ -129,7 +133,7 @@ import { useEffect } from "react";
  * // 커스텀 설정과 함께 사용
  * function CustomExamSheetCreation() {
  *   const [maxQuestions] = useState(50); // 기본 30 대신 50문항
- *   const [allowedGrades] = useState(['중1', '중2', '중3', '고1']);
+ *   const [allowedGrades] = useState(['1', '2', '3', '고1']);
  *
  *   return (
  *     <ExamSheetRegistrationTab
@@ -151,7 +155,7 @@ import { useEffect } from "react";
  * function TemplateBasedCreation() {
  *   const midtermTemplate = {
  *     name: '1학기 중간고사',
- *     grade: '중2',
+ *     grade: '2',
  *     preselectedUnits: ['unit-2-1', 'unit-2-2'],
  *     suggestedQuestionCount: 25
  *   };
@@ -208,14 +212,28 @@ export function ExamSheetRegistrationTab() {
   } = useExamSheetRegistration();
 
   // 단원 트리 데이터 CSR 로딩
-  const unitsTreeQuery = useAtomValue(unitsTreeWithProblemsAtom(selectedGrade as Grade));
-  
+  const setSelectedGradeAtom = useSetAtom(selectedGradeForUnitsTreeAtom);
+  const filteredUnitsTree = useAtomValue(filteredUnitsTreeAtom);
+
+  // 선택된 학년을 atom에 동기화
+  useEffect(() => {
+    setSelectedGradeAtom(selectedGrade as Grade);
+  }, [selectedGrade, setSelectedGradeAtom]);
+
   const {
     data: unitsTreeData,
     isPending: isUnitsTreeLoading,
     isError: isUnitsTreeError,
-    error: unitsTreeError
-  } = unitsTreeQuery;
+    error: unitsTreeError,
+    filteredCategories,
+  } = filteredUnitsTree;
+
+  // UnitTreeItem 컴포넌트에서 사용할 수 있도록 데이터 변환
+  const convertedTreeData = useMemo(() => {
+    // filteredCategories는 이미 필터링된 카테고리 배열
+    if (!filteredCategories || filteredCategories.length === 0) return [];
+    return convertUnitsTreeForComponent(filteredCategories);
+  }, [filteredCategories]);
 
   /**
    * 시험 출제 완료 후 시험 목록 탭으로 이동
@@ -224,7 +242,7 @@ export function ExamSheetRegistrationTab() {
     setExamCreatedCallback((newExam) => {
       // 시험 목록 탭으로 이동
       console.log("시험 출제 완료:", newExam);
-      
+
       // SSR 호환성: 브라우저 환경에서만 localStorage 접근
       if (typeof window !== "undefined") {
         // localStorage에 새로운 시험 정보 저장
@@ -283,9 +301,9 @@ export function ExamSheetRegistrationTab() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="중1">중1</SelectItem>
-                <SelectItem value="중2">중2</SelectItem>
-                <SelectItem value="중3">중3</SelectItem>
+                <SelectItem value="1">1</SelectItem>
+                <SelectItem value="2">2</SelectItem>
+                <SelectItem value="3">3</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -354,14 +372,16 @@ export function ExamSheetRegistrationTab() {
                 {/* CSR 방식 단원 트리 로딩 */}
                 {isUnitsTreeLoading ? (
                   <div className="flex justify-center py-8">
-                    <UnitsTreeLoadingSpinner 
-                      message="문제 포함 단원 트리를 불러오는 중..." 
-                      compact={false}
+                    <UnitsTreeLoadingSpinner
+                      message="문제 포함 단원 트리를 불러오는 중..."
+                      isCompact={false}
                     />
                   </div>
                 ) : isUnitsTreeError ? (
                   <div className="text-center py-8">
-                    <p className="text-red-600 mb-2">단원 트리를 불러오는 중 오류가 발생했습니다.</p>
+                    <p className="text-red-600 mb-2">
+                      단원 트리를 불러오는 중 오류가 발생했습니다.
+                    </p>
                     <p className="text-sm text-gray-500 mb-4">
                       {unitsTreeError?.message || "알 수 없는 오류"}
                     </p>
@@ -375,11 +395,11 @@ export function ExamSheetRegistrationTab() {
                       다시 시도
                     </Button>
                   </div>
-                ) : unitsTreeData?.categories ? (
-                  unitsTreeData.categories.map((category) => (
+                ) : convertedTreeData.length > 0 ? (
+                  convertedTreeData.map((treeNode) => (
                     <UnitTreeItem
-                      key={category.id}
-                      unit={category as any} // UnitTreeItem 타입과 맞추기 위한 임시 캐스팅
+                      key={treeNode.id}
+                      unit={treeNode}
                       selectedItems={selectedProblems}
                       onToggleItem={toggleProblem}
                       onProblemDetail={handleProblemDetail}
@@ -387,7 +407,9 @@ export function ExamSheetRegistrationTab() {
                   ))
                 ) : (
                   <div className="text-center text-gray-500 py-8">
-                    <p className="text-sm">해당 학년의 단원 데이터를 찾을 수 없습니다.</p>
+                    <p className="text-sm">
+                      해당 학년의 단원 데이터를 찾을 수 없습니다.
+                    </p>
                     <p className="text-xs mt-1">다른 학년을 선택해보세요.</p>
                   </div>
                 )}

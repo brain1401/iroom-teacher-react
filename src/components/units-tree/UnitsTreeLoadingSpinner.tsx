@@ -10,7 +10,7 @@ type UnitsTreeLoadingSpinnerProps = {
   /** 추가 CSS 클래스 */
   className?: string;
   /** 컴팩트 모드 (작은 크기) */
-  compact?: boolean;
+  isCompact?: boolean;
 };
 
 /**
@@ -35,16 +35,16 @@ type UnitsTreeLoadingSpinnerProps = {
  * <UnitsTreeLoadingSpinner />
  *
  * // 커스텀 메시지
- * <UnitsTreeLoadingSpinner 
- *   message="중2 학년 문제 포함 단원 트리를 불러오는 중..."
+ * <UnitsTreeLoadingSpinner
+ *   message="2 학년 문제 포함 단원 트리를 불러오는 중..."
  * />
  *
  * // 컴팩트 모드
- * <UnitsTreeLoadingSpinner compact />
+ * <UnitsTreeLoadingSpinner isCompact />
  *
  * // 조건부 렌더링
  * {isLoading && (
- *   <UnitsTreeLoadingSpinner 
+ *   <UnitsTreeLoadingSpinner
  *     message="문제 데이터를 포함하여 로딩 중입니다..."
  *   />
  * )}
@@ -53,11 +53,11 @@ type UnitsTreeLoadingSpinnerProps = {
 export function UnitsTreeLoadingSpinner({
   message = "단원 트리를 불러오는 중입니다...",
   className,
-  compact = false,
+  isCompact = false,
 }: UnitsTreeLoadingSpinnerProps) {
-  if (compact) {
+  if (isCompact) {
     return (
-      <div 
+      <div
         className={`flex items-center justify-center gap-2 py-4 ${className || ""}`}
         aria-label="단원 트리 로딩 중"
         role="status"
@@ -79,7 +79,7 @@ export function UnitsTreeLoadingSpinner({
       <CardContent className="space-y-4">
         {/* 로딩 스피너 */}
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
-          <div 
+          <div
             className="relative"
             aria-label="단원 트리 로딩 중"
             role="status"
@@ -88,11 +88,9 @@ export function UnitsTreeLoadingSpinner({
             {/* 추가 시각적 효과 - 동심원 */}
             <div className="absolute inset-0 h-8 w-8 rounded-full border-2 border-sky-200 animate-pulse" />
           </div>
-          
+
           <div className="text-center space-y-2">
-            <p className="text-base font-medium text-foreground">
-              {message}
-            </p>
+            <p className="text-base font-medium text-foreground">{message}</p>
             <p className="text-sm text-muted-foreground">
               문제 데이터가 포함된 대용량 정보를 처리하고 있습니다
             </p>
@@ -101,8 +99,13 @@ export function UnitsTreeLoadingSpinner({
 
         {/* 프로그레스 바 효과 */}
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-          <div className="bg-sky-600 h-2 rounded-full animate-pulse origin-left transform transition-transform duration-1000" 
-               style={{ width: "60%", animation: "loading-progress 2s ease-in-out infinite" }} />
+          <div
+            className="bg-sky-600 h-2 rounded-full animate-pulse origin-left transform transition-transform duration-1000"
+            style={{
+              width: "60%",
+              animation: "loading-progress 2s ease-in-out infinite",
+            }}
+          />
         </div>
 
         {/* 도움말 텍스트 */}
@@ -112,15 +115,8 @@ export function UnitsTreeLoadingSpinner({
           <p>• 네트워크 상황에 따라 시간이 소요될 수 있습니다</p>
         </div>
       </CardContent>
-      
-      {/* CSS 애니메이션 */}
-      <style jsx>{`
-        @keyframes loading-progress {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(0%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
+
+      {/* Tailwind CSS를 사용한 애니메이션으로 대체 */}
     </Card>
   );
 }

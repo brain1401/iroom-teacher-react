@@ -1,10 +1,14 @@
 import type { AxiosRequestConfig } from "axios";
 import { apiClient } from "@/api/client";
 import type { Grade } from "@/types/grade";
-import type { 
-  UnitsTreeResponse, 
-  UnitsTreeQueryParams 
+import type {
+  UnitsTreeResponse,
+  UnitsTreeQueryParams,
 } from "@/types/units-tree";
+import type {
+  BackendUnitsTreeResponse,
+} from "@/types/units-tree-backend";
+import { convertBackendResponseToUnitsTree } from "@/utils/unitsTreeAdapter";
 
 /**
  * 단원 트리 API 클라이언트
@@ -71,25 +75,25 @@ async function unitsTreeApiRequest<T>(config: AxiosRequestConfig): Promise<T> {
  * const unitsTree = await fetchUnitsTree();
  *
  * // 학년별 조회
- * const grade1Units = await fetchUnitsTree({ grade: "중1" });
+ * const grade1Units = await fetchUnitsTree({ grade: "1" });
  *
  * // 문제 포함 조회 (대용량 데이터)
- * const unitsWithProblems = await fetchUnitsTree({ 
- *   grade: "중2", 
- *   includeQuestions: true 
+ * const unitsWithProblems = await fetchUnitsTree({
+ *   grade: "2",
+ *   includeQuestions: true
  * });
  *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
  * const units = await fetchUnitsTree(
- *   { grade: "중3", includeQuestions: true },
+ *   { grade: "3", includeQuestions: true },
  *   { signal: controller.signal }
  * );
  *
  * // 컴포넌트에서 사용
  * const { data: unitsTree, isLoading, error } = useQuery({
- *   queryKey: ["units-tree", { grade: "중1", includeQuestions: true }],
- *   queryFn: () => fetchUnitsTree({ grade: "중1", includeQuestions: true })
+ *   queryKey: ["units-tree", { grade: "1", includeQuestions: true }],
+ *   queryFn: () => fetchUnitsTree({ grade: "1", includeQuestions: true })
  * });
  * ```
  *
@@ -107,7 +111,8 @@ export async function fetchUnitsTree(
   params?: UnitsTreeQueryParams,
   options?: Pick<AxiosRequestConfig, "signal">,
 ): Promise<UnitsTreeResponse> {
-  return unitsTreeApiRequest<UnitsTreeResponse>({
+  // 백엔드 API 호출
+  const backendResponse = await unitsTreeApiRequest<BackendUnitsTreeResponse>({
     method: "GET",
     url: "/tree",
     params: {
@@ -116,6 +121,13 @@ export async function fetchUnitsTree(
     },
     signal: options?.signal,
   });
+
+  // 백엔드 응답을 프론트엔드 타입으로 변환
+  return convertBackendResponseToUnitsTree(
+    backendResponse,
+    params?.grade,
+    params?.includeQuestions || false
+  );
 }
 
 /**
@@ -129,9 +141,9 @@ export async function fetchUnitsTree(
  *
  * @example
  * ```typescript
- * // 중1 학년의 문제 포함 단원 트리 조회
- * const unitsWithProblems = await fetchUnitsTreeWithProblems("중1");
- * 
+ * // 1 학년의 문제 포함 단원 트리 조회
+ * const unitsWithProblems = await fetchUnitsTreeWithProblems("1");
+ *
  * // React Query와 함께 사용
  * const { data, isLoading, error } = useQuery({
  *   queryKey: ["units-tree-with-problems", grade],
@@ -158,7 +170,7 @@ export async function fetchUnitsTreeWithProblems(
 }
 
 /**
- * 단원 트리 기본 구조만 조회하는 편의 함수 
+ * 단원 트리 기본 구조만 조회하는 편의 함수
  * @description 문제 없이 단원 구조만 빠르게 조회하는 함수
  *
  * 주요 용도:
@@ -171,8 +183,8 @@ export async function fetchUnitsTreeWithProblems(
  * // 전체 단원 구조만 조회
  * const basicUnitsTree = await fetchBasicUnitsTree();
  *
- * // 특정 학년 단원 구조만 조회  
- * const grade2BasicTree = await fetchBasicUnitsTree("중2");
+ * // 특정 학년 단원 구조만 조회
+ * const grade2BasicTree = await fetchBasicUnitsTree("2");
  * ```
  *
  * @param grade 조회할 학년 (선택사항)
