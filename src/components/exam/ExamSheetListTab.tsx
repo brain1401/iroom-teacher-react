@@ -320,7 +320,7 @@ export function ExamSheetListTab({
                   selectedIds={new Set()}
                   onSelectAll={() => {}}
                   onSelect={() => {}}
-                  onOpenDetail={(submission: any) => {
+                  onOpenDetail={(submission) => {
                     console.log("학생 상세 정보:", submission);
                     alert(
                       `${submission.student.name} 학생의 상세 정보를 확인합니다.`,
