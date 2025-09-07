@@ -23,6 +23,7 @@ import {
   ChevronDown,
   Trash2,
 } from "lucide-react";
+import { PrintButton } from "../common/PrintButton";
 
 /**
  * 정렬 타입 정의
@@ -621,14 +622,7 @@ export function ExamSheetTable({
                   >
                     문제보기
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenPrint(sheet)}
-                    className="text-xs px-2 py-1 bg-blue-500 text-white"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </Button>
+                  <PrintButton onClick={() => onOpenPrint(sheet)} />
                 </div>
               </TableCell>
             </TableRow>

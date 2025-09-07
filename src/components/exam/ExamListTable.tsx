@@ -17,6 +17,7 @@ import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
 import type { ServerExam as Exam } from "@/api/exam/types";
 import { Link } from "@tanstack/react-router";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { PrintButton } from "../common/PrintButton";
 
 /**
  * 시험지 테이블 컴포넌트 props 타입
@@ -221,6 +222,7 @@ export function ExamTable({
             <TableHead className={tableStyles.headerCellCenter}>
               제출명단
             </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>인쇄</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -305,6 +307,11 @@ export function ExamTable({
                     상세보기
                   </Link>
                 </Button>
+              </TableCell>
+
+              {/* 4. 인쇄 버튼  */}
+              <TableCell className={tableStyles.cellCenter}>
+                <PrintButton onClick={() => {}} />
               </TableCell>
             </TableRow>
           ))}
