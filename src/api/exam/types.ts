@@ -41,15 +41,21 @@ export type ServerPageable = {
  */
 export type ServerExamSheetInfo = {
   /** 시험지 ID */
-  id: string;
+  id?: string;
   /** 시험지 이름 */
-  examName: string;
+  examName?: string;
   /** 총 문제 수 */
   totalQuestions: number;
+  /** 객관식 문항 수 */
+  objectiveCount?: number;
+  /** 주관식 문항 수 */
+  subjectiveCount?: number;
   /** 총 점수 */
   totalPoints: number;
+  /** 선택된 문제 상세 (UI용) */
+  selectedProblems?: any;
   /** 생성일시 (ISO 8601) */
-  createdAt: string;
+  createdAt?: string;
 };
 
 /**

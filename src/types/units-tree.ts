@@ -14,6 +14,8 @@
 import type { Grade } from "./grade";
 import type { Problem } from "./exam-sheet";
 
+export type { Problem } from "./exam-sheet";
+
 /**
  * 단원 트리 노드의 기본 타입
  * @description 모든 트리 노드가 공통으로 가지는 속성들

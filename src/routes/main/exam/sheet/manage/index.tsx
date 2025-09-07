@@ -5,7 +5,8 @@ import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { ExamSheetListTab, ExamSheetRegistrationTab } from "@/components/sheet";
+import { ExamSheetListTab } from "@/components/sheet";
+import { ExamSheetRegistrationTab } from "@/components/exam";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import {
   sheetSearchKeywordAtom,
@@ -47,7 +48,7 @@ const sheetManageSearchSchema = z.object({
   // UI 상태 파라미터들
   showSidebar: z.boolean().optional(),
   collapsedSidebar: z.boolean().optional(),
-});;
+});
 
 export const Route = createFileRoute("/main/exam/sheet/manage/")({
   validateSearch: zodValidator(sheetManageSearchSchema),

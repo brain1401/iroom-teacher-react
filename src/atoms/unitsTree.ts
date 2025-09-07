@@ -190,6 +190,213 @@ export const toggleUnitOrProblemAtom = atom(
 );
 
 /**
+ * 단원의 모든 문제 일괄 선택/해제 atom (쓰기 전용)
+ * @description 특정 단원의 모든 문제를 한번에 선택하거나 해제하는 액션
+ */
+export const toggleAllProblemsInUnitAtom = atom(
+  null,
+  (get, set, params: { unitId: string; unitNode?: UnitNode }) => {
+    const currentState = get(unitSelectionStateAtom);
+    const { data } = get(unitsTreeWithProblemsAtom);
+    
+    if (!data) return;
+
+    // unitNode가 제공되지 않은 경우 트리에서 찾기
+    let targetUnit: UnitNode | undefined = params.unitNode;
+    
+    if (!targetUnit) {
+      data.categories.forEach((category: CategoryNode) => {
+        category.children.forEach((subcategory: SubcategoryNode) => {
+          subcategory.children.forEach((unit: UnitNode) => {
+            if (unit.id === params.unitId) {
+              targetUnit = unit;
+            }
+          });
+        });
+      });
+    }
+    
+    if (!targetUnit || !targetUnit.problems || targetUnit.problems.length === 0) {
+      return;
+    }
+
+    const unitProblemIds = targetUnit.problems.map((p: Problem) => p.id);
+    const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
+    
+    // 이 단원의 모든 문제가 이미 선택되어 있는지 확인
+    const allSelected = unitProblemIds.every(id => newSelectedProblemIds.has(id));
+    
+    if (allSelected) {
+      // 모두 선택되어 있으면 모두 해제
+      unitProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+    } else {
+      // 하나라도 선택되지 않았으면 모두 선택
+      unitProblemIds.forEach(id => newSelectedProblemIds.add(id));
+    }
+
+    set(unitSelectionStateAtom, {
+      ...currentState,
+      selectedProblemIds: newSelectedProblemIds,
+    });
+  },
+);
+
+/**
+ * 중분류(Subcategory)의 모든 문제 일괄 선택/해제 atom (쓰기 전용)
+ * @description 특정 중분류의 모든 하위 단원 문제를 한번에 선택하거나 해제
+ */
+export const toggleAllProblemsInSubcategoryAtom = atom(
+  null,
+  (get, set, params: { subcategoryId: string; subcategoryNode?: SubcategoryNode }) => {
+    const currentState = get(unitSelectionStateAtom);
+    const { data } = get(unitsTreeWithProblemsAtom);
+    
+    if (!data) return;
+
+    let targetSubcategory: SubcategoryNode | undefined = params.subcategoryNode;
+    
+    if (!targetSubcategory) {
+      data.categories.forEach((category: CategoryNode) => {
+        category.children.forEach((subcategory: SubcategoryNode) => {
+          if (subcategory.id === params.subcategoryId) {
+            targetSubcategory = subcategory;
+          }
+        });
+      });
+    }
+    
+    if (!targetSubcategory) return;
+
+    const allProblemIds: string[] = [];
+    targetSubcategory.children.forEach((unit: UnitNode) => {
+      if (unit.problems) {
+        unit.problems.forEach((problem: Problem) => {
+          allProblemIds.push(problem.id);
+        });
+      }
+    });
+
+    if (allProblemIds.length === 0) return;
+
+    const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
+    const allSelected = allProblemIds.every(id => newSelectedProblemIds.has(id));
+    
+    if (allSelected) {
+      allProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+    } else {
+      allProblemIds.forEach(id => newSelectedProblemIds.add(id));
+    }
+
+    set(unitSelectionStateAtom, {
+      ...currentState,
+      selectedProblemIds: newSelectedProblemIds,
+    });
+  },
+);
+
+/**
+ * 대분류(Category)의 모든 문제 일괄 선택/해제 atom (쓰기 전용)
+ * @description 특정 대분류의 모든 하위 문제를 한번에 선택하거나 해제
+ */
+export const toggleAllProblemsInCategoryAtom = atom(
+  null,
+  (get, set, params: { categoryId: string; categoryNode?: CategoryNode }) => {
+    const currentState = get(unitSelectionStateAtom);
+    const { data } = get(unitsTreeWithProblemsAtom);
+    
+    if (!data) return;
+
+    let targetCategory: CategoryNode | undefined = params.categoryNode;
+    
+    if (!targetCategory) {
+      targetCategory = data.categories.find((cat: CategoryNode) => cat.id === params.categoryId);
+    }
+    
+    if (!targetCategory) return;
+
+    const allProblemIds: string[] = [];
+    targetCategory.children.forEach((subcategory: SubcategoryNode) => {
+      subcategory.children.forEach((unit: UnitNode) => {
+        if (unit.problems) {
+          unit.problems.forEach((problem: Problem) => {
+            allProblemIds.push(problem.id);
+          });
+        }
+      });
+    });
+
+    if (allProblemIds.length === 0) return;
+
+    const newSelectedProblemIds = new Set(currentState.selectedProblemIds);
+    const allSelected = allProblemIds.every(id => newSelectedProblemIds.has(id));
+    
+    if (allSelected) {
+      allProblemIds.forEach(id => newSelectedProblemIds.delete(id));
+    } else {
+      allProblemIds.forEach(id => newSelectedProblemIds.add(id));
+    }
+
+    set(unitSelectionStateAtom, {
+      ...currentState,
+      selectedProblemIds: newSelectedProblemIds,
+    });
+  },
+);
+
+/**
+ * 선택된 문제 상세 정보 atom (읽기 전용)
+ * @description 선택된 문제들의 상세 정보를 단원별로 정리
+ */
+export const selectedProblemsDetailAtom = atom((get) => {
+  const selectedProblemIds = get(selectedProblemIdsAtom);
+  const { data } = get(unitsTreeWithProblemsAtom);
+
+  if (!data || selectedProblemIds.size === 0) {
+    return [];
+  }
+
+  type UnitWithSelectedProblems = {
+    unitId: string;
+    unitName: string;
+    unitCode: string;
+    categoryName: string;
+    subcategoryName: string;
+    problems: Problem[];
+    totalPoints: number;
+    problemCount: number;
+  };
+
+  const unitsWithProblems: UnitWithSelectedProblems[] = [];
+
+  data.categories.forEach((category: CategoryNode) => {
+    category.children.forEach((subcategory: SubcategoryNode) => {
+      subcategory.children.forEach((unit: UnitNode) => {
+        if (unit.problems) {
+          const selectedProblemsInUnit = unit.problems.filter((problem: Problem) =>
+            selectedProblemIds.has(problem.id)
+          );
+          
+          if (selectedProblemsInUnit.length > 0) {
+            unitsWithProblems.push({
+              unitId: unit.id,
+              unitName: unit.name,
+              unitCode: unit.unitCode,
+              categoryName: category.name,
+              subcategoryName: subcategory.name,
+              problems: selectedProblemsInUnit,
+              totalPoints: selectedProblemsInUnit.reduce((sum, p) => sum + (p.points || 0), 0),
+              problemCount: selectedProblemsInUnit.length,
+            });
+          }
+        }
+      });
+    });
+  });
+
+  return unitsWithProblems;
+});
+
+/**
  * 검색 키워드 atom (읽기/쓰기)
  * @description 단원 트리 검색 기능을 위한 키워드 상태
  */
