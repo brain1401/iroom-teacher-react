@@ -280,56 +280,72 @@ export function ExamAttendeesTable({
         </Table>
       </div>
 
-      {/* 페이지네이션 */}
-      {data.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            전체 {data.totalElements}명 중 {data.numberOfElements}명 표시
-          </div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className={cn(
-                    !data.first && "cursor-pointer",
-                    data.first && "opacity-50 cursor-not-allowed",
-                  )}
-                />
-              </PaginationItem>
-
-              {/* 페이지 번호들 */}
-              {Array.from({ length: Math.min(5, data.totalPages) }, (_, i) => {
-                const pageNum = Math.max(
-                  0,
-                  Math.min(currentPage - 2 + i, data.totalPages - 1),
-                );
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(pageNum)}
-                      isActive={pageNum === currentPage}
-                      className="cursor-pointer"
-                    >
-                      {pageNum + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className={cn(
-                    !data.last && "cursor-pointer",
-                    data.last && "opacity-50 cursor-not-allowed",
-                  )}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+      <div className="flex items-center">
+        <div className="text-sm text-muted-foreground">
+          전체 {data.totalElements}명 중 {data.numberOfElements}명 표시
         </div>
-      )}
+        <Pagination className="flex-1">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={cn(
+                  !data.first && "cursor-pointer",
+                  data.first && "opacity-50 cursor-not-allowed",
+                )}
+              />
+            </PaginationItem>
+
+            {/* 페이지 번호들 */}
+            {(() => {
+              // 페이지 번호 배열 생성
+              const pageNumbers: number[] = [];
+
+              if (data.totalPages <= 5) {
+                // 전체 페이지가 5개 이하면 모두 표시
+                for (let i = 0; i < data.totalPages; i++) {
+                  pageNumbers.push(i);
+                }
+              } else {
+                // 5개 이상이면 현재 페이지 중심으로 5개 표시
+                let start = Math.max(0, currentPage - 2);
+                const end = Math.min(data.totalPages - 1, start + 4);
+
+                // 끝에 도달했으면 시작점 조정
+                if (end - start < 4) {
+                  start = Math.max(0, end - 4);
+                }
+
+                for (let i = start; i <= end; i++) {
+                  pageNumbers.push(i);
+                }
+              }
+
+              return pageNumbers.map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(pageNum)}
+                    isActive={pageNum === currentPage}
+                    className="cursor-pointer"
+                  >
+                    {pageNum + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ));
+            })()}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={cn(
+                  !data.last && "cursor-pointer",
+                  data.last && "opacity-50 cursor-not-allowed",
+                )}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }
