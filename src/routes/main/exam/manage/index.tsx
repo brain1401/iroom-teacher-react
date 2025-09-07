@@ -5,10 +5,7 @@ import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import {
-  EnhancedExamSheetListTab,
-  ExamCreationTab,
-} from "@/components/exam";
+import { EnhancedExamSheetListTab, ExamCreationTab } from "@/components/exam";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import {
   searchKeywordAtom,
@@ -24,11 +21,12 @@ import {
   setExamPageAtom,
 } from "@/atoms/examFilters";
 import { examListQueryOptions } from "@/api/exam";
+import { examSheetListQueryOptions } from "@/api/exam-sheet";
 
 /**
  * 시험 관리 페이지 검색 파라미터 스키마
  * @description Zod 스키마를 사용한 타입 안전한 검색 파라미터 검증
- * 
+ *
  * 포함 파라미터:
  * - 페이징: page, size
  * - 정렬: sort
@@ -44,11 +42,11 @@ const examManageSearchSchema = z.object({
   search: z.string().optional(),
   grade: z.string().optional(),
   recent: z.boolean().optional(),
-  
+
   // UI 상태 파라미터들
   showSidebar: z.boolean().optional(),
   collapsedSidebar: z.boolean().optional(),
-  
+
   // 네비게이션 파라미터들 (부모 route.tsx에서 상속)
   selectedExam: z.string().optional(),
   examName: z.string().optional(),
@@ -68,33 +66,26 @@ export const Route = createFileRoute("/main/exam/manage/")({
   // SSR loader for exam list data
   loader: async ({ context, deps }) => {
     const { queryClient } = context;
-    
+
     // URL 파라미터를 서버 API 파라미터로 변환
     const serverParams = deps;
 
     try {
       // 서버에서 시험 목록 데이터 사전 로드
-      const data = await queryClient.ensureQueryData(
-        examListQueryOptions(serverParams)
-      );
-      
-      return {
-        examListData: data,
-        serverParams,
-        searchParams: deps,
-        success: true,
-        error: null,
-      };
+      await Promise.all([
+        queryClient.ensureQueryData(examListQueryOptions(serverParams)),
+
+        queryClient.prefetchQuery(
+          examSheetListQueryOptions({
+            direction: "desc",
+            page: 0,
+            size: 10,
+            sort: "createdAt",
+          }),
+        ),
+      ]);
     } catch (error) {
       console.error("시험 목록 데이터 사전 로드 실패:", error);
-      
-      return {
-        examListData: null,
-        serverParams,
-        searchParams: deps,
-        success: false,
-        error: error instanceof Error ? error.message : "데이터 로딩 실패",
-      };
     }
   },
   component: RouteComponent,
@@ -102,13 +93,13 @@ export const Route = createFileRoute("/main/exam/manage/")({
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
-  
+
   // 부모 route.tsx에서 네비게이션 파라미터 가져오기
   const { selectedExam, examName } = Route.useSearch();
-  
+
   // 현재 route의 필터링 파라미터 가져오기
   const searchParams = Route.useSearch();
-  
+
   // SSR 하이드레이션 - URL 파라미터를 Jotai atoms에 동기화
   useHydrateAtoms([
     [searchKeywordAtom, searchParams.search || ""],
@@ -117,8 +108,16 @@ function RouteComponent() {
     [examPageSizeAtom, searchParams.size || 20],
     [examSortAtom, searchParams.sort || "createdAt,desc"],
     [recentExamFilterAtom, searchParams.recent || false],
-    [showFilterSidebarAtom, searchParams.showSidebar !== undefined ? searchParams.showSidebar : true],
-    [collapsedFilterSidebarAtom, searchParams.collapsedSidebar !== undefined ? searchParams.collapsedSidebar : false],
+    [
+      showFilterSidebarAtom,
+      searchParams.showSidebar !== undefined ? searchParams.showSidebar : true,
+    ],
+    [
+      collapsedFilterSidebarAtom,
+      searchParams.collapsedSidebar !== undefined
+        ? searchParams.collapsedSidebar
+        : false,
+    ],
   ]);
 
   // URL 파라미터 변경 시 atom 상태 동기화

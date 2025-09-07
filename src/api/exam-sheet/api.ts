@@ -200,7 +200,7 @@ export async function getExamSheetsList(
  *     { questionId: "uuid-3", questionOrder: 3, points: 20 }
  *   ]
  * });
- * 
+ *
  * // 요청 취소 기능 포함
  * const controller = new AbortController();
  * const newExamSheet = await createExamSheet(data, { signal: controller.signal });

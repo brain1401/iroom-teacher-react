@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { getExamSheetsList } from "@/api/exam-sheet/api";
-import type { ExamSheet } from "@/types/exam-sheet";
+import { useAtomValue } from "jotai";
+
+import { sheetListQueryAtom, sheetPageSizeAtom } from "@/atoms/sheetFilters";
+import logger from "@/utils/logger";
+import { useHydrateAtoms } from "jotai/utils";
 
 /**
  * 시험 출제 탭 컴포넌트
@@ -28,40 +31,22 @@ import type { ExamSheet } from "@/types/exam-sheet";
  */
 export function ExamCreationTab() {
   const [isCreating, setIsCreating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     examName: "",
     selectedExamSheetId: "",
   });
-  const [examSheets, setExamSheets] = useState<ExamSheet[]>([]);
 
-  // 문제지 목록 로드 (실제 API 사용)
-  useEffect(() => {
-    const loadExamSheets = async () => {
-      try {
-        setIsLoading(true);
-        
-        // 실제 API 호출로 문제지 목록 조회
-        const response = await getExamSheetsList({
-          page: 0,
-          size: 100, // 모든 문제지를 가져오기 위해 큰 값 설정
-          sort: "createdAt",
-          direction: "desc",
-        });
+  const { data } = useAtomValue(sheetListQueryAtom);
 
-        // 응답에서 content 배열 추출
-        setExamSheets(response.content || []);
-      } catch (error) {
-        console.error("문제지 목록 로드 실패:", error);
-        toast.error("문제지 목록을 불러오는데 실패했습니다.");
-        setExamSheets([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
-    loadExamSheets();
-  }, []);
+  logger.info("data (데이터)", data);
+
+  const examSheets = data.content;
+
+  logger.info("examSheets (문제지 목록)", examSheets);
 
   // 선택된 문제지 정보
   const selectedExamSheet = examSheets.find(
@@ -136,7 +121,7 @@ export function ExamCreationTab() {
               }
               placeholder="시험명을 입력하세요"
               className="h-12"
-              disabled={isLoading || isCreating}
+              disabled={isCreating}
             />
           </div>
 
@@ -150,17 +135,17 @@ export function ExamCreationTab() {
               onValueChange={(value) =>
                 setFormData((prev) => ({ ...prev, selectedExamSheetId: value }))
               }
-              disabled={isLoading || isCreating}
+              disabled={isCreating}
             >
               <SelectTrigger className="h-12">
-                <SelectValue 
+                <SelectValue
                   placeholder={
-                    isLoading 
-                      ? "문제지를 불러오는 중..." 
+                    isCreating
+                      ? "문제지를 불러오는 중..."
                       : examSheets.length === 0
-                      ? "등록된 문제지가 없습니다"
-                      : "문제지를 선택하세요"
-                  } 
+                        ? "등록된 문제지가 없습니다"
+                        : "문제지를 선택하세요"
+                  }
                 />
               </SelectTrigger>
               <SelectContent>
@@ -176,7 +161,7 @@ export function ExamCreationTab() {
                 ))}
               </SelectContent>
             </Select>
-            {!isLoading && examSheets.length === 0 && (
+            {!isCreating && examSheets.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 등록된 문제지가 없습니다. 먼저 문제지를 등록해주세요.
               </p>
@@ -201,7 +186,8 @@ export function ExamCreationTab() {
                 <div className="flex items-center justify-between">
                   <span className="font-medium">단원:</span>
                   <span className="truncate max-w-xs">
-                    {selectedExamSheet.unitSummary.unitDetails[0]?.unitName || '단원 정보 없음'}
+                    {selectedExamSheet.unitSummary.unitDetails[0]?.unitName ||
+                      "단원 정보 없음"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -209,7 +195,8 @@ export function ExamCreationTab() {
                   <div className="flex items-center gap-2">
                     <span>{selectedExamSheet.totalQuestions}문항</span>
                     <div className="text-xs text-muted-foreground">
-                      (객관식: {selectedExamSheet.multipleChoiceCount}, 주관식: {selectedExamSheet.subjectiveCount})
+                      (객관식: {selectedExamSheet.multipleChoiceCount}, 주관식:{" "}
+                      {selectedExamSheet.subjectiveCount})
                     </div>
                   </div>
                 </div>
@@ -221,7 +208,9 @@ export function ExamCreationTab() {
                   <div className="flex items-center justify-between">
                     <span className="font-medium">생성일:</span>
                     <span>
-                      {new Date(selectedExamSheet.createdAt).toLocaleDateString()}
+                      {new Date(
+                        selectedExamSheet.createdAt,
+                      ).toLocaleDateString()}
                     </span>
                   </div>
                 )}
@@ -236,19 +225,17 @@ export function ExamCreationTab() {
               className="w-full max-w-md h-12 text-lg font-semibold"
               onClick={handleCreateExam}
               disabled={
-                isLoading ||
                 isCreating ||
                 !formData.examName.trim() ||
                 !formData.selectedExamSheetId ||
                 examSheets.length === 0
               }
             >
-              {isCreating 
-                ? "출제 중..." 
-                : isLoading 
-                ? "로딩 중..." 
-                : "시험 출제"
-              }
+              {isCreating
+                ? "출제 중..."
+                : isCreating
+                  ? "로딩 중..."
+                  : "시험 출제"}
             </Button>
           </div>
         </CardContent>
