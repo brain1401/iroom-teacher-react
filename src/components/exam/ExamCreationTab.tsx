@@ -24,6 +24,17 @@ import { getErrorMessage } from "@/utils/errorHandling";
 import logger from "@/utils/logger";
 import { refreshExamListAtom } from "@/atoms/exam";
 import { useExamTab } from "@/contexts/ExamTabContext";
+import { Combobox } from "@/components/ui/combobox";
+import type { ComboboxItem } from "@/components/ui/combobox";
+
+const MAX_STUDENT_OPTIONS: ComboboxItem[] = Array.from(
+  { length: 100 },
+  (_, i) => ({
+    value: (i + 1).toString(),
+    label: (i + 1).toString(),
+    disabled: false,
+  }),
+);
 
 /**
  * 시험 출제 탭 컴포넌트
@@ -51,10 +62,12 @@ export function ExamCreationTab() {
     // 컨텍스트가 없는 경우 무시
   }
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateExamRequest>({
     examName: "",
-    selectedExamSheetId: "",
+    examSheetId: "",
     description: "",
+    grade: 1,
+    maxStudent: 20,
     duration: 120, // 기본 2시간
   });
 
@@ -87,9 +100,11 @@ export function ExamCreationTab() {
       // 폼 초기화
       setFormData({
         examName: "",
-        selectedExamSheetId: "",
+        examSheetId: "",
         description: "",
         duration: 120,
+        grade: 0,
+        maxStudent: 100,
       });
 
       // 시험 목록 탭으로 이동 (약간의 딜레이 후)
@@ -122,7 +137,7 @@ export function ExamCreationTab() {
 
   // 선택된 문제지 정보
   const selectedExamSheet = examSheets.find(
-    (sheet) => sheet.id === formData.selectedExamSheetId,
+    (sheet) => sheet.id === formData.examSheetId,
   );
 
   // 시험 출제 핸들러
@@ -132,7 +147,7 @@ export function ExamCreationTab() {
       return;
     }
 
-    if (!formData.selectedExamSheetId) {
+    if (!formData.examSheetId) {
       toast.error("문제지를 선택해주세요.");
       return;
     }
@@ -147,8 +162,10 @@ export function ExamCreationTab() {
     // API 요청 데이터 구성
     const requestData: CreateExamRequest = {
       examName: formData.examName.trim(),
-      examSheetId: formData.selectedExamSheetId,
-      description: formData.description.trim() || undefined,
+      examSheetId: formData.examSheetId,
+      description: formData.description?.trim() || undefined,
+      grade: formData.grade,
+      maxStudent: formData.maxStudent,
       startDate,
       endDate,
       duration: formData.duration,
@@ -193,53 +210,118 @@ export function ExamCreationTab() {
             />
           </div>
 
-          {/* 문제지 선택 */}
-          <div className="space-y-2">
-            <Label htmlFor="examSheet" className="text-base font-medium">
-              문제지 선택 *
-            </Label>
-            <Select
-              value={formData.selectedExamSheetId}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, selectedExamSheetId: value }))
-              }
-              disabled={createExamMutation.isPending}
-            >
-              <SelectTrigger className="h-12">
-                <SelectValue
-                  placeholder={
-                    createExamMutation.isPending
-                      ? "처리 중..."
-                      : examSheets.length === 0
-                        ? "등록된 문제지가 없습니다"
-                        : "문제지를 선택하세요"
+          <div className="flex gap-4 justify-between">
+            {/* 문제지 선택 */}
+            <div className="space-y-2">
+              <Label htmlFor="examSheet" className="text-base font-medium">
+                문제지 선택 *
+              </Label>
+              <Combobox
+                items={examSheets.map((sheet) => ({
+                  value: sheet.id,
+                  label: sheet.examName,
+                  disabled: false,
+                }))}
+                value={formData.examSheetId}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, examSheetId: value }))
+                }
+                placeholder="문제지를 선택하세요"
+                searchPlaceholder="문제지 검색..."
+                emptyText="결과가 없습니다."
+                buttonClassName="w-[6.5rem]"
+                buttonSize="lg"
+                buttonVariant="outline"
+                disabled={createExamMutation.isPending}
+              />
+              {!createExamMutation.isPending && examSheets.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  등록된 문제지가 없습니다. 먼저 문제지를 등록해주세요.
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-4">
+              {/* 문제지 선택 */}
+              <div className="space-y-2 flex flex-col">
+                <Label htmlFor="examSheet" className="text-base font-medium">
+                  대상 학년 *
+                </Label>
+                <Select
+                  value={formData.grade.toString()}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      grade: parseInt(value),
+                    }))
                   }
+                  disabled={createExamMutation.isPending}
+                >
+                  <SelectTrigger className="h-12 w-[6.5rem] flex-1">
+                    <SelectValue
+                      placeholder={
+                        createExamMutation.isPending
+                          ? "처리 중..."
+                          : examSheets.length === 0
+                            ? "등록된 학년이 없습니다"
+                            : "대상 학년을 선택하세요"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["1", "2", "3"].map((grade) => (
+                      <SelectItem key={grade} value={grade} className="w-full">
+                        <div className="flex items-center justify-between w-full">
+                          <span className="truncate">{grade}학년</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!createExamMutation.isPending &&
+                  ["1", "2", "3"].length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      등록된 학년이 없습니다. 먼저 학년을 등록해주세요.
+                    </p>
+                  )}
+              </div>
+
+              {/* 문제지 선택 */}
+              <div className="space-y-2">
+                <Label htmlFor="examSheet" className="text-base font-medium">
+                  최대 학생 수 *
+                </Label>
+                <Combobox
+                  items={MAX_STUDENT_OPTIONS}
+                  value={formData.maxStudent.toString()}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      maxStudent: parseInt(value),
+                    }))
+                  }
+                  placeholder="최대 학생 수를 선택하세요"
+                  searchPlaceholder="학생 수 검색..."
+                  emptyText="결과가 없습니다."
+                  buttonClassName="w-[6.5rem]"
+                  buttonSize="lg"
+                  buttonVariant="outline"
+                  disabled={createExamMutation.isPending}
                 />
-              </SelectTrigger>
-              <SelectContent>
-                {examSheets.map((sheet) => (
-                  <SelectItem key={sheet.id} value={sheet.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span className="truncate">{sheet.examName}</span>
-                      <Badge variant="outline" className="ml-2">
-                        {sheet.totalQuestions}문항
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!createExamMutation.isPending && examSheets.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                등록된 문제지가 없습니다. 먼저 문제지를 등록해주세요.
-              </p>
-            )}
+                {!createExamMutation.isPending &&
+                  ["1", "2", "3"].length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      등록된 학년이 없습니다. 먼저 학년을 등록해주세요.
+                    </p>
+                  )}
+              </div>
+            </div>
           </div>
 
           {/* 시험 설명 입력 (선택사항) */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-base font-medium">
-              시험 설명 (선택)
+              시험 설명
             </Label>
             <Textarea
               id="description"
@@ -251,12 +333,12 @@ export function ExamCreationTab() {
                 }))
               }
               placeholder="시험에 대한 설명을 입력하세요 (최대 500자)"
-              className="min-h-[100px]"
+              className="resize-none h-[10rem]"
               maxLength={500}
               disabled={createExamMutation.isPending}
             />
             <p className="text-xs text-muted-foreground text-right">
-              {formData.description.length}/500
+              {formData.description?.length}/500
             </p>
           </div>
 
@@ -319,7 +401,7 @@ export function ExamCreationTab() {
               disabled={
                 createExamMutation.isPending ||
                 !formData.examName.trim() ||
-                !formData.selectedExamSheetId ||
+                !formData.examSheetId ||
                 examSheets.length === 0
               }
             >

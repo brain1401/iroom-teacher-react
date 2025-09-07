@@ -265,6 +265,19 @@ export type ServerQuestionAnswer = {
  * 서버 학생 답안 상세 정보 메인 타입
  */
 export type ServerStudentAnswerDetail = {
+  /** 제출 ID */
+  submissionId: string;
+
+  /** 학생 정보 */
+  studentInfo: {
+    /** 학생 ID */
+    studentId: number;
+    /** 학생 이름 */
+    studentName: string;
+    /** 전화번호 */
+    phoneNumber: string;
+  };
+
   /** 시험 정보 */
   examInfo: {
     /** 시험 ID */
@@ -273,52 +286,49 @@ export type ServerStudentAnswerDetail = {
     examName: string;
     /** 학년 */
     grade: number;
-    /** 총 문항 수 */
-    totalQuestions: number;
-    /** 총 배점 */
-    totalPoints: number;
+    /** 생성일시 */
+    createdAt: string;
   };
-  /** 학생 정보 */
-  studentInfo: {
-    /** 학생 ID */
-    studentId: number;
-    /** 학생명 */
-    studentName: string;
-    /** 학번 */
-    studentNumber?: string;
-    /** 학급 */
-    className?: string;
-  };
-  /** 제출 정보 */
-  submissionInfo: {
-    /** 제출 ID */
-    submissionId: string;
-    /** 제출 시간 */
-    submittedAt: string;
-    /** 채점 완료 시간 */
-    gradedAt?: string;
-    /** 제출 상태 */
-    status: "제출완료" | "채점완료" | "미제출";
-  };
-  /** 점수 정보 */
-  scoreInfo: {
-    /** 총 획득 점수 */
-    totalScore: number;
-    /** 총 배점 */
+
+  /** 제출 일시 */
+  submittedAt: string;
+
+  /** 전체 문제 수 */
+  totalQuestions: number;
+
+  /** 답변한 문제 수 */
+  answeredQuestions: number;
+
+  /** 문항별 답안 */
+  questionAnswers: Array<{
+    /** 문제 번호 */
+    questionNumber: number;
+    /** 문제 ID */
+    questionId: string;
+    /** 문제 유형 */
+    questionType: "SUBJECTIVE" | "MULTIPLE_CHOICE";
+    /** 문제 텍스트 */
+    questionText: string;
+    /** 객관식 선택지 (객관식인 경우) */
+    choices?: string[] | null;
+    /** 학생 답안 */
+    studentAnswer: string;
+    /** 정답 */
+    correctAnswer: string;
+    /** 답변 여부 */
+    isAnswered: boolean;
+    /** 최대 점수 */
     maxScore: number;
-    /** 정답 개수 */
-    correctCount: number;
-    /** 오답 개수 */
-    wrongCount: number;
-    /** 미답 개수 */
-    unansweredCount: number;
-    /** 정답률 (백분율) */
-    accuracy: number;
-  };
-  /** 문항별 답안 목록 */
-  questionAnswers: ServerQuestionAnswer[];
-  /** 상세 정보 조회 시간 */
-  retrievedAt: string;
+    /** 단원 정보 */
+    unitInfo: {
+      /** 단원 ID */
+      unitId: string;
+      /** 단원명 */
+      unitName: string;
+      /** 단원 코드 */
+      unitCode: string;
+    };
+  }>;
 };
 
 /**

@@ -18,6 +18,7 @@ import type {
   ServerSubmissionStatus,
   ServerExamStatistics,
   PageResponse,
+  ServerStudentAnswerDetail,
 } from "@/types/server-exam";
 
 /**
@@ -255,6 +256,45 @@ export async function fetchExamStatistics(
  * });
  * ```
  */
+/**
+ * 학생 답안지 및 채점 결과 조회
+ * @description 특정 제출 ID의 학생 답안지와 채점 결과를 상세히 조회
+ *
+ * 포함 정보:
+ * - 학생 정보 (이름, 전화번호, 학번 등)
+ * - 시험 정보 (시험명, 학년, 생성일 등)
+ * - 제출 정보 (제출 시간, 답변 수 등)
+ * - 채점 결과 (총점, 정답수, 오답수 등) - 채점 완료 시에만
+ * - 문항별 답안 상세 (학생 답안, 정답, 점수, 피드백 등)
+ *
+ * @param submissionId 제출 ID (UUID)
+ * @returns 학생 답안지 상세 정보
+ *
+ * @example
+ * ```typescript
+ * const answerSheet = await fetchStudentAnswerSheet("01990dea-1349-7dc7-b63e-05b8b5041785");
+ * console.log(answerSheet.studentInfo.studentName); // "홍길동"
+ * console.log(answerSheet.gradingResult?.totalScore); // 85
+ * console.log(answerSheet.questionAnswers[0].studentAnswer); // "4"
+ * ```
+ */
+export async function fetchStudentAnswerSheet(
+  submissionId: string,
+): Promise<ServerStudentAnswerDetail> {
+  try {
+    const response = await apiClient.get<ServerStudentAnswerDetail>(
+      `/exams/submissions/${submissionId}/answer-sheet`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `학생 답안지 조회 실패 (submissionId: ${submissionId}):`,
+      error,
+    );
+    throw error;
+  }
+}
+
 export async function fetchExamAttendees(
   examId: string,
   params: ExamAttendeesParams = {},

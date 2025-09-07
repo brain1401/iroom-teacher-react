@@ -74,104 +74,36 @@ export function AnswerSheetCheckModal({
             </DialogHeader>
 
             {/* 시험 및 학생 기본 정보 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg mb-6">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg mb-6">
               <div>
                 <p className="text-sm text-gray-600">학생명</p>
                 <p className="font-semibold">
                   {studentAnswerData.studentInfo.studentName}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">학번</p>
-                <p className="font-semibold">
-                  {studentAnswerData.studentInfo.studentNumber || "-"}
-                </p>
-              </div>
+
               <div>
                 <p className="text-sm text-gray-600">시험명</p>
                 <p className="font-semibold">
                   {studentAnswerData.examInfo.examName}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">학급</p>
-                <p className="font-semibold">
-                  {studentAnswerData.studentInfo.className || "-"}
-                </p>
-              </div>
             </div>
 
-            {/* 제출 및 채점 정보 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg mb-6">
+            {/* 제출 정보 */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg mb-6">
               <div>
                 <p className="text-sm text-gray-600">제출 일시</p>
                 <p className="font-semibold">
-                  {new Date(
-                    studentAnswerData.submissionInfo.submittedAt,
-                  ).toLocaleString()}
+                  {new Date(studentAnswerData.submittedAt).toLocaleString()}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">채점 완료 일시</p>
+                <p className="text-sm text-gray-600">답변한 문제</p>
                 <p className="font-semibold">
-                  {studentAnswerData.submissionInfo.gradedAt
-                    ? new Date(
-                        studentAnswerData.submissionInfo.gradedAt,
-                      ).toLocaleString()
-                    : "미채점"}
+                  {studentAnswerData.answeredQuestions} /{" "}
+                  {studentAnswerData.totalQuestions}
                 </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">제출 상태</p>
-                <p className="font-semibold">
-                  {studentAnswerData.submissionInfo.status}
-                </p>
-              </div>
-            </div>
-
-            {/* 점수 및 통계 정보 */}
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg p-6 mb-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {/* 총점 */}
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-1">
-                    {studentAnswerData.scoreInfo.totalScore}점
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    / {studentAnswerData.scoreInfo.maxScore}점
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">총점</div>
-                </div>
-
-                {/* 정답률 */}
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-1">
-                    {Math.round(studentAnswerData.scoreInfo.accuracy)}%
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">정답률</div>
-                </div>
-
-                {/* 정답 개수 */}
-                <div className="text-center">
-                  <div className="text-xl font-bold text-green-700 mb-1">
-                    {studentAnswerData.scoreInfo.correctCount}개
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">정답</div>
-                </div>
-
-                {/* 오답/미답 개수 */}
-                <div className="text-center">
-                  <div className="flex justify-center space-x-2 mb-1">
-                    <span className="text-lg font-bold text-red-600">
-                      {studentAnswerData.scoreInfo.wrongCount}
-                    </span>
-                    <span className="text-sm text-gray-500">/</span>
-                    <span className="text-lg font-bold text-gray-600">
-                      {studentAnswerData.scoreInfo.unansweredCount}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">오답/미답</div>
-                </div>
               </div>
             </div>
 
@@ -189,40 +121,33 @@ export function AnswerSheetCheckModal({
                       <h4 className="text-lg font-medium">
                         문항 {questionAnswer.questionNumber}
                       </h4>
-                      {questionAnswer.questionType && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          {questionAnswer.questionType === "MULTIPLE_CHOICE"
-                            ? "객관식"
-                            : "주관식"}
-                        </span>
-                      )}
-                      {questionAnswer.difficulty && (
-                        <span
-                          className={`px-2 py-1 text-xs rounded ${
-                            questionAnswer.difficulty === "상"
-                              ? "bg-red-100 text-red-700"
-                              : questionAnswer.difficulty === "중"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          난이도: {questionAnswer.difficulty}
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                        {questionAnswer.questionType === "MULTIPLE_CHOICE"
+                          ? "객관식"
+                          : "주관식"}
+                      </span>
+                      {questionAnswer.unitInfo && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                          {questionAnswer.unitInfo.unitName}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          questionAnswer.isCorrect
+                          questionAnswer.studentAnswer ===
+                          questionAnswer.correctAnswer
                             ? "bg-green-100 text-green-700"
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {questionAnswer.isCorrect ? "정답" : "오답"}
+                        {questionAnswer.studentAnswer ===
+                        questionAnswer.correctAnswer
+                          ? "정답"
+                          : "오답"}
                       </span>
                       <span className="text-lg font-bold text-blue-600">
-                        {questionAnswer.obtainedScore}/{questionAnswer.maxScore}
-                        점
+                        최대 {questionAnswer.maxScore}점
                       </span>
                     </div>
                   </div>
@@ -257,24 +182,8 @@ export function AnswerSheetCheckModal({
                       </div>
                     </div>
                   </div>
-
-                  {/* 채점 정보 */}
-                  {questionAnswer.gradedAt && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500">
-                        채점 일시:{" "}
-                        {new Date(questionAnswer.gradedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  )}
                 </div>
               ))}
-            </div>
-
-            {/* 메타데이터 */}
-            <div className="text-xs text-gray-500 text-center pt-4 border-t mt-6">
-              조회 시간:{" "}
-              {new Date(studentAnswerData.retrievedAt).toLocaleString()}
             </div>
           </>
         )}

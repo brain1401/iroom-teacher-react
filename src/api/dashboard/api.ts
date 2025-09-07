@@ -171,11 +171,7 @@ export async function fetchStudentAnswerDetail(
     }
 
     // 필수 필드 존재 여부 검증
-    if (
-      !responseData.studentInfo ||
-      !responseData.examInfo ||
-      !responseData.scoreInfo
-    ) {
+    if (!responseData.studentInfo || !responseData.examInfo) {
       throw new ApiError("응답 데이터에 필수 정보가 누락되었습니다", 500);
     }
 

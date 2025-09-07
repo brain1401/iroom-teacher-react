@@ -265,6 +265,10 @@ export type CreateExamRequest = {
   examSheetId: string;
   /** 시험 설명 (선택, 최대 500자) */
   description?: string;
+  /** 학년 (필수, 1, 2, 3) */
+  grade: number;
+  /** 최대 학생 수 (필수, 1~100) */
+  maxStudent: number;
   /** 시험 시작일시 (선택, ISO 8601 형식) */
   startDate?: string;
   /** 시험 종료일시 (선택, ISO 8601 형식) */

@@ -1,26 +1,22 @@
-import { useState, useMemo, useLayoutEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 
 import { ExamAttendeesTable } from "./ExamAttendeesTable";
 import { Badge } from "@/components/ui/badge";
 import type { ExamSubmitStatusDetail } from "@/types/exam";
-import type { ServerRecentSubmission } from "@/types/server-exam";
 
 import { AnswerSheetCheckModal } from "./AnswerSheetResult";
-import { mapRecentSubmissionToStatusDetail } from "@/utils/exam";
+import { fetchStudentAnswerSheet } from "@/api/exam/api";
+import type { ServerStudentAnswerDetail } from "@/types/server-exam";
 import { useRouter } from "@tanstack/react-router";
-import {
-  selectedStudentIdAtom,
-  studentAnswerDetailDataAtom,
-  studentAnswerLoadingAtom,
-  studentAnswerErrorAtom,
-} from "@/atoms/examAnswers";
+
 import { selectedExamIdAtom, selectExamAtom } from "@/atoms/exam";
 import {
   selectedExamDetailAtom,
   selectedExamSubmissionStatusAtom,
 } from "@/atoms/examDetail";
+import type { ExamAttendee } from "@/api/exam/types";
 
 /**
  * 시험 문항 답안 정보 타입
@@ -96,13 +92,13 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
   // 상태 관리
   const [selectedSubmission, setSelectedSubmission] =
     useState<ExamSubmitStatusDetail | null>(null);
+  const [studentAnswerData, setStudentAnswerData] =
+    useState<ServerStudentAnswerDetail | null>(null);
+  const [isLoadingAnswer, setIsLoadingAnswer] = useState(false);
+  const [answerError, setAnswerError] = useState<string | null>(null);
 
   // Atoms 가져오기
   const selectExam = useSetAtom(selectExamAtom);
-  const setSelectedStudentId = useSetAtom(selectedStudentIdAtom);
-  const studentAnswerData = useAtomValue(studentAnswerDetailDataAtom);
-  const isLoadingAnswer = useAtomValue(studentAnswerLoadingAtom);
-  const answerError = useAtomValue(studentAnswerErrorAtom);
 
   // 기존에 정의된 atoms 사용
   const examDetailState = useAtomValue(selectedExamDetailAtom);
@@ -128,16 +124,45 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
    * @description "답안 확인" 버튼 클릭 시 서버 API를 통해 학생 답안 상세 정보를 조회
    *
    * 주요 기능:
-   * - examId와 studentId를 atoms에 설정하여 API 호출 트리거
+   * - submissionId를 사용하여 학생 답안 상세 정보 API 호출
    * - 서버 데이터 구조에 맞춰 컴포넌트 상태 업데이트
-   * - 기존 mock 데이터 대신 실제 서버 응답 사용
+   * - 실제 서버 응답을 모달에 전달
    */
-  const handleOpenDetail = (submission: ExamSubmitStatusDetail) => {
-    setSelectedSubmission(submission);
+  const handleOpenDetail = async (attendee: ExamAttendee) => {
+    // ExamAttendee 타입에서 필요한 정보 추출
+    const submission: ExamSubmitStatusDetail = {
+      id: attendee.submissionId,
+      student: {
+        id: attendee.studentId.toString(),
+        name: attendee.studentName,
+      },
+      examName: attendee.examName,
+      submissionDate: new Date(attendee.submittedAt).toLocaleDateString(
+        "ko-KR",
+      ),
+      submittedAt: attendee.submittedAt,
+      score: null,
+      totalScore: 0,
+      status: "submitted",
+      submissionStatus: "제출완료",
+      correctAnswerCount: 0,
+      wrongAnswerCount: 0,
+    };
 
-    // atoms에 examId와 studentId 설정하여 API 쿼리 트리거
-    // examId는 이미 useLayoutEffect에서 설정되므로 중복 설정 불필요
-    setSelectedStudentId(parseInt(submission.student.id));
+    setSelectedSubmission(submission);
+    setIsLoadingAnswer(true);
+    setAnswerError(null);
+
+    try {
+      // submissionId를 사용하여 학생 답안 상세 정보 조회
+      const answerData = await fetchStudentAnswerSheet(attendee.submissionId);
+      setStudentAnswerData(answerData);
+    } catch (error) {
+      console.error("학생 답안 조회 실패:", error);
+      setAnswerError("답안 데이터를 불러오는데 실패했습니다.");
+    } finally {
+      setIsLoadingAnswer(false);
+    }
   };
 
   /**
@@ -146,8 +171,8 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
    */
   const handleClose = () => {
     setSelectedSubmission(null);
-    // 학생 ID만 초기화 (시험 ID는 현재 페이지에 필요하므로 유지)
-    setSelectedStudentId(0);
+    setStudentAnswerData(null);
+    setAnswerError(null);
   };
 
   // 로딩 상태 처리
@@ -264,28 +289,7 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
       {/* 응시자 테이블 컴포넌트 - 별도 API에서 데이터 로드 */}
       <ExamAttendeesTable
         examId={examId || ""}
-        onOpenDetail={(attendee) => {
-          // 응시자 정보를 ExamSubmitStatusDetail 타입으로 변환
-          const submission: ExamSubmitStatusDetail = {
-            id: attendee.submissionId,
-            student: {
-              id: attendee.studentId.toString(),
-              name: attendee.studentName,
-            },
-            examName: attendee.examName,
-            submissionDate: new Date(attendee.submittedAt).toLocaleDateString(
-              "ko-KR",
-            ),
-            submittedAt: attendee.submittedAt,
-            score: null, // 점수는 별도 API에서 가져와야 함
-            totalScore: 0, // 총점도 별도로 가져와야 함
-            status: "submitted",
-            submissionStatus: "제출완료",
-            correctAnswerCount: 0,
-            wrongAnswerCount: 0,
-          };
-          handleOpenDetail(submission);
-        }}
+        onOpenDetail={handleOpenDetail}
       />
 
       {/* 답안 확인 모달 */}
@@ -297,8 +301,8 @@ export function ExamDetail({ onBack, examName, examId }: ExamDetailProps = {}) {
 
       {/* 로딩 오버레이 (답안 데이터 로딩 중) */}
       {isLoadingAnswer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 flex items-center space-x-4">
+        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white border rounded-lg p-6 flex items-center space-x-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             <span className="text-gray-700">학생 답안을 불러오는 중...</span>
           </div>
