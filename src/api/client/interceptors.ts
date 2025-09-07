@@ -4,9 +4,80 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import { isAxiosError } from "axios";
-import { ApiError } from "./baseClient";
+import { ApiError } from "./apiClient";
 import { isSuccessResponse, isErrorResponse, ApiResponseError } from "./types";
 import type { ApiResponse } from "./types";
+import logger from "@/utils/logger";
+
+/**
+ * 에러 객체를 안전하게 로깅하기 위한 정보 생성 함수
+ * @description AbortSignal 등 직렬화 불가능한 객체를 안전하게 처리
+ * @param error 원본 에러 객체
+ * @returns 로깅 안전한 에러 정보 객체
+ */
+function createSafeErrorInfo(error: unknown): Record<string, unknown> {
+  try {
+    if (!error) {
+      return { type: "null_or_undefined", value: error };
+    }
+
+    if (error instanceof Error) {
+      return {
+        type: "Error",
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        // AbortController 관련 속성은 제외하고 기본 Error 속성만 포함
+        ...(isAxiosError(error) && {
+          isAxiosError: true,
+          code: error.code,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          method: error.config?.method,
+        }),
+      };
+    }
+
+    if (typeof error === "string") {
+      return { type: "string", message: error };
+    }
+
+    if (typeof error === "object") {
+      // 객체인 경우 안전한 속성만 추출
+      const safeObject: Record<string, unknown> = { type: "object" };
+      
+      for (const [key, value] of Object.entries(error)) {
+        try {
+          // AbortSignal이나 기타 직렬화 불가능한 객체는 건너뛰기
+          if (value?.constructor?.name === "AbortSignal") {
+            safeObject[key] = "[AbortSignal - 직렬화 불가]";
+          } else if (typeof value === "function") {
+            safeObject[key] = "[Function]";
+          } else if (value && typeof value === "object" && value.constructor?.name === "AbortController") {
+            safeObject[key] = "[AbortController - 직렬화 불가]";
+          } else {
+            // 기본 타입이거나 안전한 객체인 경우만 포함
+            safeObject[key] = value;
+          }
+        } catch {
+          safeObject[key] = "[직렬화 불가능한 값]";
+        }
+      }
+      
+      return safeObject;
+    }
+
+    return { type: typeof error, value: String(error) };
+  } catch (safeError) {
+    // 최종 fallback - 모든 처리가 실패하면 기본 정보만 반환
+    return {
+      type: "safe_error_processing_failed",
+      originalType: typeof error,
+      safeErrorMessage: safeError instanceof Error ? safeError.message : String(safeError),
+    };
+  }
+}
 
 /**
  * 백엔드 표준 ApiResponse 형식인지 확인하는 타입 가드
@@ -31,8 +102,6 @@ function isStandardApiResponse(data: unknown): data is ApiResponse<unknown> {
  * 인터셉터 설정 옵션
  */
 export type InterceptorOptions = {
-  /** 인증 관련 인터셉터 여부 (401 처리 등) */
-  isAuthClient?: boolean;
   /** 개발 환경에서 로깅 활성화 여부 */
   enableLogging?: boolean;
   /** 로그 메시지 접두사 */
@@ -46,27 +115,21 @@ export type InterceptorOptions = {
  * @returns 요청 인터셉터 설정 객체
  */
 export function createRequestInterceptor(options: InterceptorOptions = {}) {
-  const {
-    enableLogging = true,
-    logPrefix = "API Request",
-    isAuthClient = false,
-  } = options;
-
-  const clientType = isAuthClient ? "Auth" : "";
+  const { enableLogging = true, logPrefix = "API Request" } = options;
 
   return {
     onFulfilled: (config: InternalAxiosRequestConfig) => {
       // 요청 로깅 (개발 환경에서만)
       if (enableLogging && import.meta.env.DEV) {
-        const emoji = isAuthClient ? "🔐" : "🚀";
-        console.log(
-          `${emoji} [${clientType} ${logPrefix}] ${config.method?.toUpperCase()} ${config.url}`,
+        const emoji = "🚀";
+        logger.info(
+          `${emoji} [${logPrefix}] ${config.method?.toUpperCase()} ${config.url}`,
         );
       }
       return config;
     },
     onRejected: (error: unknown) => {
-      console.error(`❌ [${clientType} ${logPrefix} Error]`, error);
+      logger.error(`❌ [${logPrefix} Error]`, error);
       return Promise.reject(error);
     },
   };
@@ -79,20 +142,14 @@ export function createRequestInterceptor(options: InterceptorOptions = {}) {
  * @returns 응답 인터셉터 설정 객체
  */
 export function createResponseInterceptor(options: InterceptorOptions = {}) {
-  const {
-    enableLogging = true,
-    logPrefix = "API Response",
-    isAuthClient = false,
-  } = options;
-
-  const clientType = isAuthClient ? "Auth" : "";
+  const { enableLogging = true, logPrefix = "API Response" } = options;
 
   return {
     onFulfilled: (response: AxiosResponse) => {
       // 응답 로깅 (개발 환경에서만)
       if (enableLogging && import.meta.env.DEV) {
-        console.log(
-          `✅ [${clientType} ${logPrefix}] ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
+        logger.info(
+          `✅ [${logPrefix}] ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`,
         );
       }
 
@@ -102,8 +159,8 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
         if (isSuccessResponse(responseData)) {
           // SUCCESS인 경우: data만 추출하여 반환 (기존 코드와 호환성 유지)
           if (enableLogging && import.meta.env.DEV) {
-            console.log(
-              `📦 [${clientType} 데이터 추출] SUCCESS:`,
+            logger.info(
+              `📦 [${logPrefix} 데이터 추출] SUCCESS:`,
               responseData.message,
             );
           }
@@ -111,8 +168,8 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
         } else if (isErrorResponse(responseData)) {
           // ERROR인 경우: ApiResponseError 발생
           if (enableLogging && import.meta.env.DEV) {
-            console.error(
-              `🚨 [${clientType} API 에러] ERROR:`,
+            logger.error(
+              `🚨 [${logPrefix} API 에러] ERROR:`,
               responseData.message,
             );
           }
@@ -123,8 +180,9 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
       return response;
     },
     onRejected: (error: unknown) => {
-      // 에러 로깅
-      console.error(`❌ [${clientType} ${logPrefix} Error]`, error);
+      // 에러 로깅 - AbortSignal 안전 처리
+      const safeErrorInfo = createSafeErrorInfo(error);
+      logger.error(`❌ [${logPrefix} Error]`, safeErrorInfo);
 
       // Axios 에러인지 확인
       if (isAxiosError(error)) {
@@ -132,12 +190,8 @@ export function createResponseInterceptor(options: InterceptorOptions = {}) {
 
         if (response) {
           // 인증 클라이언트에서 401 에러 처리
-          if (isAuthClient && response.status === 401) {
-            console.warn("🔓 인증이 필요합니다. 로그인을 확인해주세요.");
-
-            // 필요시 토큰 갱신 로직을 여기에 추가
-            // await refreshToken();
-            // return client(error.config);
+          if (response.status === 401) {
+            logger.warn("🔓 인증이 필요합니다. 로그인을 확인해주세요.");
           }
 
           // 서버가 응답했지만 2xx 범위를 벗어난 상태 코드

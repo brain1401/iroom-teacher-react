@@ -3,7 +3,7 @@
  */
 
 export { NavigationBar } from "./NavigationBar";
-export { SideMenu } from "./SideMenu";
+export { SideNavigationBar as SideMenu } from "./SideMenu";
 export { SelectGrade } from "./SelectGrade";
 export { PagePagination } from "./PagePagination";
 export { Toolbar } from "./Toolbar";

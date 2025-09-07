@@ -17,3 +17,9 @@
   --color-chart-4: oklch(0.828 0.189 84.429);
   --color-chart-5: oklch(0.769 0.188 70.08);
 }
+
+@theme inline {
+  --color-warning: var(--color-orange-400);
+  --color-alert: var(--color-red-400);
+  --color-success: var(--color-green-400);
+}

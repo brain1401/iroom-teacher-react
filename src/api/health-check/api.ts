@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from "axios";
-import { baseApiClient } from "@/api/client";
+import { apiClient } from "@/api/client";
 import type {
   HealthCheckResponse,
   HealthCheckData,
@@ -19,7 +19,7 @@ const BACKEND_API_URL =
  * 헬스체크 전용 API 클라이언트
  * @description 기본 API 클라이언트를 확장하여 백엔드 헬스체크 API 전용으로 설정
  */
-const healthCheckApiClient = baseApiClient.create({
+const healthCheckApiClient = apiClient.create({
   baseURL: BACKEND_API_URL,
   timeout: 5000, // 헬스체크는 빠른 응답이 중요하므로 타임아웃 설정
   // 요청 인터셉터: 에러 로깅 및 디버깅 정보 추가

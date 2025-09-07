@@ -1,6 +1,16 @@
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { selectedGradeAtom } from "@/atoms/grade";
-import { SelectGrade } from "@/components/layout/SelectGrade";
+import { selectedGradeAtom, selectedGradeStatsAtom } from "@/atoms/dashboard";
+import {
+  statisticsLoadingAtom,
+  statisticsErrorAtom,
+  examAverageScoresAtom,
+  unitWrongAnswerChartDataAtom,
+} from "@/atoms/statistics";
+import {
+  unitWrongAnswerRatesQueryOptions,
+  scoreDistributionQueryOptions,
+} from "@/api/statistics";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -9,9 +19,8 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { createFileRoute } from "@tanstack/react-router";
-import { useAtomValue, useSetAtom } from "jotai";
-import { useLayoutEffect, useMemo } from "react";
-import type { Grade } from "@/types/grade";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
+import { useLayoutEffect } from "react";
 import {
   LineChart,
   Line,
@@ -41,7 +50,7 @@ function AverageTooltip(props: TooltipProps<number, string>) {
     <div className="border-border/50 bg-background grid min-w-[10rem] gap-1.5 rounded-md border px-3 py-2 text-xs shadow-xl">
       <div className="font-medium">{data.name || label}</div>
       <div>시험 본 인원: {data.participants ?? "-"}</div>
-      <div>평균: {data.avg}</div>
+      <div>평균: {data.avg}점</div>
     </div>
   );
 }
@@ -72,139 +81,35 @@ function WrongRateTooltip(props: TooltipProps<number, string>) {
 
 export const Route = createFileRoute("/main/statistics/")({
   component: RouteComponent,
+  loader: async ({ context: { queryClient } }) => {
+    // 모든 학년의 통계 데이터를 사전 로드 (SSR 최적화)
+    await Promise.all([
+      queryClient.ensureQueryData(
+        unitWrongAnswerRatesQueryOptions({ grade: 1 }),
+      ),
+      queryClient.ensureQueryData(scoreDistributionQueryOptions({ grade: 1 })),
+      queryClient.ensureQueryData(
+        unitWrongAnswerRatesQueryOptions({ grade: 2 }),
+      ),
+      queryClient.ensureQueryData(scoreDistributionQueryOptions({ grade: 2 })),
+      queryClient.ensureQueryData(
+        unitWrongAnswerRatesQueryOptions({ grade: 3 }),
+      ),
+      queryClient.ensureQueryData(scoreDistributionQueryOptions({ grade: 3 })),
+    ]);
+  },
 });
 
 function RouteComponent() {
   const setIsShowHeader = useSetAtom(isShowHeaderAtom);
-  const grade = useAtomValue(selectedGradeAtom);
+  const [selectedGrade, setSelectedGrade] = useAtom(selectedGradeAtom);
+  const gradeStats = useAtomValue(selectedGradeStatsAtom);
+  const isLoading = useAtomValue(statisticsLoadingAtom);
+  const { hasError } = useAtomValue(statisticsErrorAtom);
 
-  // 가데이터 (학년별 시험 평균)
-  const fakeAveragesByGrade: Record<
-    Grade,
-    { testName: string; average: number; participants: number }[]
-  > = {
-    중1: [
-      { testName: "1학기 중간", average: 76, participants: 10 },
-      { testName: "1학기 기말", average: 81, participants: 10 },
-      { testName: "2학기 중간", average: 79, participants: 10 },
-      { testName: "2학기 기말", average: 83, participants: 10 },
-    ],
-    중2: [
-      { testName: "1학기 중간", average: 72, participants: 12 },
-      { testName: "1학기 기말", average: 78, participants: 12 },
-      { testName: "2학기 중간", average: 75, participants: 12 },
-      { testName: "2학기 기말", average: 80, participants: 12 },
-    ],
-    중3: [
-      { testName: "1학기 중간", average: 70, participants: 11 },
-      { testName: "1학기 기말", average: 77, participants: 11 },
-      { testName: "2학기 중간", average: 74, participants: 11 },
-      { testName: "2학기 기말", average: 79, participants: 11 },
-    ],
-  };
-  const results = fakeAveragesByGrade[grade];
-
-  // 가데이터 (학년별 단원 오답률 계산용 원천 데이터)
-  // 오답률(%) = wrongCount / (questionCount * participants) * 100
-  const fakeUnitWrongSourcesByGrade: Record<
-    Grade,
-    {
-      unitName: string;
-      questionCount: number;
-      participants: number;
-      wrongCount: number;
-    }[]
-  > = {
-    중1: [
-      {
-        unitName: "1단원(덧셈/뺄셈)",
-        questionCount: 3,
-        participants: 10,
-        wrongCount: 3,
-      }, // 10%
-      {
-        unitName: "2단원(곱셈)",
-        questionCount: 4,
-        participants: 10,
-        wrongCount: 10,
-      }, // 25%
-      {
-        unitName: "3단원(나눗셈)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 9,
-      }, // 18%
-      {
-        unitName: "4단원(분수)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 7,
-      }, // 14%
-    ],
-    중2: [
-      {
-        unitName: "1단원(방정식)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 13,
-      }, // 26%
-      {
-        unitName: "2단원(부등식)",
-        questionCount: 4,
-        participants: 10,
-        wrongCount: 8,
-      }, // 20%
-      {
-        unitName: "3단원(함수)",
-        questionCount: 6,
-        participants: 10,
-        wrongCount: 15,
-      }, // 25%
-      {
-        unitName: "4단원(확률)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 9,
-      }, // 18%
-    ],
-    중3: [
-      {
-        unitName: "1단원(다항식)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 14,
-      }, // 28%
-      {
-        unitName: "2단원(인수분해)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 11,
-      }, // 22%
-      {
-        unitName: "3단원(이차방정식)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 12,
-      }, // 24%
-      {
-        unitName: "4단원(이차함수)",
-        questionCount: 5,
-        participants: 10,
-        wrongCount: 10,
-      }, // 20%
-    ],
-  };
-  const wrongSources = fakeUnitWrongSourcesByGrade[grade];
-
-  // Map 기반 데이터 변환 (시험명 -> 평균)
-  const chartData = useMemo(() => {
-    const list = results;
-    return list.map((r) => ({
-      name: r.testName,
-      avg: r.average,
-      participants: r.participants,
-    }));
-  }, [results]);
+  // 서버 데이터 기반 차트 데이터
+  const chartData = useAtomValue(examAverageScoresAtom);
+  const wrongChartData = useAtomValue(unitWrongAnswerChartDataAtom);
 
   // 차트 시리즈/색상 설정
   const chartConfig = {
@@ -214,26 +119,46 @@ function RouteComponent() {
     wrongRate: { label: "오답률 ", color: "hsl(340 82% 52%)" },
   } as const;
 
-  // 오답률 차트 데이터
-  const wrongChartData = useMemo(() => {
-    const list = wrongSources;
-    const computed = list.map((s) => {
-      const total = s.questionCount * s.participants;
-      const rate = total > 0 ? (s.wrongCount / total) * 100 : 0;
-      const rounded = Math.round(rate); // 정수 퍼센트 표기
-      return {
-        name: s.unitName,
-        wrongRate: rounded,
-        totalSubmitted: total,
-        wrongCount: s.wrongCount,
-      };
-    });
-    return computed;
-  }, [wrongSources]);
-
   useLayoutEffect(() => {
     setIsShowHeader(false);
   }, [setIsShowHeader]);
+
+  // 학년 선택 핸들러
+  const handleGradeChange = (grade: 1 | 2 | 3) => {
+    setSelectedGrade(grade);
+  };
+
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm">
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-200 rounded w-48 mb-6"></div>
+          <div className="flex gap-4">
+            <div className="flex-1 h-96 bg-gray-200 rounded"></div>
+            <div className="flex-1 h-96 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // 에러 상태 처리
+  if (hasError) {
+    return (
+      <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm items-center justify-center">
+        <h2 className="text-xl font-semibold text-red-600 mb-2">
+          통계 데이터를 불러올 수 없습니다
+        </h2>
+        <p className="text-gray-600 mb-4">
+          서버 연결을 확인하거나 잠시 후 다시 시도해 주세요.
+        </p>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          새로고침
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <Card className="flex-1 p-8 flex flex-col w-full bg-white shadow-2xl rounded-sm">
@@ -251,38 +176,66 @@ function RouteComponent() {
               <div className="space-y-2 text-lg ">
                 <span className="text-gray-800">시험 통계는 </span>
                 <span className="text-blue-800">
-                  최근 4개 시험의 학년별 평균 점수
+                  현재 평균점수 기반의 시험별 추정 평균
                 </span>
                 <span className="text-gray-800">
-                  {" "}
-                  를 꺽은선 그래로 보여주며,
+                  을 꺽은선 그래프로 보여주며,
                 </span>
                 <span className="text-blue-800">
-                  오답률이 높은 상위 4개 단원을 퍼센트로 표시해 취약 영역을 확인
+                  실제 단원별 오답률 상위 4개 단원을 퍼센트로 표시해 취약 영역을
+                  확인
                 </span>
                 <span className="text-gray-800">
                   {" "}
                   할 수 있고, 학년 버튼을 선택하면 해당 학년 데이터만 볼 수
                   있습니다.
                 </span>
-                .
               </div>
             </HoverCardContent>
           </HoverCard>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">학년 선택:</span>
-          <SelectGrade />
+
+        {/* 학년 선택 및 서버 통계 정보 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700">
+              학년 선택:
+            </span>
+            <div className="flex gap-2">
+              {[1, 2, 3].map((grade) => (
+                <Button
+                  key={grade}
+                  variant={selectedGrade === grade ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleGradeChange(grade as 1 | 2 | 3)}
+                  className="text-sm"
+                >
+                  {grade}학년
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* 서버 데이터에서 가져온 현재 학년 통계 */}
+          <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+            <span className="font-medium">현재 {selectedGrade}학년 통계:</span>
+            <span className="ml-2">평균 {gradeStats.averageScore}점</span>
+            <span className="mx-2">•</span>
+            <span>합격률 {Math.round(gradeStats.passRate * 100)}%</span>
+            <span className="mx-2">•</span>
+            <span>총 {gradeStats.totalStudents}명</span>
+          </div>
         </div>
       </div>
+
       <div className="flex flex-1 gap-4">
-        <div className="flex-1 w-1/2  flex flex-col gap-4 ">
+        <div className="flex-1 w-1/2 flex flex-col gap-4">
           <div className="flex w-full h-[15%] bg-blue-200 text-center items-center justify-center font-extrabold text-xl">
-            시험별 평균 점수
+            시험별 평균 점수 (중{selectedGrade} - 추정)
           </div>
           <div className="flex-1 w-full h-full">
             {chartData.length === 0 ? (
-              <div className="flex h-full w-full items-center justify-center text-white/80">
+              <div className="flex h-full w-full items-center justify-center text-gray-500">
                 데이터 없음
               </div>
             ) : (
@@ -320,13 +273,13 @@ function RouteComponent() {
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-4 w-1/2 flex-1 ">
+        <div className="flex flex-col gap-4 w-1/2 flex-1">
           <div className="flex w-full h-[15%] bg-red-200 text-center items-center justify-center font-extrabold text-xl">
-            단원별 오답률
+            단원별 오답률 (중{selectedGrade} - 실제 데이터)
           </div>
-          <div className="flex-1 w-full h-full ">
+          <div className="flex-1 w-full h-full">
             {wrongChartData.length === 0 ? (
-              <div className="flex h-full w-full items-center justify-center text-white/80">
+              <div className="flex h-full w-full items-center justify-center text-gray-500">
                 데이터 없음
               </div>
             ) : (

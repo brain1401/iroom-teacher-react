@@ -74,8 +74,6 @@ export const pokemonListQueryOptions = (filters?: {
       // 검색어가 없으면 기본 함수 사용
       return await fetchPokemonList(filters, { signal });
     },
-    staleTime: 5 * 60 * 1000, // 5분간 데이터를 신선하다고 간주
-    gcTime: 10 * 60 * 1000, // 10분간 캐시에 보관
     retry: (failureCount, error) => {
       // 404 에러는 재시도하지 않음 (존재하지 않는 데이터)
       if (error instanceof ApiError && error.status === 404) {
@@ -118,8 +116,6 @@ export const pokemonDetailQueryOptions = (idOrName: string | number) => {
       }
       return await fetchPokemonDetail(idOrName, { signal });
     },
-    staleTime: 10 * 60 * 1000, // 10분간 데이터를 신선하다고 간주 (상세 정보는 자주 변하지 않음)
-    gcTime: 30 * 60 * 1000, // 30분간 캐시에 보관 (상세 정보는 더 오래 보관)
     retry: (failureCount, error) => {
       // 404 에러는 재시도하지 않음 (존재하지 않는 포켓몬)
       if (error instanceof ApiError && error.status === 404) {
