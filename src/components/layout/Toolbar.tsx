@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Trash2 } from "lucide-react";
-import { SelectGrade } from "./SelectGrade";
+
 
 /**
  * 툴바 컴포넌트 Props
@@ -72,7 +72,7 @@ export function Toolbar({
       {/* 왼쪽 영역: 필터와 액션 */}
       <div className="flex items-center gap-2">
         {/* 학년 선택 */}
-        {isShowGradeSelect && <SelectGrade />}
+     
 
         {/* 참여 현황 필터 */}
         {isShowParticipationFilter && onParticipationFilterChange && (

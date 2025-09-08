@@ -164,11 +164,8 @@ export function ExamSheetRegistrationTab() {
     <div className="w-full space-y-6">
       {/* 헤더 */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">시험지 등록</h1>
-        <p className="text-sm text-muted-foreground">
-          학년, 학생 수, 시험명을 입력하고 문제를 선택하여 시험지를 생성할 수
-          있습니다.
-        </p>
+        <h1 className="text-[2.5rem] font-bold">문제지 등록</h1>
+        
       </div>
 
       {/* 시험 정보 입력 섹션 */}

@@ -539,9 +539,7 @@ export function ExamSheetTable({
               onSort={onSort}
               className={tableStyles.headerCellCenter}
             />
-            <TableHead className={tableStyles.headerCellCenter}>
-              답안/미리보기/인쇄
-            </TableHead>
+        
           </TableRow>
         </TableHeader>
         <TableBody className="max-h-[400px] overflow-y-auto">
@@ -606,34 +604,7 @@ export function ExamSheetTable({
                   : "날짜 없음"}
               </TableCell>
               {/* 3. 답안/미리보기/인쇄 버튼들 추가 */}
-              <TableCell className={tableStyles.cellCenter}>
-                <div className="flex gap-2 justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenAnswerModal(sheet)}
-                    className="text-xs px-2 py-1"
-                  >
-                    답안보기
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenProblemModal(sheet)}
-                    className="text-xs px-2 py-1"
-                  >
-                    문제보기
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenPrint(sheet)}
-                    className="text-xs px-2 py-1 bg-blue-500 text-white"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </Button>
-                </div>
-              </TableCell>
+              
             </TableRow>
           ))}
         </TableBody>

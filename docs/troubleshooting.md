@@ -335,7 +335,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3055",
+        target: "http://localhost:3057",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
@@ -380,7 +380,7 @@ const client = axios.create({
 ```typescript
 // ✅ Vite 환경 변수는 VITE_ 접두사 필요
 // .env
-VITE_API_BASE_URL=http://localhost:3055
+VITE_API_BASE_URL=http://localhost:3057
 VITE_APP_NAME=이룸클래스
 
 // 사용

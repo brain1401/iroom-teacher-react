@@ -4,7 +4,6 @@
 
 export * from "./ExamSheetListTab";
 export * from "./ExamSheetTable";
-export * from "./PrintOptionsModal";
 export * from "./ProblemListTab";
 export * from "./UnitSelectionModal";
 export * from "./ProblemDetailModal";

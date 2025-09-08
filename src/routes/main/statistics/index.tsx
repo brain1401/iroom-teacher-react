@@ -231,7 +231,7 @@ function RouteComponent() {
       <div className="flex flex-1 gap-4">
         <div className="flex-1 w-1/2 flex flex-col gap-4">
           <div className="flex w-full h-[15%] bg-blue-200 text-center items-center justify-center font-extrabold text-xl">
-            시험별 평균 점수 (중{selectedGrade} - 추정)
+            시험별 평균 점수 (중{selectedGrade})
           </div>
           <div className="flex-1 w-full h-full">
             {chartData.length === 0 ? (
@@ -275,7 +275,7 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col gap-4 w-1/2 flex-1">
           <div className="flex w-full h-[15%] bg-red-200 text-center items-center justify-center font-extrabold text-xl">
-            단원별 오답률 (중{selectedGrade} - 실제 데이터)
+            단원별 오답률 (중{selectedGrade} )
           </div>
           <div className="flex-1 w-full h-full">
             {wrongChartData.length === 0 ? (

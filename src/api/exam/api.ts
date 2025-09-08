@@ -2,7 +2,7 @@
  * 시험 관리 API 함수들
  * @description 실제 백엔드 API와 통신하는 함수들
  *
- * API 기본 URL: http://localhost:3055/api
+ * API 기본 URL: http://localhost:3057/api
  * 모든 응답은 ApiResponse<T> 형태로 래핑됨 (인터셉터에서 자동 처리)
  */
 

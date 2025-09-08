@@ -282,7 +282,7 @@ npm run start
 
 ```env
 # .env 파일 예시
-VITE_API_BASE_URL=http://localhost:3055
+VITE_API_BASE_URL=http://localhost:3057
 VITE_APP_NAME=이룸클래스
 ```
 

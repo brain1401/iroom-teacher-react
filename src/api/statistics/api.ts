@@ -2,7 +2,7 @@
  * 통계 API 함수들
  * @description 선생님 대시보드 통계 관련 API 함수들
  *
- * API 기본 URL: http://localhost:3055/api/teacher/dashboard
+ * API 기본 URL: http://localhost:3057/api/teacher/dashboard
  * 모든 응답은 ApiResponse<T> 형태로 래핑됨 (인터셉터에서 자동 처리)
  */
 

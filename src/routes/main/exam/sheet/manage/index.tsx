@@ -191,7 +191,7 @@ function RouteComponent() {
   return (
     <>
       <TabsContent value="list" className="mt-10">
-        {activeTab === "list" && <ExamSheetListTab />}
+        {activeTab === "list" && <ExamSheetListTab dataType="sheet" />}
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">

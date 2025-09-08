@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useAtomValue } from "jotai";
 import { isShowHeaderAtom } from "@/atoms/ui";
-import { SelectGrade } from "./SelectGrade";
+
 import { useLogout } from "@/hooks/auth";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,7 @@ export function HeaderTitle() {
     <div className="flex items-center justify-between">
       <div className="flex items-center">
         <h1 className="text-5xl font-bold">러브버그 중등수학</h1>
-        <div className="ml-6 mr-2.5">{isShowHeader && <SelectGrade />}</div>
+        
       </div>
 
       {/* 로그아웃 아이콘 */}

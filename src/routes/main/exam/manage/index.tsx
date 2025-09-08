@@ -5,11 +5,8 @@ import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { Route as ParentRoute } from "./route";
-import {
-  EnhancedExamSheetListTab,
-  ExamSheetRegistrationTab,
-} from "@/components/exam";
+import { ExamCreationTab } from "@/components/exam";
+import { ExamSheetListTab } from "@/components/sheet";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import {
   searchKeywordAtom,
@@ -216,10 +213,7 @@ function RouteComponent() {
   return (
     <>
       <TabsContent value="list" className="mt-10">
-        <EnhancedExamSheetListTab
-          selectedExamId={selectedExam}
-          selectedExamName={examName}
-        />
+        <ExamSheetListTab dataType="exam" />
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">

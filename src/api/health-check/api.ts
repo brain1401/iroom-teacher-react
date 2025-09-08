@@ -13,7 +13,7 @@ import type {
  * @description Vite 환경에서 VITE_ 접두사가 있는 환경 변수만 클라이언트에서 접근 가능
  */
 const BACKEND_API_URL =
-  import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3055";
+  import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3057";
 
 /**
  * 헬스체크 전용 API 클라이언트

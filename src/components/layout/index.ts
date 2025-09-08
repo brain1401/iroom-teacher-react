@@ -4,7 +4,7 @@
 
 export { NavigationBar } from "./NavigationBar";
 export { SideNavigationBar as SideMenu } from "./SideMenu";
-export { SelectGrade } from "./SelectGrade";
+
 export { PagePagination } from "./PagePagination";
 export { Toolbar } from "./Toolbar";
 export { HeaderTitle } from "./HeaderTitle";
