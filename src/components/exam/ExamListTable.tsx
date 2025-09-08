@@ -13,11 +13,13 @@ import { Checkbox } from "@/components/ui/checkbox"; // 👈 경로 수정!
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { tableStyles, buttonStyles, badgeStyles } from "@/utils/commonStyles";
 import type { ServerExam as Exam } from "@/api/exam/types";
 import { Link } from "@tanstack/react-router";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { PrintButton } from "../common/PrintButton";
+import { ExamPrintModal } from "./ExamPrintModal";
 
 /**
  * 시험지 테이블 컴포넌트 props 타입
@@ -195,6 +197,7 @@ export function ExamTable({
   onOpenDetail: _onOpenDetail,
   selectedExamId,
 }: ExamTableProps) {
+  const [printModalExamId, setPrintModalExamId] = useState<string | null>(null);
   // "전체 선택" 체크박스의 상태를 결정하는 변수
   const isAllSelected = sheets.length > 0 && selectedIds.size === sheets.length;
 
@@ -311,12 +314,19 @@ export function ExamTable({
 
               {/* 4. 인쇄 버튼  */}
               <TableCell className={tableStyles.cellCenter}>
-                <PrintButton onClick={() => {}} />
+                <PrintButton onClick={() => setPrintModalExamId(sheet.id)} />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {/* 인쇄 모달 */}
+      <ExamPrintModal
+        examId={printModalExamId || ""}
+        isOpen={!!printModalExamId}
+        onClose={() => setPrintModalExamId(null)}
+      />
     </div>
   );
 }

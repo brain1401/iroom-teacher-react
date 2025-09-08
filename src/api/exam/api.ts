@@ -8,55 +8,23 @@
 
 import { apiClient } from "@/api/client";
 import type {
-  ServerExamListResponse,
-  ServerExamDetailResponse,
-  ServerSubmissionStatusResponse,
-  ServerExamStatisticsResponse,
-  ExamListFilters,
-  ExamStatisticsParams,
-  ServerExam,
-  ServerSubmissionStatus,
-  ServerExamStatistics,
-  PageResponse,
-  ServerStudentAnswerDetail,
-} from "@/types/server-exam";
-
-/**
- * 시험 목록 조회
- * @description 페이지네이션과 필터링을 지원하는 시험 목록 API
- *
- * 지원 필터:
- * - grade: 학년별 필터 (1, 2, 3)
- * - search: 시험명 검색 (부분 일치)
- * - recent: 최근 시험만 조회
- * - page: 페이지 번호 (0부터 시작)
- * - size: 페이지 크기 (기본값: 20)
- *
- * @param filters 필터링 및 페이지네이션 옵션
- * @returns 페이지네이션된 시험 목록 데이터 (ApiResponse는 인터셉터에서 자동 처리)
- *
- * @example
- * ```typescript
- * // 전체 조회
- * const allExams = await fetchExamList({});
- *
- * // 1학년 시험만 조회
- * const grade1Exams = await fetchExamList({ grade: 1 });
- *
- * // 검색 + 페이지네이션
- * const searchResults = await fetchExamList({
- *   search: "중간고사",
- *   page: 0,
- *   size: 10
- * });
- * ```
- */
-import type {
   CreateExamRequest,
   CreateExamResponse,
   ExamAttendeesParams,
   ExamAttendeesResponse,
 } from "./types";
+import type { ExamQuestionsData } from "./exam-questions-types";
+import type {
+  ServerExam,
+  ServerExamSheetInfo,
+  ServerSubmissionStatus,
+  ServerExamStatistics,
+  PageResponse,
+  ExamListFilters,
+  ExamStatisticsParams,
+  ServerStudentAnswerDetail,
+} from "@/types/server-exam";
+import logger from "@/utils/logger";
 
 /**
  * 시험 생성 API
@@ -317,6 +285,42 @@ export async function fetchExamAttendees(
     return response.data;
   } catch (error) {
     console.error(`응시자 목록 조회 실패 (Exam ID: ${examId}):`, error);
+    throw error;
+  }
+}
+
+/**
+ * 시험 문제 목록 조회
+ * @description 특정 시험에 포함된 모든 문제 정보를 조회
+ *
+ * 제공 정보:
+ * - 시험 기본 정보 (시험명, 학년)
+ * - 문제 통계 (총 문제 수, 객관식/주관식 개수, 총 배점)
+ * - 문제별 상세 정보 (순서, 유형, 내용, 배점, 선택지, 이미지)
+ * - 문제 유형별 비율 정보
+ *
+ * @param examId 시험 고유 ID
+ * @returns 시험 문제 목록 데이터
+ *
+ * @example
+ * ```typescript
+ * const examQuestions = await fetchExamQuestions("01990dea-12fe-75c5-9edd-e4ed42386748");
+ * console.log(examQuestions.examName); // "1학년 1학기 중간고사 - 1차"
+ * console.log(examQuestions.totalQuestions); // 18
+ * console.log(examQuestions.questions[0].questionText); // 문제 내용
+ * ```
+ */
+export async function fetchExamQuestions(
+  examId: string,
+): Promise<ExamQuestionsData> {
+  logger.debug("fetchExamQuestions", examId);
+  try {
+    const response = await apiClient.get<ExamQuestionsData>(
+      `/exams/${examId}/questions`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`시험 문제 조회 실패 (ID: ${examId}):`, error);
     throw error;
   }
 }

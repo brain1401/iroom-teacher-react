@@ -176,12 +176,12 @@ export function ExamSheetRegistrationTab() {
       {/* 시험지명 입력 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sky-600">시험지 정보</CardTitle>
+          <CardTitle className="text-sky-600">문제지 정보</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             <Label htmlFor="exam-name" className="text-base font-medium">
-              시험지명
+              문제지명
             </Label>
             <Input
               id="exam-name"

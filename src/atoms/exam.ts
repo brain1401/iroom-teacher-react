@@ -21,6 +21,7 @@ import {
   selectedGradeAtom,
   searchKeywordAtom,
 } from "./examFilters";
+import { examQuestionsQueryOptions } from "@/api/exam/query";
 
 /**
  * 현재 선택된 시험 ID 원자
@@ -161,4 +162,19 @@ export const examSearchSummaryAtom = atom((get) => {
       ),
     },
   };
+});
+
+/**
+ * 시험 문제 ID 원자
+ * @description 시험 문제 조회할 시험 ID
+ */
+export const examQuestionsIdAtom = atom<string | null>(null);
+
+/**
+ * 시험 문제 쿼리 원자
+ * @description 시험 문제 조회
+ */
+export const examQuestionsQueryAtom = atomWithQuery((get) => {
+  const examId = get(examQuestionsIdAtom);
+  return examQuestionsQueryOptions(examId ?? "");
 });

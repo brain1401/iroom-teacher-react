@@ -15,6 +15,7 @@ import {
   fetchSubmissionStatus,
   fetchExamStatistics,
   fetchExamAttendees,
+  fetchExamQuestions,
 } from "./api";
 import type {
   ExamListFilters,
@@ -57,6 +58,11 @@ export const examKeys = {
   /** 특정 타입의 통계 */
   statistic: (params: ExamStatisticsParams) =>
     [...examKeys.statistics(), params] as const,
+
+  /** 시험 문제 쿼리들 */
+  questions: () => [...examKeys.all, "questions"] as const,
+  /** 특정 시험의 문제 */
+  question: (examId: string) => [...examKeys.questions(), examId] as const,
 };
 
 /**
@@ -205,3 +211,15 @@ export const createExamMutationOptions = () => ({
   retry: 2, // 실패 시 2회 재시도
   retryDelay: 1000, // 1초 후 재시도
 });
+
+/**
+ * 시험 문제 쿼리 옵션
+ * @description 특정 시험의 문제 조회
+ */
+export const examQuestionsQueryOptions = (examId: string) =>
+  queryOptions({
+    queryKey: examKeys.question(examId),
+    queryFn: () => fetchExamQuestions(examId),
+    enabled: !!examId,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });

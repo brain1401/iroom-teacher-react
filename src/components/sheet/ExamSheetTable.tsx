@@ -522,7 +522,7 @@ export function ExamSheetTable({
             <TableHead className={tableStyles.headerCell}>단원정보</TableHead>
             <SortableHeader
               field="examName"
-              label="시험지명"
+              label="문제지명"
               sortField={sortField}
               sortOrder={sortOrder}
               onSort={onSort}

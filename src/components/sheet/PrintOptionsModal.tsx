@@ -96,7 +96,7 @@ import { Printer } from "lucide-react";
  * - `answer`: 문제 답안지 - 문제와 정답이 함께 표시된 교사용 시트
  * - `studentAnswer`: 학생 답안지 - 학생이 답을 작성할 수 있는 빈 답안 시트
  */
-type PrintItem = "problem" | "answer" | "studentAnswer";
+export type PrintItem = "problem" | "answer" | "studentAnswer";
 
 type PrintOptionsModalProps = {
   /**
