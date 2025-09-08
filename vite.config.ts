@@ -11,6 +11,10 @@ const config = defineConfig({
   build: {
     outDir: ".output",
   },
+  ssr: {
+    //  CJS 패키지를 SSR 번들에 포함시켜 named import 허용
+    noExternal: ["react-to-print"],
+  },
   plugins: [
     // this is the plugin that enables path aliases
     viteTsConfigPaths({

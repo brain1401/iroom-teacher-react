@@ -152,7 +152,7 @@ describe("Domain API", () => {
       expect(result).toEqual(mockData);
       expect(mockBaseApiClient).toHaveBeenCalledWith({
         method: "GET",
-        url: "/api/domain/1",
+        url: "/domain/1",
         signal: undefined,
       });
     });
@@ -356,11 +356,11 @@ export function formatPokemonWeight(weightInHectograms: number): string {
  * 
  * @example
  * ```typescript
- * buildApiUrl("/api/pokemon", { limit: 20, offset: 0 })
- * // "/api/pokemon?limit=20&offset=0"
+ * buildApiUrl("/pokemon", { limit: 20, offset: 0 })
+ * // "/pokemon?limit=20&offset=0"
  * 
- * buildApiUrl("/api/pokemon", { search: "pikachu" })
- * // "/api/pokemon?search=pikachu"
+ * buildApiUrl("/pokemon", { search: "pikachu" })
+ * // "/pokemon?search=pikachu"
  * ```
  */
 export function buildApiUrl(

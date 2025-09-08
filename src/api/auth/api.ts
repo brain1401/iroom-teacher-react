@@ -77,7 +77,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   }
 
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
-  // return await apiClient.post<LoginResponse>("/api/auth/login", credentials);
+  // return await apiClient.post<LoginResponse>("/auth/login", credentials);
 }
 
 /**
@@ -113,7 +113,7 @@ export async function logout(): Promise<LogoutResponse> {
   };
 
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
-  // return await apiClient.post<LogoutResponse>("/api/auth/logout");
+  // return await apiClient.post<LogoutResponse>("/auth/logout");
 }
 
 /**
@@ -174,7 +174,7 @@ export async function getCurrentUser(): Promise<CurrentUserResponse> {
   }
 
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
-  // return await apiClient.get<CurrentUserResponse>("/api/auth/me");
+  // return await apiClient.get<CurrentUserResponse>("/auth/me");
 }
 
 /**
@@ -193,5 +193,5 @@ export async function updateProfile(
   throw new Error("프로필 업데이트 기능은 아직 구현되지 않았습니다.");
 
   // 실제 서버 연동 시 사용할 코드 (주석 처리)
-  // return await apiClient.put<User>("/api/auth/profile", updates);
+  // return await apiClient.put<User>("/auth/profile", updates);
 }

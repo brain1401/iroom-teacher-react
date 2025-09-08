@@ -488,7 +488,7 @@ import { getErrorMessage } from "@/utils/errorHandling";
 
 // API 호출 시 인터셉터가 자동으로 처리
 try {
-  const userData = await authApiClient.get<User>("/api/user/profile");
+  const userData = await authApiClient.get<User>("/user/profile");
   // SUCCESS인 경우: User 데이터 직접 반환
   console.log(userData.name);
 } catch (error) {
@@ -521,7 +521,7 @@ function UserList() {
   const fetchUsers = async () => {
     try {
       setError(null);
-      const data = await authApiClient.get<User[]>("/api/users");
+      const data = await authApiClient.get<User[]>("/users");
       setUsers(data);
     } catch (err) {
       // 구조화된 에러 로깅

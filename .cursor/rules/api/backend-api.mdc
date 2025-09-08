@@ -58,7 +58,7 @@ export async function fetchPokemonList(
 
 // ❌ Forbidden approach
 export async function fetchData() {
-  const response = await fetch("/api/data"); // Never use direct fetch!
+  const response = await fetch("/data"); // Never use direct fetch!
   return response.json();
 }
 ```
@@ -76,7 +76,7 @@ export async function fetchUserProfile(): Promise<UserProfile> {
   try {
     return await authApiClient<UserProfile>({
       method: "GET",
-      url: "/api/user/profile",
+      url: "/user/profile",
     });
   } catch (error) {
     // 401 errors automatically handled by interceptors
@@ -411,7 +411,7 @@ export function buildYourDataListUrl(filters?: {
   search?: string;
   sort?: string;
 }): string {
-  const baseUrl = buildBaseUrl("/api/your-data");
+  const baseUrl = buildBaseUrl("/your-data");
   
   return buildUrlWithParams(baseUrl, {
     page: filters?.page,
@@ -431,7 +431,7 @@ export function buildYourDataDetailUrl(id: string | number): string {
     throw new Error("ID is required");
   }
   
-  return buildBaseUrl(`/api/your-data/${encodeURIComponent(id)}`);
+  return buildBaseUrl(`/your-data/${encodeURIComponent(id)}`);
 }
 ```
 

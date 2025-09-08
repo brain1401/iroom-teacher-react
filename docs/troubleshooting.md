@@ -334,7 +334,7 @@ Access to fetch at 'API_URL' from origin 'localhost:3012' has been blocked by CO
 export default defineConfig({
   server: {
     proxy: {
-      "/api": {
+      "": {
         target: "http://localhost:3055",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
@@ -353,7 +353,7 @@ export default defineConfig({
 ```typescript
 // ✅ 에러 타입 확인
 try {
-  const data = await baseApiClient.get("/api/data");
+  const data = await baseApiClient.get("/data");
 } catch (error) {
   if (error instanceof ApiError) {
     console.error("API 에러:", error.status, error.message);

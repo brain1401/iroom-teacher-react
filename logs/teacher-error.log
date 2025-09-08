@@ -1,0 +1,280 @@
+2025-09-08T20:00:43: [request error] [unhandled] [HEAD] https://teacher.iroomclass.com/
+2025-09-08T20:00:43:  597 |   unhandled = false;
+2025-09-08T20:00:43: 598 |   statusMessage;
+2025-09-08T20:00:43: 599 |   data;
+2025-09-08T20:00:43: 600 |   cause;
+2025-09-08T20:00:43: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:00:43: 602 |     super(message, opts);
+2025-09-08T20:00:43:           ^
+2025-09-08T20:00:43: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:00:43:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:00:43:     lineNumber: 5,
+2025-09-08T20:00:43:     columnNumber: 11
+2025-09-08T20:00:43:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:00:43:  statusCode: 500,
+2025-09-08T20:00:43:       fatal: false,
+2025-09-08T20:00:43:   unhandled: true,
+2025-09-08T20:00:43:  statusMessage: undefined,
+2025-09-08T20:00:43:        data: undefined,
+2025-09-08T20:00:43: 
+2025-09-08T20:00:43:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:00:43: 
+2025-09-08T20:00:43: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:00:43: 1328 |   return null;
+2025-09-08T20:00:43: 1329 | } ;
+2025-09-08T20:00:43: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:00:43: 1331 |   name: "Tanstack Query",
+2025-09-08T20:00:43: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:00:43:                                  ^
+2025-09-08T20:00:43: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:00:43:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:00:43:     lineNumber: 5,
+2025-09-08T20:00:43:     columnNumber: 11
+2025-09-08T20:00:43:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:00:43:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:00:43: 
+2025-09-08T20:01:25: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:01:25:  597 |   unhandled = false;
+2025-09-08T20:01:25: 598 |   statusMessage;
+2025-09-08T20:01:25: 599 |   data;
+2025-09-08T20:01:25: 600 |   cause;
+2025-09-08T20:01:25: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:01:25: 602 |     super(message, opts);
+2025-09-08T20:01:25:           ^
+2025-09-08T20:01:25: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:01:25:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:01:25:     lineNumber: 5,
+2025-09-08T20:01:25:     columnNumber: 11
+2025-09-08T20:01:25:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:01:25:  statusCode: 500,
+2025-09-08T20:01:25:       fatal: false,
+2025-09-08T20:01:25:   unhandled: true,
+2025-09-08T20:01:25:  statusMessage: undefined,
+2025-09-08T20:01:25:        data: undefined,
+2025-09-08T20:01:25: 
+2025-09-08T20:01:25:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:01:25: 
+2025-09-08T20:01:25: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:01:25: 1328 |   return null;
+2025-09-08T20:01:25: 1329 | } ;
+2025-09-08T20:01:25: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:01:25: 1331 |   name: "Tanstack Query",
+2025-09-08T20:01:25: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:01:25:                                  ^
+2025-09-08T20:01:25: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:01:25:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:01:25:     lineNumber: 5,
+2025-09-08T20:01:25:     columnNumber: 11
+2025-09-08T20:01:25:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:01:25:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:01:25: 
+2025-09-08T20:02:13: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:02:13:  597 |   unhandled = false;
+2025-09-08T20:02:13: 598 |   statusMessage;
+2025-09-08T20:02:13: 599 |   data;
+2025-09-08T20:02:13: 600 |   cause;
+2025-09-08T20:02:13: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:02:13: 602 |     super(message, opts);
+2025-09-08T20:02:13:           ^
+2025-09-08T20:02:13: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:02:13:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:02:13:     lineNumber: 5,
+2025-09-08T20:02:13:     columnNumber: 11
+2025-09-08T20:02:13:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:02:13:  statusCode: 500,
+2025-09-08T20:02:13:       fatal: false,
+2025-09-08T20:02:13:   unhandled: true,
+2025-09-08T20:02:13:  statusMessage: undefined,
+2025-09-08T20:02:13:        data: undefined,
+2025-09-08T20:02:13: 
+2025-09-08T20:02:13:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:02:13: 
+2025-09-08T20:02:13: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:02:13: 1328 |   return null;
+2025-09-08T20:02:13: 1329 | } ;
+2025-09-08T20:02:13: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:02:13: 1331 |   name: "Tanstack Query",
+2025-09-08T20:02:13: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:02:13:                                  ^
+2025-09-08T20:02:13: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:02:13:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:02:13:     lineNumber: 5,
+2025-09-08T20:02:13:     columnNumber: 11
+2025-09-08T20:02:13:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:02:13:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:02:13: 
+2025-09-08T20:04:44: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:04:44:  597 |   unhandled = false;
+2025-09-08T20:04:44: 598 |   statusMessage;
+2025-09-08T20:04:44: 599 |   data;
+2025-09-08T20:04:44: 600 |   cause;
+2025-09-08T20:04:44: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:04:44: 602 |     super(message, opts);
+2025-09-08T20:04:44:           ^
+2025-09-08T20:04:44: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:04:44:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:04:44:     lineNumber: 5,
+2025-09-08T20:04:44:     columnNumber: 11
+2025-09-08T20:04:44:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:04:44:  statusCode: 500,
+2025-09-08T20:04:44:       fatal: false,
+2025-09-08T20:04:44:   unhandled: true,
+2025-09-08T20:04:44:  statusMessage: undefined,
+2025-09-08T20:04:44:        data: undefined,
+2025-09-08T20:04:44: 
+2025-09-08T20:04:44:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:04:44: 
+2025-09-08T20:04:44: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:04:44: 1328 |   return null;
+2025-09-08T20:04:44: 1329 | } ;
+2025-09-08T20:04:44: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:04:44: 1331 |   name: "Tanstack Query",
+2025-09-08T20:04:44: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:04:44:                                  ^
+2025-09-08T20:04:44: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:04:44:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:04:44:     lineNumber: 5,
+2025-09-08T20:04:44:     columnNumber: 11
+2025-09-08T20:04:44:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:04:44:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:04:44: 
+2025-09-08T20:05:29: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:05:29:  597 |   unhandled = false;
+2025-09-08T20:05:29: 598 |   statusMessage;
+2025-09-08T20:05:29: 599 |   data;
+2025-09-08T20:05:29: 600 |   cause;
+2025-09-08T20:05:29: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:05:29: 602 |     super(message, opts);
+2025-09-08T20:05:29:           ^
+2025-09-08T20:05:29: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:05:29:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:05:29:     lineNumber: 5,
+2025-09-08T20:05:29:     columnNumber: 11
+2025-09-08T20:05:29:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:05:29:  statusCode: 500,
+2025-09-08T20:05:29:       fatal: false,
+2025-09-08T20:05:29:   unhandled: true,
+2025-09-08T20:05:29:  statusMessage: undefined,
+2025-09-08T20:05:29:        data: undefined,
+2025-09-08T20:05:29: 
+2025-09-08T20:05:29:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:05:29: 
+2025-09-08T20:05:29: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:05:29: 1328 |   return null;
+2025-09-08T20:05:29: 1329 | } ;
+2025-09-08T20:05:29: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:05:29: 1331 |   name: "Tanstack Query",
+2025-09-08T20:05:29: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:05:29:                                  ^
+2025-09-08T20:05:29: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:05:29:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:05:29:     lineNumber: 5,
+2025-09-08T20:05:29:     columnNumber: 11
+2025-09-08T20:05:29:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:05:29:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:05:29: 
+2025-09-08T20:05:29: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:05:29:  597 |   unhandled = false;
+2025-09-08T20:05:29: 598 |   statusMessage;
+2025-09-08T20:05:29: 599 |   data;
+2025-09-08T20:05:29: 600 |   cause;
+2025-09-08T20:05:29: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:05:29: 602 |     super(message, opts);
+2025-09-08T20:05:29:           ^
+2025-09-08T20:05:29: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:05:29:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:05:29:     lineNumber: 5,
+2025-09-08T20:05:29:     columnNumber: 11
+2025-09-08T20:05:29:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:05:29:  statusCode: 500,
+2025-09-08T20:05:29:       fatal: false,
+2025-09-08T20:05:29:   unhandled: true,
+2025-09-08T20:05:29:  statusMessage: undefined,
+2025-09-08T20:05:29:        data: undefined,
+2025-09-08T20:05:29: 
+2025-09-08T20:05:29:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:05:29: 
+2025-09-08T20:05:29: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:05:29: 1328 |   return null;
+2025-09-08T20:05:29: 1329 | } ;
+2025-09-08T20:05:29: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:05:29: 1331 |   name: "Tanstack Query",
+2025-09-08T20:05:29: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:05:29:                                  ^
+2025-09-08T20:05:29: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:05:29:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:05:29:     lineNumber: 5,
+2025-09-08T20:05:29:     columnNumber: 11
+2025-09-08T20:05:29:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:05:29:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:05:29: 
+2025-09-08T20:16:44: [request error] [unhandled] [GET] http://localhost:3012/
+2025-09-08T20:16:44:  597 |   unhandled = false;
+2025-09-08T20:16:44: 598 |   statusMessage;
+2025-09-08T20:16:44: 599 |   data;
+2025-09-08T20:16:44: 600 |   cause;
+2025-09-08T20:16:44: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:16:44: 602 |     super(message, opts);
+2025-09-08T20:16:44:           ^
+2025-09-08T20:16:44: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:16:44:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:16:44:     lineNumber: 5,
+2025-09-08T20:16:44:     columnNumber: 11
+2025-09-08T20:16:44:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:16:44:  statusCode: 500,
+2025-09-08T20:16:44:       fatal: false,
+2025-09-08T20:16:44:   unhandled: true,
+2025-09-08T20:16:44:  statusMessage: undefined,
+2025-09-08T20:16:44:        data: undefined,
+2025-09-08T20:16:44: 
+2025-09-08T20:16:44:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:16:44: 
+2025-09-08T20:16:44: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:16:44: 1328 |   return null;
+2025-09-08T20:16:44: 1329 | } ;
+2025-09-08T20:16:44: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:16:44: 1331 |   name: "Tanstack Query",
+2025-09-08T20:16:44: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:16:44:                                  ^
+2025-09-08T20:16:44: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:16:44:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:16:44:     lineNumber: 5,
+2025-09-08T20:16:44:     columnNumber: 11
+2025-09-08T20:16:44:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:16:44:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:16:44: 
+2025-09-08T20:16:59: [request error] [unhandled] [GET] https://teacher.iroomclass.com/
+2025-09-08T20:16:59:  597 |   unhandled = false;
+2025-09-08T20:16:59: 598 |   statusMessage;
+2025-09-08T20:16:59: 599 |   data;
+2025-09-08T20:16:59: 600 |   cause;
+2025-09-08T20:16:59: 601 |   constructor(message, opts = {}) {
+2025-09-08T20:16:59: 602 |     super(message, opts);
+2025-09-08T20:16:59:           ^
+2025-09-08T20:16:59: error: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:16:59:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:16:59:     lineNumber: 5,
+2025-09-08T20:16:59:     columnNumber: 11
+2025-09-08T20:16:59:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:16:59:  statusCode: 500,
+2025-09-08T20:16:59:       fatal: false,
+2025-09-08T20:16:59:   unhandled: true,
+2025-09-08T20:16:59:  statusMessage: undefined,
+2025-09-08T20:16:59:        data: undefined,
+2025-09-08T20:16:59: 
+2025-09-08T20:16:59:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/index.mjs:602:5
+2025-09-08T20:16:59: 
+2025-09-08T20:16:59: 1327 | const TanStackRouterDevtoolsPanel = function() {
+2025-09-08T20:16:59: 1328 |   return null;
+2025-09-08T20:16:59: 1329 | } ;
+2025-09-08T20:16:59: 1330 | const TanStackQueryDevtools = {
+2025-09-08T20:16:59: 1331 |   name: "Tanstack Query",
+2025-09-08T20:16:59: 1332 |   render: /* @__PURE__ */ jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, false, {
+2025-09-08T20:16:59:                                  ^
+2025-09-08T20:16:59: TypeError: jsxDEV is not a function. (In 'jsxDEV(ReactQueryDevtoolsPanel, {}, void 0, !1, {
+2025-09-08T20:16:59:     fileName: "/home/aiden/programming/final-project/iroom-teacher-react/src/integrations/tanstack-query/devtools.tsx",
+2025-09-08T20:16:59:     lineNumber: 5,
+2025-09-08T20:16:59:     columnNumber: 11
+2025-09-08T20:16:59:   }, void 0)', 'jsxDEV' is undefined)
+2025-09-08T20:16:59:       at /home/aiden/programming/final-project/iroom-teacher-react/.output/server/chunks/_/ssr.mjs:1332:27
+2025-09-08T20:16:59: 

@@ -222,7 +222,7 @@ export async function fetchHealthCheck(options?: {
     // ERROR인 경우 ApiResponseError 발생
     const healthCheckData = await healthCheckApiRequest<HealthCheckData>({
       method: "GET",
-      url: "/api/system/health",
+      url: "/system/health",
       signal: options?.signal,
     });
 

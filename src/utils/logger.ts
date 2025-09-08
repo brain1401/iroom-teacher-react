@@ -17,7 +17,7 @@
  * logger.error("예상치 못한 오류", { error: errorObj });
  *
  * // 성능 로깅
- * performanceLogger.info("API 응답시간", { endpoint: "/api/users", duration: 250 });
+ * performanceLogger.info("API 응답시간", { endpoint: "/users", duration: 250 });
  *
  * // 보안 로깅
  * securityLogger.warn("인증 실패", { userId: "123", reason: "invalid_token" });
@@ -110,7 +110,7 @@ export const userActionLogger = logger.getSubLogger({
  * logApiValidationFailure(
  *   "포켓몬 상세 정보 검증 실패",
  *   {
- *     endpoint: "/api/pokemon/25",
+ *     endpoint: "/pokemon/25",
  *     method: "GET",
  *     expectedSchema: "ServerPokemonDetailResponse",
  *     validationErrors: zodError.issues,

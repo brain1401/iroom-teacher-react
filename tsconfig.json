@@ -7,6 +7,9 @@
     "vite.config.js",
     "src/routes/main/exam/sheet/manage/$examId"
   ],
+  "exclude": [
+    "src/test/**/*"
+  ],
 
   "compilerOptions": {
     "target": "ES2022",

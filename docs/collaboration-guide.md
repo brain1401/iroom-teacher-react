@@ -8,16 +8,16 @@
 
 ```typescript
 // ❌ 절대 금지: fetch 직접 사용
-const response = await fetch("/api/data");
+const response = await fetch("/data");
 
 // ✅ 필수: API 클라이언트 사용
 import { baseApiClient, authApiClient } from "@/api/client";
 
 // 인증 불필요한 공개 API
-const pokemonData = await baseApiClient.get("/api/v2/pokemon/25");
+const pokemonData = await baseApiClient.get("/v2/pokemon/25");
 
 // 인증 필요한 API (httpOnly 쿠키 포함)
-const userData = await authApiClient.get("/api/user/profile");
+const userData = await authApiClient.get("/user/profile");
 ```
 
 #### 백엔드 표준 응답 처리
@@ -37,7 +37,7 @@ type ApiResponse<T> = {
 
 ```typescript
 // ✅ 인터셉터가 자동으로 처리
-const userData = await authApiClient.get<User>("/api/user/profile");
+const userData = await authApiClient.get<User>("/user/profile");
 // SUCCESS인 경우: data만 반환 (User 타입)
 // ERROR인 경우: ApiResponseError 발생
 
@@ -45,7 +45,7 @@ const userData = await authApiClient.get<User>("/api/user/profile");
 import { ApiResponseError, getErrorMessage } from "@/api/client";
 
 try {
-  const userData = await authApiClient.get<User>("/api/user/profile");
+  const userData = await authApiClient.get<User>("/user/profile");
   console.log(userData); // User 객체 직접 사용
 } catch (error) {
   if (error instanceof ApiResponseError) {
@@ -69,7 +69,7 @@ import {
 
 // 응답을 직접 처리해야 하는 경우
 const response =
-  await authApiClient.get<ApiResponse<User>>("/api/user/profile");
+  await authApiClient.get<ApiResponse<User>>("/user/profile");
 
 // 안전한 데이터 추출
 const userData = extractResponseData(response); // 에러 시 throw
@@ -356,17 +356,17 @@ git push origin feature/새기능명
 
 ```typescript
 // ❌ 잘못된 예시
-const response = await fetch("/api/pokemon"); // fetch 직접 사용
+const response = await fetch("/pokemon"); // fetch 직접 사용
 const data = await response.json();
 
 // ✅ 올바른 예시 - 기본 API 호출
-const data = await baseApiClient.get("/api/pokemon");
+const data = await baseApiClient.get("/pokemon");
 
 // ✅ 올바른 예시 - 에러 처리 포함
 import { getErrorMessage, logError } from "@/utils/errorHandling";
 
 try {
-  const data = await authApiClient.get<User[]>("/api/users");
+  const data = await authApiClient.get<User[]>("/users");
   return data;
 } catch (error) {
   logError(error, "UserList 컴포넌트");

@@ -23,13 +23,15 @@ export class ApiError extends Error {
   }
 }
 
+export const apiBaseUrl = "https://iroomclass.com/api";
+
 /**
  * 통합 API 클라이언트 생성 함수
  * @description 기존 authClient와 baseClient를 통합한 단일 클라이언트
  */
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3055/api",
+    baseURL: apiBaseUrl,
     timeout: 10000, // 10초 타임아웃
     withCredentials: true,
     headers: {

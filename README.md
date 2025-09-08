@@ -142,11 +142,11 @@ iroom-teacher-react/
 ```typescript
 // 기본 API 호출 (인증 불필요)
 import { baseApiClient } from "@/api/client";
-const data = await baseApiClient.get("/api/public-data");
+const data = await baseApiClient.get("/public-data");
 
 // 인증 API 호출 (httpOnly 쿠키 포함)
 import { authApiClient } from "@/api/client";
-const userData = await authApiClient.get("/api/user/profile");
+const userData = await authApiClient.get("/user/profile");
 ```
 
 ### 2. 상태 관리 패턴
