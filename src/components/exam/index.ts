@@ -4,6 +4,7 @@
 
 export * from "./ExamSheetListTab";
 export * from "./ExamSheetRegistrationTab";
+export * from "./ExamCreationTab";
 export * from "./ExamListTable";
 export * from "./ExamSubmissionTable";
 export * from "./ExamDetailTable";
