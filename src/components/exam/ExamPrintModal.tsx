@@ -40,29 +40,6 @@ export function ExamPrintModal({ examId, onClose }: ExamPrintModalProps) {
   const { examData, isLoading, error, isReadyToPrint, printRef, handlePrint } =
     useExamPrint(examId);
 
-  // 로깅: 컴포넌트 상태 변화 (성능 최적화를 위해 제거)
-  // useEffect(() => {
-  //   logger.debug("[ExamPrintModal] 상태 변화", {
-  //     examId,
-  //     isOpen,
-  //     isProcessing,
-  //     hasExamData: !!examData,
-  //     isLoading,
-  //     hasError: !!error,
-  //     isReadyToPrint,
-  //     printRefExists: !!printRef?.current,
-  //   });
-  // }, [
-  //   examId,
-  //   isOpen,
-  //   isProcessing,
-  //   examData,
-  //   isLoading,
-  //   error,
-  //   isReadyToPrint,
-  //   printRef,
-  // ]);
-
   /**
    * 인쇄 옵션 확인 및 실행
    */
