@@ -29,7 +29,7 @@ export class ApiError extends Error {
  */
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3057/api",
+    baseURL: "https://iroomclass.com/api",
     timeout: 10000, // 10초 타임아웃
     withCredentials: true,
     headers: {
