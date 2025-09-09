@@ -191,6 +191,7 @@ export function ExamTable({
   selectedIds,
   onSelectAll,
   onSelect,
+  onOpenPrint: _onOpenPrint,
   onOpenDetail: _onOpenDetail,
   selectedExamId,
 }: ExamTableProps) {
@@ -221,6 +222,7 @@ export function ExamTable({
             <TableHead className={tableStyles.headerCellCenter}>
               제출명단
             </TableHead>
+            <TableHead className={tableStyles.headerCellCenter}>인쇄</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -304,6 +306,16 @@ export function ExamTable({
                   >
                     상세보기
                   </Link>
+                </Button>
+              </TableCell>
+              <TableCell className={tableStyles.cellCenter}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={buttonStyles.primary}
+                  onClick={() => _onOpenPrint(sheet)}
+                >
+                  인쇄
                 </Button>
               </TableCell>
             </TableRow>

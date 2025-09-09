@@ -20,8 +20,12 @@ export function useExamPrint(examId: string) {
   const printRef = useRef<HTMLDivElement>(null);
   const setExamQuestionsId = useSetAtom(examQuestionsIdAtom);
 
+  // 로깅: printRef 생성
+  logger.debug("[useExamPrint] printRef 생성됨", { examId, printRef });
+
   // 시험 ID 설정
   useEffect(() => {
+    logger.debug("[useExamPrint] examId 설정", { examId });
     setExamQuestionsId(examId);
   }, [examId, setExamQuestionsId]);
 
@@ -32,15 +36,53 @@ export function useExamPrint(examId: string) {
     error,
   } = useAtomValue(examQuestionsQueryAtom);
 
+  // 로깅: 데이터 조회 상태
+  useEffect(() => {
+    logger.debug("[useExamPrint] 데이터 상태 변경", {
+      examId,
+      hasExamData: !!examData,
+      examDataQuestions: examData?.questions?.length || 0,
+      isLoading,
+      error: error ? String(error) : null,
+    });
+  }, [examData, isLoading, error, examId]);
+
+  // SSR 체크 - 클라이언트에서만 인쇄 기능 활성화
+  useEffect(() => {
+    if (typeof window !== "undefined" && printRef.current && examData) {
+      logger.debug("[useExamPrint] 클라이언트 환경, ref와 데이터 준비됨", {
+        examId,
+        hasRef: !!printRef.current,
+        hasData: !!examData,
+      });
+    }
+  }, [examId, examData]);
+
   // 수동 인쇄 함수 (react-to-print 대체)
   const handlePrint = useCallback(() => {
+    logger.debug("[useExamPrint] 인쇄 시작", {
+      examId,
+      hasExamData: !!examData,
+      questionsCount: examData?.questions?.length || 0,
+      printRefExists: !!printRef.current,
+    });
+
     if (!printRef.current) {
       logger.error("[useExamPrint] printRef.current가 null입니다!");
       return;
     }
 
     try {
+      // DOM 상태 로깅
       const refElement = printRef.current;
+      logger.debug("[useExamPrint] printRef DOM 상태", {
+        tagName: refElement.tagName,
+        className: refElement.className,
+        childElementCount: refElement.childElementCount,
+        offsetHeight: refElement.offsetHeight,
+        scrollHeight: refElement.scrollHeight,
+        innerHTML: refElement.innerHTML.length,
+      });
 
       // 인쇄용 iframe 생성
       const iframe = document.createElement("iframe");
@@ -92,6 +134,7 @@ export function useExamPrint(examId: string) {
         iframe.contentWindow?.print();
         setTimeout(() => {
           document.body.removeChild(iframe);
+          logger.debug("[useExamPrint] 인쇄 완료", { examId });
         }, 100);
       }, 250);
     } catch (error) {
@@ -104,6 +147,19 @@ export function useExamPrint(examId: string) {
    */
   const isReadyToPrint =
     !isLoading && !error && !!examData && typeof window !== "undefined";
+
+  // 로깅: 인쇄 준비 상태
+  useEffect(() => {
+    logger.debug("[useExamPrint] 인쇄 준비 상태", {
+      examId,
+      isReadyToPrint,
+      isLoading,
+      hasError: !!error,
+      hasExamData: !!examData,
+      isClient: typeof window !== "undefined",
+      printRefCurrent: !!printRef.current,
+    });
+  }, [isReadyToPrint, isLoading, error, examData, examId]);
 
   return {
     // 데이터 상태

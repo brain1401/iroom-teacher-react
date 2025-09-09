@@ -11,7 +11,14 @@
  */
 
 import { useAtom, useAtomValue } from "jotai";
-import { Filter, SidebarClose, SidebarOpen, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Filter,
+  SidebarClose,
+  SidebarOpen,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { useEffect, useCallback, useRef, useState } from "react";
 
 // Components
@@ -37,16 +44,16 @@ import {
   collapsedFilterSidebarAtom,
   activeFiltersCountAtom,
 } from "@/atoms/examFilters";
-import { 
+import {
   selectedExamDetailAtom,
   selectedExamSubmissionStatusAtom,
 } from "@/atoms/examDetail";
 import { useExamListWithFilters } from "@/hooks/exam/useExamListWithFilters";
 import { useExamUrlSync } from "@/hooks/exam/useExamUrlSync";
-import { 
+import {
   ExamListLoadingSkeleton,
   ExamDetailLoading,
-  SubmissionStatusLoading 
+  SubmissionStatusLoading,
 } from "@/components/loading/ExamLoadingStates";
 import { cn } from "@/lib/utils";
 
@@ -162,9 +169,9 @@ export function EnhancedExamSheetListTab({
 
   // 선택된 시험의 상세 정보 (모달용)
   const selectedExamDetail = useAtomValue(selectedExamDetailAtom);
-  const selectedExamSubmissionStatus = useAtomValue(selectedExamSubmissionStatusAtom);
-
-
+  const selectedExamSubmissionStatus = useAtomValue(
+    selectedExamSubmissionStatusAtom,
+  );
 
   // 스크롤 위치 추적 (프리페칭 최적화용)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -177,13 +184,12 @@ export function EnhancedExamSheetListTab({
    */
   const handleScroll = useCallback(() => {
     if (listContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = listContainerRef.current;
+      const { scrollTop, scrollHeight, clientHeight } =
+        listContainerRef.current;
       const scrollPosition = scrollTop / (scrollHeight - clientHeight);
       scrollPositionRef.current = Math.max(0, Math.min(1, scrollPosition));
     }
   }, []);
-
-
 
   /**
    * 새로고침 핸들러
@@ -198,18 +204,12 @@ export function EnhancedExamSheetListTab({
   useEffect(() => {
     const container = listContainerRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
+      container.addEventListener("scroll", handleScroll, { passive: true });
       return () => {
-        container.removeEventListener('scroll', handleScroll);
+        container.removeEventListener("scroll", handleScroll);
       };
     }
   }, [handleScroll]);
-
-
-
-
-
-
 
   return (
     <div className={cn("flex h-full gap-4", className)}>
@@ -223,7 +223,7 @@ export function EnhancedExamSheetListTab({
       )}
 
       {/* 메인 콘텐츠 영역 */}
-      <div 
+      <div
         ref={scrollContainerRef}
         className="flex-1 space-y-4 min-w-0 overflow-auto"
       >
@@ -240,7 +240,9 @@ export function EnhancedExamSheetListTab({
                   size="sm"
                   onClick={() => setShowSidebar(!showSidebar)}
                   className="h-8 px-3"
-                  title={showSidebar ? "필터 사이드바 숨기기" : "필터 사이드바 보기"}
+                  title={
+                    showSidebar ? "필터 사이드바 숨기기" : "필터 사이드바 보기"
+                  }
                 >
                   {showSidebar ? (
                     <SidebarClose className="h-4 w-4 mr-1" />
@@ -265,11 +267,11 @@ export function EnhancedExamSheetListTab({
                   className="h-8 px-2"
                   title="새로고침"
                 >
-                  <RefreshCw 
+                  <RefreshCw
                     className={cn(
                       "h-4 w-4",
-                      dataState.isFetching && "animate-spin"
-                    )} 
+                      dataState.isFetching && "animate-spin",
+                    )}
                   />
                 </Button>
 
@@ -318,7 +320,8 @@ export function EnhancedExamSheetListTab({
                 </div>
                 {searchSummary.totalResults > 0 && (
                   <div className="text-xs">
-                    {searchSummary.resultRange.start} - {searchSummary.resultRange.end} 표시
+                    {searchSummary.resultRange.start} -{" "}
+                    {searchSummary.resultRange.end} 표시
                   </div>
                 )}
                 {selectionState.hasSelection && (
@@ -339,17 +342,10 @@ export function EnhancedExamSheetListTab({
         <Separator />
 
         {/* 콘텐츠 영역 (로딩, 에러, 빈 상태, 테이블) */}
-        <div 
-          ref={listContainerRef}
-          className="flex-1 overflow-auto"
-        >
+        <div ref={listContainerRef} className="flex-1 overflow-auto">
           {/* 로딩 상태 - 개선된 스켈레톤 UI */}
           {dataState.isLoading && !dataState.hasError && (
-            <ExamListLoadingSkeleton 
-              itemCount={10}
-              isShowHeader={true}
-
-            />
+            <ExamListLoadingSkeleton itemCount={10} isShowHeader={true} />
           )}
 
           {/* 에러 상태 */}
@@ -358,9 +354,9 @@ export function EnhancedExamSheetListTab({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 시험 목록을 불러오는 중 오류가 발생했습니다.
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleRefresh}
                   className="ml-2"
                 >
@@ -374,20 +370,18 @@ export function EnhancedExamSheetListTab({
           {dataState.isEmpty && !dataState.hasError && !dataState.isLoading && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="text-muted-foreground text-lg mb-2">
-                {dataState.isFiltered 
+                {dataState.isFiltered
                   ? "조건에 맞는 시험이 없습니다"
-                  : "등록된 시험이 없습니다"
-                }
+                  : "등록된 시험이 없습니다"}
               </div>
               <div className="text-sm text-muted-foreground mb-4">
-                {dataState.isFiltered 
+                {dataState.isFiltered
                   ? "다른 필터 조건을 시도해보세요"
-                  : "새로운 시험을 등록해보세요"
-                }
+                  : "새로운 시험을 등록해보세요"}
               </div>
               {dataState.isFiltered && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleResetFilters}
                   size="sm"
                 >
@@ -445,7 +439,10 @@ export function EnhancedExamSheetListTab({
         {selectionState.hasSelection && (
           <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div className="text-sm text-blue-800">
-              <span className="font-medium">{selectionState.selectedCount}개</span>의 시험이 선택되었습니다
+              <span className="font-medium">
+                {selectionState.selectedCount}개
+              </span>
+              의 시험이 선택되었습니다
             </div>
             <div className="flex gap-2">
               <Button
@@ -493,7 +490,7 @@ export function EnhancedExamSheetListTab({
                   시험의 기본 정보와 시험지 상세 내용을 확인할 수 있습니다.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <ScrollArea className="flex-1 max-h-[60vh]">
                 {selectedExamDetail.isLoading ? (
                   <ExamDetailLoading />
@@ -520,7 +517,11 @@ export function EnhancedExamSheetListTab({
                   시험 제출 현황
                   {selectedExamSubmissionStatus.submissionStatus && (
                     <Badge variant="outline">
-                      제출률 {selectedExamSubmissionStatus.submissionStatus.submissionStats.submissionRate.toFixed(1)}%
+                      제출률{" "}
+                      {selectedExamSubmissionStatus.submissionStatus.submissionStats.submissionRate.toFixed(
+                        1,
+                      )}
+                      %
                     </Badge>
                   )}
                 </DialogTitle>
@@ -528,7 +529,7 @@ export function EnhancedExamSheetListTab({
                   실시간 제출 현황과 통계를 확인할 수 있습니다.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <ScrollArea className="flex-1 max-h-[60vh]">
                 {selectedExamSubmissionStatus.isLoading ? (
                   <SubmissionStatusLoading />
@@ -540,10 +541,17 @@ export function EnhancedExamSheetListTab({
                     <div className="text-center py-8 text-muted-foreground">
                       <div className="space-y-2">
                         <p>제출 현황 상세 테이블</p>
-                        <p className="text-sm">서버 연동 중 - 곧 제공될 예정입니다.</p>
+                        <p className="text-sm">
+                          서버 연동 중 - 곧 제공될 예정입니다.
+                        </p>
                         {selectedExamSubmissionStatus.submissionStatus && (
                           <div className="text-xs">
-                            최근 제출: {selectedExamSubmissionStatus.submissionStatus.recentSubmissions.length}개
+                            최근 제출:{" "}
+                            {
+                              selectedExamSubmissionStatus.submissionStatus
+                                .recentSubmissions.length
+                            }
+                            개
                           </div>
                         )}
                       </div>

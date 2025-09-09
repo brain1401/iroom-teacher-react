@@ -29,7 +29,10 @@ export const selectedGradeAtom = atom<string>(""); // "1", "2", "3", "" (전체)
  */
 export const examPageAtom = atom<number>(0); // 서버는 0부터 시작
 export const examPageSizeAtom = atomWithStorage<number>("exam-page-size", 20);
-export const examSortAtom = atomWithStorage<string>("exam-sort", "createdAt,desc");
+export const examSortAtom = atomWithStorage<string>(
+  "exam-sort",
+  "createdAt,desc",
+);
 
 /**
  * 추가 필터 원자들
@@ -41,13 +44,11 @@ export const recentExamFilterAtom = atom<boolean>(false);
  * 통합 필터 상태 원자
  * @description UI 컴포넌트에서 사용하는 통합 필터 객체
  */
-export const examFiltersAtom = atom<ExamListFilters>(
-  (get) => ({
-    searchKeyword: get(searchKeywordAtom),
-    searchScope: get(searchScopeAtom),
-    selectedGrade: get(selectedGradeAtom),
-  }),
-);
+export const examFiltersAtom = atom<ExamListFilters>((get) => ({
+  searchKeyword: get(searchKeywordAtom),
+  searchScope: get(searchScopeAtom),
+  selectedGrade: get(selectedGradeAtom),
+}));
 
 /**
  * 서버 파라미터 변환 원자
@@ -61,7 +62,7 @@ export const examServerParamsAtom = atom<ServerExamListParams>((get) => {
   const recent = get(recentExamFilterAtom);
 
   const serverParams = convertFiltersToServerParams(filters);
-  
+
   return {
     ...serverParams,
     page,
@@ -265,14 +266,19 @@ export const advancedSearchOptionsAtom = atom<{
  * 필터 프리셋 원자
  * @description 자주 사용하는 필터 조합을 저장하는 원자
  */
-export const filterPresetsAtom = atom<Record<string, {
-  name: string;
-  filters: {
-    statusFilters: string[];
-    questionCountRange: { min: number; max: number };
-    participationRateRange: { min: number; max: number };
-  };
-}>>({
+export const filterPresetsAtom = atom<
+  Record<
+    string,
+    {
+      name: string;
+      filters: {
+        statusFilters: string[];
+        questionCountRange: { min: number; max: number };
+        participationRateRange: { min: number; max: number };
+      };
+    }
+  >
+>({
   recent: {
     name: "최근 시험",
     filters: {

@@ -1,7 +1,10 @@
-import { forwardRef, useEffect, memo } from "react";
-import type { ExamQuestionsData } from "@/api/exam/exam-questions-types";
+import { forwardRef, memo } from "react";
+import type {
+  ExamPrintData,
+  ExamQuestion,
+  MultipleChoiceOption,
+} from "@/api/exam/exam-questions-types";
 import { cn } from "@/lib/utils";
-import logger from "@/utils/logger";
 
 /**
  * 시험지 인쇄 템플릿 컴포넌트
@@ -23,7 +26,7 @@ import logger from "@/utils/logger";
 
 type ExamPrintTemplateProps = {
   /** 시험 문제 데이터 */
-  examData: ExamQuestionsData;
+  examData: ExamPrintData;
   /** 인쇄 타입 */
   printType?: "problem" | "answer" | "studentAnswer";
   /** 추가 CSS 클래스 */
@@ -35,7 +38,7 @@ type ExamPrintTemplateProps = {
 /**
  * 문제 텍스트에서 HTML 태그 제거 및 LaTeX 변환
  */
-function processQuestionText(text: string): string {
+function ProcessQuestionText(text: string): string {
   // HTML 태그 제거
   const withoutHtml = text.replace(/<[^>]*>/g, "");
 
@@ -54,34 +57,34 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
     const { examName, grade, questions, totalQuestions, totalPoints } =
       examData;
 
-    // 로깅: 컴포넌트 렌더링 및 ref 상태
-    useEffect(() => {
-      logger.debug("[ExamPrintTemplate] 컴포넌트 렌더링", {
-        examName,
-        grade,
-        questionsLength: questions?.length || 0,
-        totalQuestions,
-        totalPoints,
-        printType,
-        refExists: !!ref,
-        refCurrent:
-          ref && typeof ref === "object" && "current" in ref
-            ? !!ref.current
-            : false,
-      });
+    // 로깅: 컴포넌트 렌더링 및 ref 상태 (성능 최적화를 위해 제거)
+    // useEffect(() => {
+    //   logger.debug("[ExamPrintTemplate] 컴포넌트 렌더링", {
+    //     examName,
+    //     grade,
+    //     questionsLength: questions?.length || 0,
+    //     totalQuestions,
+    //     totalPoints,
+    //     printType,
+    //     refExists: !!ref,
+    //     refCurrent:
+    //       ref && typeof ref === "object" && "current" in ref
+    //         ? !!ref.current
+    //         : false,
+    //   });
 
-      // ref가 할당된 후 DOM 요소 확인
-      if (ref && typeof ref === "object" && "current" in ref && ref.current) {
-        const element = ref.current;
-        logger.debug("[ExamPrintTemplate] ref DOM 요소 확인", {
-          tagName: element.tagName,
-          className: element.className,
-          offsetHeight: element.offsetHeight,
-          scrollHeight: element.scrollHeight,
-          children: element.children.length,
-        });
-      }
-    }, [examData, printType, ref]);
+    //   // ref가 할당된 후 DOM 요소 확인
+    //   if (ref && typeof ref === "object" && "current" in ref && ref.current) {
+    //     const element = ref.current;
+    //     logger.debug("[ExamPrintTemplate] ref DOM 요소 확인", {
+    //       tagName: element.tagName,
+    //       className: element.className,
+    //       offsetHeight: element.offsetHeight,
+    //       scrollHeight: element.scrollHeight,
+    //       children: element.children.length,
+    //     });
+    //   }
+    // }, [examData, printType, ref]);
 
     // 한 페이지당 문제 수 (문제가 잘리지 않도록 더 적게: 3문제)
     const questionsPerPage = 3;
@@ -166,10 +169,17 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
             startIndex + questionsPerPage,
             questions.length,
           );
-          const pageQuestions = questions.slice(startIndex, endIndex);
+          // 문제 순서대로 정렬
+          const sortedQuestions = [...questions].sort(
+            (a, b) => a.order - b.order,
+          );
+          const pageQuestions = sortedQuestions.slice(startIndex, endIndex);
 
           return (
-            <div key={pageIndex} className="exam-page">
+            <div
+              key={`page-${pageIndex}-${startIndex}-${endIndex}`}
+              className="exam-page"
+            >
               {pageIndex > 0 && <div className="page-break" />}
 
               {/* 시험지 헤더 */}
@@ -191,20 +201,7 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
                         src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSJ3aGl0ZSIvPgo8cmVjdCB4PSI4IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSIyNCIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNDAiIHk9IjgiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjU2IiB5PSI4IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI3MiIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iOCIgeT0iMjQiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0IiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNDAiIHk9IjI0IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI1NiIgeT0iMjQiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcyIiB5PSIyNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iOCIgeT0iNDAiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0IiB5PSI0MCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI1NiIgeT0iNDAiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcyIiB5PSI0MCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iOCIgeT0iNTYiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0IiB5PSI1NiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNDAiIHk9IjU2IiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI1NiIgeT0iNTYiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcyIiB5PSI1NiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iOCIgeT0iNzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjI0IiB5PSI3MiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iNDAiIHk9IjcyIiB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSJibGFjayIvPgo8cmVjdCB4PSI1NiIgeT0iNzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9ImJsYWNrIi8+CjxyZWN0IHg9IjcyIiB5PSI3MiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iYmxhY2siLz4KPC9zdmc+"
                         alt="QR Code"
                         className="w-16 h-16"
-                        onError={(e) => {
-                          // QR코드 로딩 실패 시 대체 텍스트 표시
-                          e.currentTarget.style.display = "none";
-                          const nextElement = e.currentTarget
-                            .nextElementSibling as HTMLElement;
-                          if (nextElement) {
-                            nextElement.style.display = "block";
-                          }
-                        }}
                       />
-                      <div className="text-xs text-center hidden">
-                        <div className="font-bold">QR</div>
-                        <div>CODE</div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -226,7 +223,7 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
 
               {/* 문제 목록 */}
               <div className="questions-container space-y-8">
-                {pageQuestions.map((question, index) => {
+                {pageQuestions.map((question: ExamQuestion, index: number) => {
                   const globalIndex = startIndex + index;
 
                   return (
@@ -247,7 +244,7 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
                       {/* 문제 내용 */}
                       <div className="question-content mb-4">
                         <p className="text-base leading-relaxed">
-                          {processQuestionText(question.questionText)}
+                          {ProcessQuestionText(question.questionText)}
                         </p>
                       </div>
 
@@ -256,22 +253,48 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
                         <div className="answer-area border-t border-gray-300 pt-3">
                           <div className="text-sm font-bold mb-2">정답:</div>
                           <div className="flex space-x-8">
-                            {["①", "②", "③", "④", "⑤"].map((option) => (
-                              <label
-                                key={option}
-                                className="flex items-center space-x-2"
-                              >
-                                <input
-                                  type="radio"
-                                  name={`question-${question.questionId}`}
-                                  className="w-4 h-4"
-                                  disabled
-                                />
-                                <span className="text-sm font-bold">
-                                  {option}
-                                </span>
-                              </label>
-                            ))}
+                            {question.options?.map(
+                              (
+                                option: MultipleChoiceOption,
+                                optionIndex: number,
+                              ) => (
+                                <label
+                                  key={option.optionNumber}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`question-${question.questionId}`}
+                                    className="w-4 h-4"
+                                    disabled
+                                    checked={option.isCorrect}
+                                  />
+                                  <span className="text-sm font-bold">
+                                    {["①", "②", "③", "④", "⑤"][optionIndex]}
+                                  </span>
+                                  <span className="text-sm ml-1">
+                                    {option.content}
+                                  </span>
+                                </label>
+                              ),
+                            ) ||
+                              // 기본 선택지 (options가 없는 경우)
+                              ["①", "②", "③", "④", "⑤"].map((option) => (
+                                <label
+                                  key={option}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`question-${question.questionId}`}
+                                    className="w-4 h-4"
+                                    disabled
+                                  />
+                                  <span className="text-sm font-bold">
+                                    {option}
+                                  </span>
+                                </label>
+                              ))}
                           </div>
                         </div>
                       ) : (
@@ -279,7 +302,23 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
                           <div className="text-sm font-bold mb-2">답안:</div>
                           <div className="border border-black min-h-20 p-3">
                             {/* 답안 작성 공간 */}
+                            <div className="text-gray-400 text-sm">
+                              {question.questionType === "SHORT_ANSWER"
+                                ? "단답형 답안을 작성하세요"
+                                : "서술형 답안을 작성하세요"}
+                            </div>
                           </div>
+                          {/* 정답 표시 (인쇄 타입이 answer인 경우) */}
+                          {printType === "answer" && question.correctAnswer && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                              <div className="text-sm font-bold text-yellow-800">
+                                정답:
+                              </div>
+                              <div className="text-sm text-yellow-700">
+                                {question.correctAnswer}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -306,5 +345,7 @@ const ExamPrintTemplate = forwardRef<HTMLDivElement, ExamPrintTemplateProps>(
 
 ExamPrintTemplate.displayName = "ExamPrintTemplate";
 
-// React.memo로 최적화하여 불필요한 리렌더링 방지
-export const MemoizedExamPrintTemplate = memo(ExamPrintTemplate);
+// React.memo로 래핑하여 불필요한 리렌더링 방지
+const MemoizedExamPrintTemplate = memo(ExamPrintTemplate);
+
+export { MemoizedExamPrintTemplate as ExamPrintTemplate };

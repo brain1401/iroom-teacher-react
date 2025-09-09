@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
@@ -22,6 +22,7 @@ import {
   setExamPageAtom,
 } from "@/atoms/examFilters";
 import { examListQueryOptions } from "@/api/exam";
+import { examSheetListQueryOptions } from "@/api/exam-sheet";
 
 /**
  * 시험 관리 페이지 검색 파라미터 스키마
@@ -72,27 +73,20 @@ export const Route = createFileRoute("/main/exam/manage/")({
 
     try {
       // 서버에서 시험 목록 데이터 사전 로드
-      const data = await queryClient.ensureQueryData(
-        examListQueryOptions(serverParams),
-      );
+      await Promise.all([
+        queryClient.ensureQueryData(examListQueryOptions(serverParams)),
 
-      return {
-        examListData: data,
-        serverParams,
-        searchParams: deps,
-        success: true,
-        error: null,
-      };
+        queryClient.prefetchQuery(
+          examSheetListQueryOptions({
+            direction: "desc",
+            page: 0,
+            size: 10,
+            sort: "createdAt",
+          }),
+        ),
+      ]);
     } catch (error) {
       console.error("시험 목록 데이터 사전 로드 실패:", error);
-
-      return {
-        examListData: null,
-        serverParams,
-        searchParams: deps,
-        success: false,
-        error: error instanceof Error ? error.message : "데이터 로딩 실패",
-      };
     }
   },
   component: RouteComponent,
@@ -208,7 +202,7 @@ function RouteComponent() {
   }, [activeTab]);
 
   /**
-   * 시험지 페이지 컴포넌트
+   * 시험 관리 페이지 컴포넌트
    * @description 탭 전환 및 하단 밑줄 애니메이션 제공
    *
    * 주요 기능:
@@ -225,7 +219,7 @@ function RouteComponent() {
       </TabsContent>
 
       <TabsContent value="register" className="mt-10">
-        <ExamSheetRegistrationTab />
+        <ExamCreationTab />
       </TabsContent>
     </>
   );
