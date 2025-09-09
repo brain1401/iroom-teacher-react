@@ -6,7 +6,7 @@ import { ProblemModal } from "@/components/layout/ProblemModal";
 import { Button } from "@/components/ui/button";
 import { ExamTable } from "@/components/exam/ExamListTable";
 import { ExamSheetTable } from "./ExamSheetTable";
-// import { ExamPrintModal } from "@/components/exam/ExamPrintModal"; // TODO: ExamPrintModal 컴포넌트 구현 필요
+import { ExamPrintModal } from "@/components/exam/ExamPrintModal";
 import { currentExamListAtom, examSearchSummaryAtom } from "@/atoms/exam";
 import { filteredSheetListAtom } from "@/atoms/sheetFilters";
 import {
@@ -415,14 +415,14 @@ export function ExamSheetListTab({ dataType = "exam" }: ExamSheetListTabProps) {
         />
       )}
 
-      {/* 프린트 모달 - TODO: ExamPrintModal 컴포넌트 구현 후 활성화 */}
-      {/* {printModalExamId && (
+      {/* 프린트 모달 */}
+      {printModalExamId && (
         <ExamPrintModal
           isOpen={isPrintModalOpen}
           examId={printModalExamId}
           onClose={handleClosePrintModal}
         />
-      )} */}
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useSetAtom } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { useLayoutEffect, useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
-import { ExamCreationTab, ExamSheetRegistrationTab } from "@/components/exam";
+import { ExamCreationTab } from "@/components/exam";
 import { ExamSheetListTab } from "@/components/sheet";
 import { isShowHeaderAtom } from "@/atoms/ui";
 import {
